@@ -387,6 +387,28 @@ class PulseApiClient extends PulseApiCore {
     return this.login(user.username, IS_DEV ? DEMO_LOGIN_PASSWORD : '');
   }
 
+  // ================= PKG-10: ACCOUNT LIFECYCLE =================
+
+  /** Xuất toàn bộ dữ liệu cá nhân (JSON download). */
+  public async exportMyData(): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>('/users/me/export');
+  }
+
+  /** Xóa tài khoản vĩnh viễn (soft-delete phía server + thu hồi mọi phiên). */
+  public async deleteMyAccount(): Promise<{ deleted: boolean; username: string; message: string }> {
+    const result = await this.request<{ deleted: boolean; username: string; message: string }>('/users/me', {
+      method: 'DELETE',
+    });
+    // Dọn trạng thái cục bộ ngay — server đã thu hồi token.
+    this.setToken(null);
+    this.setActiveUserId(PRESET_USERS[0]?.id ?? '');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pulse_auth_token');
+      localStorage.removeItem('pulse_active_user_id');
+    }
+    return result;
+  }
+
   public async logout(): Promise<ApiResponse<LogoutResponseDto>> {
     try {
       await fetch(`${this.baseUrl}/auth/logout`, {
