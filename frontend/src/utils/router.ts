@@ -16,7 +16,7 @@
  */
 // PKG-08: type definitions đặt tại đây (nguồn duy nhất) — PulseContext
 // re-export lại để giữ tương thích với các import hiện có.
-export type ViewType = 'home' | 'explore' | 'notifications' | 'profile' | 'thread' | 'messages' | 'bookmarks';
+export type ViewType = 'home' | 'explore' | 'notifications' | 'profile' | 'thread' | 'messages' | 'bookmarks' | 'stats';
 
 export interface ViewParams {
   postId?: string;
@@ -34,7 +34,7 @@ export interface RouteLocation {
   path: string;
 }
 
-const VIEWS: ViewType[] = ['home', 'explore', 'notifications', 'profile', 'thread', 'messages', 'bookmarks'];
+const VIEWS: ViewType[] = ['home', 'explore', 'notifications', 'profile', 'thread', 'messages', 'bookmarks', 'stats'];
 
 /** View + params → path chuẩn (dùng cho pushState). */
 export function viewToPath(view: ViewType, params: ViewParams = {}): string {
@@ -47,6 +47,8 @@ export function viewToPath(view: ViewType, params: ViewParams = {}): string {
       return params.conversationId ? `/messages/${encodeURIComponent(params.conversationId)}` : '/messages';
     case 'bookmarks':
       return '/bookmarks';
+    case 'stats':
+      return '/stats';
     case 'profile': {
       if (!params.username) return '/';
       const query = params.tab ? `?tab=${encodeURIComponent(params.tab)}` : '';
@@ -94,6 +96,9 @@ export function parsePath(pathname: string, search = ''): RouteLocation | null {
   }
   if (path === '/bookmarks') {
     return { view: 'bookmarks', params: {}, path };
+  }
+  if (path === '/stats') {
+    return { view: 'stats', params: {}, path };
   }
   const messagesMatch = path.match(/^\/messages\/([^/]+)$/);
   if (messagesMatch) {

@@ -3,6 +3,7 @@ import { usePulse } from '../context/PulseContext';
 import { VerifiedBadge } from './VerifiedBadge';
 import { WebPushToggle } from './WebPushToggle';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import { BarChart3 } from 'lucide-react';
 
 // SEC-06: toàn bộ UI demo chỉ tồn tại ở môi trường dev
 const IS_DEV: boolean = import.meta.env.DEV;
@@ -341,6 +342,19 @@ export const NavigationSidebar: React.FC = () => {
 
                       {/* PKG-02: chuyển giao diện Light/Dark/Black/System */}
                       <ThemeSwitcher />
+
+                      {/* PKG-14: Creator Dashboard */}
+                      <button
+                        onClick={() => {
+                          setIsSwitcherOpen(false);
+                          navigateTo('stats');
+                        }}
+                        className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-ink hover:bg-mist rounded-xl transition-colors text-left"
+                        data-testid="sidebar-stats-btn"
+                      >
+                        <BarChart3 className="w-4 h-4 text-graphite" />
+                        <span>Thống kê của tôi</span>
+                      </button>
 
                       {/* Đổi tài khoản demo — chỉ hiển thị ở môi trường dev (SEC-06) */}
                       {IS_DEV && (

@@ -291,6 +291,12 @@ class PulseApiClient extends PulseApiCore {
     }
   }
 
+  // ================= PKG-14: CREATOR STATS =================
+
+  public async getMyStats(): Promise<unknown> {
+    return this.request<unknown>('/users/me/stats');
+  }
+
   // ================= PKG-04: REPORT & MODERATION =================
 
   /** Gửi báo cáo vi phạm cho POST / USER / DM_MESSAGE / GROUP_MESSAGE. */

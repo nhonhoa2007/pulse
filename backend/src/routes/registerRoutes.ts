@@ -106,6 +106,7 @@ export async function registerV1Routes(v1: FastifyInstance): Promise<void> {
   v1.patch('/users/profile', userController.updateProfile.bind(userController));
   v1.get('/users/me', userController.getMe.bind(userController));
   v1.delete('/users/me', userController.deleteMe.bind(userController));
+  v1.get('/users/me/stats', userController.getMyStats.bind(userController));
   v1.get('/users/me/export', userController.exportMe.bind(userController));
   v1.get('/users/:username', userController.getProfile.bind(userController));
   v1.get('/users/:username/posts', userController.getUserPosts.bind(userController));

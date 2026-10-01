@@ -3,6 +3,7 @@ import { prisma } from '../../db/PrismaClientSingleton.js';
 import { formatPollDto } from '../polls/PollDto.js';
 import { postImpressionsBufferService } from '../posts/PostImpressionsBufferService.js';
 import { deleteAccountService, UserNotFoundError } from './DeleteAccountService.js';
+import { creatorStatsService } from './CreatorStatsService.js';
 import {
   ApiResponse,
   UserDto,
@@ -620,6 +621,36 @@ export class UserController {
         isLocked: false,
       },
     };
+  }
+
+  // ================= PKG-14: CREATOR STATS =================
+
+  /**
+   * GET /api/v1/users/me/stats — thống kê dashboard tác giả.
+   */
+  public async getMyStats(req: FastifyRequest, reply: FastifyReply): Promise<ApiResponse<unknown>> {
+    const currentUserId = (req as unknown as { currentUserId?: string | null }).currentUserId;
+    if (!currentUserId) {
+      reply.status(401);
+      return {
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      };
+    }
+
+    try {
+      const data = await creatorStatsService.getStats(currentUserId);
+      return { success: true, data };
+    } catch (err: any) {
+      if (err?.code === 'USER_NOT_FOUND') {
+        reply.status(404);
+        return {
+          success: false,
+          error: { code: 'USER_NOT_FOUND', message: 'User not found' },
+        };
+      }
+      throw err;
+    }
   }
 
   // ================= PKG-10: ACCOUNT LIFECYCLE =================
