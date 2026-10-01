@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { formatPollDto } from '../polls/PollDto.js';
 import { postImpressionsBufferService } from '../posts/PostImpressionsBufferService.js';
+import { deleteAccountService, UserNotFoundError } from './DeleteAccountService.js';
 import {
   ApiResponse,
   UserDto,
@@ -39,7 +40,7 @@ export class UserController {
       where: { id: currentUserId },
     });
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       reply.status(404);
       return {
         success: false,
@@ -76,7 +77,7 @@ export class UserController {
       where: { username },
     });
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       reply.status(404);
       return {
         success: false,
@@ -619,6 +620,76 @@ export class UserController {
         isLocked: false,
       },
     };
+  }
+
+  // ================= PKG-10: ACCOUNT LIFECYCLE =================
+
+  /**
+   * DELETE /api/v1/users/me — xóa tài khoản (soft-delete nguyên tử).
+   */
+  public async deleteMe(req: FastifyRequest, reply: FastifyReply): Promise<ApiResponse<unknown>> {
+    const currentUserId = (req as unknown as { currentUserId?: string | null }).currentUserId;
+    if (!currentUserId) {
+      reply.status(401);
+      return {
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      };
+    }
+
+    try {
+      const result = await deleteAccountService.deleteAccount(currentUserId);
+      reply.status(200);
+      return {
+        success: true,
+        data: {
+          deleted: true,
+          username: result.username,
+          message: 'Tài khoản đã được xóa. Tất cả phiên đăng nhập đã bị thu hồi.',
+        },
+      };
+    } catch (err) {
+      if (err instanceof UserNotFoundError) {
+        reply.status(404);
+        return {
+          success: false,
+          error: { code: 'USER_NOT_FOUND', message: 'User not found' },
+        };
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * GET /api/v1/users/me/export — xuất toàn bộ dữ liệu cá nhân (JSON).
+   */
+  public async exportMe(req: FastifyRequest, reply: FastifyReply): Promise<ApiResponse<unknown>> {
+    const currentUserId = (req as unknown as { currentUserId?: string | null }).currentUserId;
+    if (!currentUserId) {
+      reply.status(401);
+      return {
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      };
+    }
+
+    try {
+      const data = await deleteAccountService.exportData(currentUserId);
+      reply.header('Content-Disposition', 'attachment; filename="pulse-data-export.json"');
+      return {
+        success: true,
+        data,
+      };
+    } catch (err) {
+      if (err instanceof UserNotFoundError) {
+        reply.status(404);
+        return {
+          success: false,
+          error: { code: 'USER_NOT_FOUND', message: 'User not found' },
+        };
+      }
+      throw err;
+    }
   }
 }
 

@@ -66,6 +66,10 @@ model User {
   refreshTokens             RefreshToken[]        @relation("UserRefreshTokens")
   revokedTokens             RevokedToken[]        @relation("UserRevokedTokens")
 
+  // PKG-10: Account Lifecycle — soft-delete tài khoản
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+
   @@index([username])
 }
 

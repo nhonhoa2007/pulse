@@ -189,7 +189,7 @@ export class AuthService {
       },
     });
 
-    if (!user || !user.passwordHash) {
+    if (!user || !user.passwordHash || user.isDeleted) {
       throw new AuthUnauthorizedError('Tên đăng nhập hoặc mật khẩu không đúng');
     }
 
