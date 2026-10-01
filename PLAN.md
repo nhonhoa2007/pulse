@@ -261,6 +261,7 @@ Chạy ngày 2026-10-01, Node v26.8.1, PostgreSQL local (user postgres):
 | Backend (37 file test) | `npm test` (`node --test --test-concurrency=1`) | **415/415 PASS** | 24.4s |
 | Frontend (8 file test) | `npm test` | **174/174 PASS** | 0.2s |
 | **Tổng baseline** | | **589/589 PASS** | |
+| *Cập nhật 2026-10-01 sau GĐ 1* | *sau Hardening Week* | ***605/605 PASS*** (431 backend + 174 frontend) | |
 
 > Ghi chú: con số "476/476" từng ghi trong `improve.md` là số liệu cũ đã lỗi thời. Từ ngày 2026-10-01, mọi số liệu test của dự án chỉ được ghi nhận tại phụ lục này.
 

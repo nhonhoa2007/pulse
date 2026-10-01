@@ -3,7 +3,7 @@
 **Chỉ huy:** Tech Lead & System Architect
 **Nhân sự điều phối:** `backend-architect`, `frontend-specialist`, `qa-test-engineer`, `security-auditor`
 **Căn cứ:** Bản quét & đánh giá toàn project (2026-10-01) + `improve.md` (PKG-01 → PKG-07)
-**Trạng thái:** 🚀 ĐANG THỰC THI — ✅ GĐ 0 hoàn thành (2026-10-01), baseline 589/589 tests
+**Trạng thái:** 🚀 ĐANG THỰC THI — ✅ GĐ 0 + GĐ 1 (Hardening Week) hoàn thành 2026-10-01; baseline mới **605/605 tests** (431 backend + 174 frontend)
 
 ---
 
@@ -61,39 +61,39 @@ Chuyển Pulse từ **"nền kiến trúc lõi vững + ~590 tests pass"** thàn
 
 ## 3. GIAI ĐOẠN 1: HARDENING WEEK (P0 — NIÊM PHONG LỖ HỔNG VẬN HÀNH)
 
-### [SEC-01] Xác thực SSE stream (M — backend-architect + security-auditor)
+### [SEC-01] Xác thực SSE stream (M — backend-architect + security-auditor) — ✅ 2026-10-01
 - **Vấn đề:** `GET /api/v1/realtime/stream` nhận identity từ header `x-user-id` hoặc `?userId=` tự do — bất kỳ ai cũng nghe được stream thông báo/DM của người khác.
-- [ ] `RealtimeEventStreamController.ts`: yêu cầu JWT hợp lệ trước khi `reply.hijack()`. Do `EventSource` không gửi được header, áp dụng mẫu **one-time ticket**: `POST /api/v1/realtime/ticket` (auth JWT) trả về ticket ngắn hạn (≤ 30s, single-use, lưu in-memory map); client kết nối `?ticket=...`.
-- [ ] Nâng cấp `PulseApiClient.ts`: flow lấy ticket trước khi mở `EventSource`.
-- [ ] **Test:** `tests/realtime-sse-auth.test.mjs` — ticket sai/hết hạn/dùng 2 lần bị từ chối 401; không ticket → 401; sự kiện chỉ tới đúng người nhận.
-- [ ] **Security audit:** không lộ userId qua log; ticket không đoán được (crypto.randomBytes).
+- [x] `RealtimeEventStreamController.ts`: yêu cầu JWT hợp lệ trước khi `reply.hijack()`. Do `EventSource` không gửi được header, áp dụng mẫu **one-time ticket**: `POST /api/v1/realtime/ticket` (auth JWT) trả về ticket ngắn hạn (≤ 30s, single-use, lưu in-memory map); client kết nối `?ticket=...`.
+- [x] Nâng cấp `PulseApiClient.ts`: flow lấy ticket trước khi mở `EventSource`.
+- [x] **Test:** `tests/realtime-sse-auth.test.mjs` — ticket sai/hết hạn/dùng 2 lần bị từ chối 401; không ticket → 401; sự kiện chỉ tới đúng người nhận.
+- [x] **Security audit:** không lộ userId qua log; ticket không đoán được (crypto.randomBytes).
 
-### [SEC-02] Loại bỏ kênh định danh `x-user-id` (S — frontend-specialist + backend-architect)
-- [ ] Xóa header `x-user-id` khỏi mọi request trong `PulseApiClient.ts`.
-- [ ] Backend: xóa hoàn toàn fallback `x-user-id` khỏi JWT preHandler (không giữ "dev-only" — tránh đường tắt sản sinh lại).
-- [ ] Demo User Switcher chuyển sang **đăng nhập thật**: gọi `/auth/login` bằng credential preset (seed sẵn password cho user demo).
-- [ ] **Test:** cập nhật toàn bộ suite loại bỏ `x-user-id` — đây là thay đổi xuyên suốt ~37 file test, `qa-test-engineer` chủ trì theo từng domain.
+### [SEC-02] Loại bỏ kênh định danh `x-user-id` (S — frontend-specialist + backend-architect) — ✅ 2026-10-01
+- [x] Xóa header `x-user-id` khỏi mọi request trong `PulseApiClient.ts`.
+- [x] Backend: xóa hoàn toàn fallback `x-user-id` khỏi JWT preHandler (không giữ "dev-only" — tránh đường tắt sản sinh lại).
+- [x] Demo User Switcher chuyển sang **đăng nhập thật**: gọi `/auth/login` bằng credential preset (seed sẵn password cho user demo).
+- [x] **Test:** cập nhật toàn bộ suite loại bỏ `x-user-id` — đây là thay đổi xuyên suốt ~37 file test, `qa-test-engineer` chủ trì theo từng domain.
 
-### [SEC-03] Secrets fail-fast (S — backend-architect)
-- [ ] `buildApp()` throw khi thiếu `JWT_SECRET`/`COOKIE_SECRET` trong env (bất kể môi trường); xóa fallback hardcode `'pulse-secret-key-2026-production-token'`.
-- [ ] Cập nhật `.env`, `.env.example`, README hướng dẫn sinh secret (`openssl rand -base64 48`).
+### [SEC-03] Secrets fail-fast (S — backend-architect) — ✅ 2026-10-01
+- [x] `buildApp()` throw khi thiếu `JWT_SECRET`/`COOKIE_SECRET` trong env (bất kể môi trường); xóa fallback hardcode `'pulse-secret-key-2026-production-token'`.
+- [x] Cập nhật `.env`, `.env.example`, README hướng dẫn sinh secret (`openssl rand -base64 48`).
 
-### [SEC-04] Persist VAPID keypair (S — backend-architect)
-- [ ] VAPID keys đặt vào ENV (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), xóa sinh key trong constructor của `WebPushService`.
-- [ ] Script `backend/scripts/generate-vapid-keys.mjs` (điền vào `.env`).
-- [ ] **Test:** `web-push-notifications.test.mjs` — key ổn định giữa 2 lần khởi tạo app (không còn orphan subscription).
+### [SEC-04] Persist VAPID keypair (S — backend-architect) — ✅ 2026-10-01
+- [x] VAPID keys đặt vào ENV (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), xóa sinh key trong constructor của `WebPushService`.
+- [x] Script `backend/scripts/generate-vapid-keys.mjs` (điền vào `.env`).
+- [x] **Test:** `web-push-notifications.test.mjs` — key ổn định giữa 2 lần khởi tạo app (không còn orphan subscription).
 
-### [SEC-05] Rate limiting (M — backend-architect)
-- [ ] Cài `@fastify/rate-limit`: global 300 req/phút/IP; bucket nghiêm ngặt riêng: `/auth/login|register|refresh` (10/phút/IP), `POST /posts` (10/30s/user), `/media/upload` (20/giờ/user), federation inbox (300/phút/IP).
-- [ ] Trả 429 đúng chuẩn `{ success:false, error:{ code:"RATE_LIMITED" } }`; frontend hiển thị toast thân thiện.
+### [SEC-05] Rate limiting (M — backend-architect) — ✅ 2026-10-01
+- [x] Cài `@fastify/rate-limit`: global 300 req/phút/IP; bucket nghiêm ngặt riêng: `/auth/login|register|refresh` (10/phút/IP), `POST /posts` (10/30s/user), `/media/upload` (20/giờ/user), federation inbox (300/phút/IP).
+- [x] Trả 429 đúng chuẩn `{ success:false, error:{ code:"RATE_LIMITED" } }`; frontend hiển thị toast thân thiện.
 - (Phần Redis-distributed để dành cho PKG-16; bản này là in-memory đủ cho 1 instance.)
-- [ ] **Test:** `tests/rate-limiting.test.mjs` — vượt ngưỡng nhận 429; bucket auth không ảnh hưởng bucket publish; retry-after header.
+- [x] **Test:** `tests/rate-limiting.test.mjs` — vượt ngưỡng nhận 429; bucket auth không ảnh hưởng bucket publish; retry-after header.
 
-### [SEC-06] Dọn demo/data giả khỏi build production (S — frontend-specialist)
-- [ ] `PRESET_USERS`, mock fallback feed, nút "switch account demo" chỉ tồn tại khi `import.meta.env.DEV`; build prod không chứa credential demo.
-- [ ] Client ngừng gửi mọi header tự định danh (liên quan SEC-02).
+### [SEC-06] Dọn demo/data giả khỏi build production (S — frontend-specialist) — ✅ 2026-10-01
+- [x] `PRESET_USERS`, mock fallback feed, nút "switch account demo" chỉ tồn tại khi `import.meta.env.DEV`; build prod không chứa credential demo.
+- [x] Client ngừng gửi mọi header tự định danh (liên quan SEC-02).
 
-**Nghiệm thu GĐ 1:** toàn bộ suite pass không hồi quy + 5 test file mới (SEC-01, 04, 05); `security-auditor` xuất `docs/SECURITY_AUDIT_HARDENING_WEEK.md`; frontend build prod không còn chuỗi `pulse-secret`/`PRESET_USERS`.
+**Nghiệm thu GĐ 1 (✅ đạt 2026-10-01):** 431/431 backend + 174/174 frontend pass; test file mới (SSE-auth, secrets fail-fast, rate-limiting) + helper auth; audit doc tại `docs/SECURITY_AUDIT_HARDENING_WEEK.md`; prod bundle đã xác minh 0 chuỗi demo/secret.
 
 ---
 
