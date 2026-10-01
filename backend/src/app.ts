@@ -1,9 +1,10 @@
 import 'dotenv/config';
-import Fastify, { FastifyInstance, FastifyServerOptions } from 'fastify';
+import Fastify, { FastifyInstance, FastifyRequest, FastifyServerOptions } from 'fastify';
 import cors from '@fastify/cors';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import fastifyCookie from '@fastify/cookie';
+import rateLimit from '@fastify/rate-limit';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
@@ -75,6 +76,28 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
   await app.register(fastifyCookie, {
     secret: COOKIE_SECRET,
   });
+
+  // 1b. Rate limiting (SEC-05): global per-IP ceiling plus strict per-route buckets
+  //     (credential endpoints per-IP, publishing per-user). RATE_LIMIT_DISABLED=1
+  //     (test preload) skips the plugin so request-heavy suites stay deterministic.
+  if (process.env.RATE_LIMIT_DISABLED !== '1') {
+    await app.register(rateLimit, {
+      global: true,
+      max: 300,
+      timeWindow: '1 minute',
+      // The plugin throws this value into Fastify's error pipeline, so return
+      // an Error carrying statusCode/code — the centralized error handler then
+      // renders the standard { success:false, error:{ code, message } } envelope.
+      errorResponseBuilder: (_request, context) => {
+        const err: Error & { statusCode?: number; code?: string } = new Error(
+          `Quá nhiều yêu cầu. Vui lòng thử lại sau ${context.after}.`
+        );
+        err.statusCode = 429;
+        err.code = 'RATE_LIMITED';
+        return err;
+      },
+    });
+  }
 
   // 1c. Initialize In-Memory Denylist Cache from PostgreSQL
   await tokenRevocationManager.initialize();
@@ -189,17 +212,29 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
   }));
 
   // 5. Register API routes under /api/v1
+  // SEC-05: strict per-route rate-limit buckets. Credential endpoints are keyed
+  // by IP; publishing is keyed by authenticated user (falls back to IP).
+  const AUTH_RATE_LIMIT = { max: 10, timeWindow: '1 minute' };
+  const REFRESH_RATE_LIMIT = { max: 30, timeWindow: '1 minute' };
+  const PUBLISH_RATE_LIMIT = {
+    hook: 'preHandler' as const,
+    keyGenerator: (request: FastifyRequest) => request.currentUserId || request.ip,
+    max: 20,
+    timeWindow: '1 minute',
+  };
+  const UPLOAD_RATE_LIMIT = { max: 20, timeWindow: '1 hour' };
+
   await app.register(
     async (v1) => {
       // Auth Endpoints
-      v1.post('/auth/register', authController.register.bind(authController));
-      v1.post('/auth/login', authController.login.bind(authController));
-      v1.post('/auth/refresh', authController.refreshToken.bind(authController));
+      v1.post('/auth/register', { config: { rateLimit: AUTH_RATE_LIMIT } }, authController.register.bind(authController));
+      v1.post('/auth/login', { config: { rateLimit: AUTH_RATE_LIMIT } }, authController.login.bind(authController));
+      v1.post('/auth/refresh', { config: { rateLimit: REFRESH_RATE_LIMIT } }, authController.refreshToken.bind(authController));
       v1.post('/auth/logout', authController.logout.bind(authController));
       v1.get('/auth/me', authController.getMe.bind(authController));
 
       // Post & Thread Endpoints
-      v1.post('/posts', postController.createPost.bind(postController));
+      v1.post('/posts', { config: { rateLimit: PUBLISH_RATE_LIMIT } }, postController.createPost.bind(postController));
       v1.get('/posts/:id', postController.getPost.bind(postController));
       v1.get('/posts/:id/thread', postController.getThread.bind(postController));
       v1.patch('/posts/:id', postController.updatePost.bind(postController));
@@ -215,7 +250,7 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
       v1.get('/bookmarks', bookmarkController.getBookmarks.bind(bookmarkController));
 
       // Media Upload Endpoint
-      v1.post('/media/upload', mediaUploadController.upload.bind(mediaUploadController));
+      v1.post('/media/upload', { config: { rateLimit: UPLOAD_RATE_LIMIT } }, mediaUploadController.upload.bind(mediaUploadController));
 
       // Feed & Timeline Endpoints
       v1.get('/feed/home', feedController.getHomeFeed.bind(feedController));
