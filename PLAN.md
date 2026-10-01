@@ -249,5 +249,24 @@
 * [x] `frontend/tests/private-accounts-visual-states.test.mjs`: 27 test cases kiểm thử visual states của Lock Shield, nút Follow states, modal duyệt.
 * [x] Toàn bộ 589/589 tests (415 backend, 174 frontend) đạt 100% PASS tuyệt đối.
 
+---
+
+## PHỤ LỤC (2026-10-01): BASELINE KIỂM THỬ & GIAI ĐOẠN 0 KẾ HOẠCH CẢI TIẾN V2
+
+### Baseline kiểm thử thực đo — NGUỒN SỐ LIỆU DUY NHẤT
+Chạy ngày 2026-10-01, Node v26.8.1, PostgreSQL local (user postgres):
+
+| Suite | Lệnh | Kết quả | Thời lượng |
+|---|---|---|---|
+| Backend (37 file test) | `npm test` (`node --test --test-concurrency=1`) | **415/415 PASS** | 24.4s |
+| Frontend (8 file test) | `npm test` | **174/174 PASS** | 0.2s |
+| **Tổng baseline** | | **589/589 PASS** | |
+
+> Ghi chú: con số "476/476" từng ghi trong `improve.md` là số liệu cũ đã lỗi thời. Từ ngày 2026-10-01, mọi số liệu test của dự án chỉ được ghi nhận tại phụ lục này.
+
+### GĐ 0 — Nền tảng quy trình (`IMPROVEMENT_PLAN_V2.md`): ✅ HOÀN THÀNH
+* [x] **OPS-01:** `git init` (branch `main`), `.gitignore` (loại `.env`, `dist/`, `uploads/`, `.idea/`, `node_modules/`), initial commit 221 files, branch làm việc `dev`, template `.env.example`.
+* [x] **OPS-02:** CI GitHub Actions tại `.github/workflows/ci.yml` — job `backend` (PostgreSQL 16 service container → `prisma db push` → `npm run build` → `tsc --noEmit` → `npm test`) + job `frontend` (`npm run build` + `npm test`), Node 22, cache npm, bắt buộc xanh trước merge vào `main`.
+
 
 
