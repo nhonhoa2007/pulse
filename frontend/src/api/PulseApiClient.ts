@@ -269,10 +269,49 @@ class PulseApiClient extends PulseApiCore {
     return res ? !!res.bookmarked : false;
   }
 
+  // ================= PKG-04: REPORT & MODERATION =================
+
+  /** Gửi báo cáo vi phạm cho POST / USER / DM_MESSAGE / GROUP_MESSAGE. */
+  public async createReport(input: {
+    targetType: 'POST' | 'USER' | 'DM_MESSAGE' | 'GROUP_MESSAGE';
+    targetId: string;
+    reason: string;
+    details?: string;
+  }): Promise<{ report: { id: string; status: string; autoScore: number; autoLabels: string[] } }> {
+    return this.request<{ report: { id: string; status: string; autoScore: number; autoLabels: string[] } }>('/reports', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  }
+
+  /** Hàng đợi moderation (chỉ admin — backend chặn 403). */
+  public async listAdminReports(params: { status?: string; limit?: number; offset?: number } = {}): Promise<{
+    reports: unknown[];
+    total: number;
+  }> {
+    const query = new URLSearchParams();
+    if (params.status) query.append('status', params.status);
+    if (params.limit) query.append('limit', String(params.limit));
+    if (params.offset) query.append('offset', String(params.offset));
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return this.request<{ reports: unknown[]; total: number }>(`/admin/reports${qs}`);
+  }
+
+  /** Resolve một báo cáo (chỉ admin). */
+  public async resolveAdminReport(
+    reportId: string,
+    action: 'DISMISS' | 'DELETE_POST' | 'SUSPEND_USER' | 'WARN_USER',
+    note?: string
+  ): Promise<{ report: unknown }> {
+    return this.request<{ report: unknown }>(`/admin/reports/${encodeURIComponent(reportId)}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action, note }),
+    });
+  }
+
   public async getBookmarks(): Promise<PostDto[]> {
     const res = await this.request<any>('/bookmarks');
-    if (Array.isArray(res)) return res;
-    if (res && Array.isArray(res.items)) return res.items;
+    if (Array.isArray(res)) return res;    if (res && Array.isArray(res.items)) return res.items;
     if (res && Array.isArray(res.posts)) return res.posts;
     return [];
   }

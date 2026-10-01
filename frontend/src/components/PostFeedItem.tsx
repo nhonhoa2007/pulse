@@ -23,6 +23,7 @@ import {
   PinOff,
   Pencil,
   VolumeX,
+  Flag,
   Eye,
 } from 'lucide-react';
 
@@ -35,6 +36,15 @@ interface PostFeedItemProps {
   observeImpression?: (postId: string, el: HTMLElement | null) => void;
 }
 
+// PKG-04: lý do báo cáo hiển thị cho người dùng
+const REPORT_REASONS: Array<{ value: string; label: string }> = [
+  { value: 'SPAM', label: 'Spam hoặc gây nhiễu' },
+  { value: 'HARASSMENT', label: 'Quấy rối / bắt nạt' },
+  { value: 'HATE_SPEECH', label: 'Ngôn từ thù địch' },
+  { value: 'MISINFORMATION', label: 'Thông tin sai lệch' },
+  { value: 'OTHER', label: 'Lý do khác' },
+];
+
 export const PostFeedItem: React.FC<PostFeedItemProps> = ({
   post,
   isThreadParent = false,
@@ -45,12 +55,31 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
 }) => {
   const { navigateTo, addToast, currentUser } = usePulse();
 
+  // PKG-04: gửi báo cáo bài viết
+  const handleReportPost = async (reason: string) => {
+    if (isReporting) return;
+    setIsReporting(true);
+    try {
+      await api.createReport({ targetType: 'POST', targetId: post.id, reason });
+      addToast('Đã gửi báo cáo. Cảm ơn bạn đã giúp cộng đồng an toàn hơn.', 'success');
+      setShowReportMenu(false);
+      setShowActionMenu(false);
+    } catch (err: any) {
+      addToast(err?.message || 'Không thể gửi báo cáo', 'error');
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   // Action Menu & Modals State
   const [showActionMenu, setShowActionMenu] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState<boolean>(false);
   const [isPinLoading, setIsPinLoading] = useState<boolean>(false);
   const [isMuteLoading, setIsMuteLoading] = useState<boolean>(false);
+  // PKG-04: report flow
+  const [showReportMenu, setShowReportMenu] = useState<boolean>(false);
+  const [isReporting, setIsReporting] = useState<boolean>(false);
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
@@ -596,6 +625,37 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                         <VolumeX className="w-4 h-4 text-ash" />
                         <span>Tắt tiếng @{post.author.username}</span>
                       </button>
+
+                      {/* PKG-04: Báo cáo bài viết */}
+                      {!showReportMenu ? (
+                        <button
+                          type="button"
+                          data-testid="action-report-post"
+                          onClick={() => setShowReportMenu(true)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold text-ink hover:bg-mist rounded-[8px] transition-colors cursor-pointer"
+                        >
+                          <Flag className="w-4 h-4 text-ash" />
+                          <span>Báo cáo bài viết</span>
+                        </button>
+                      ) : (
+                        <div data-testid="report-reason-list" className="border border-cloud rounded-[8px] my-1 p-1">
+                          <p className="px-2 py-1 text-[11px] font-semibold text-ash uppercase tracking-wide">
+                            Chọn lý do báo cáo
+                          </p>
+                          {REPORT_REASONS.map((r) => (
+                            <button
+                              key={r.value}
+                              type="button"
+                              data-testid={`report-reason-${r.value}`}
+                              disabled={isReporting}
+                              onClick={() => handleReportPost(r.value)}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 text-left text-[13px] text-ink hover:bg-mist rounded-[6px] transition-colors disabled:opacity-50"
+                            >
+                              {r.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
 
