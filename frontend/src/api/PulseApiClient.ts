@@ -1167,12 +1167,44 @@ class PulseApiClient {
 
   // ================= REAL-TIME SSE STREAM =================
 
+  /**
+   * SEC-01: mở SSE stream bằng one-time ticket thay vì tự định danh qua header.
+   * Ticket được lấy qua POST /realtime/ticket (JWT auth), dùng đúng 1 lần, TTL 30s.
+   */
   public subscribeRealtimeEvents(
-    userId: string,
+    _userId: string,
     onEvent: (event: RealtimeEvent) => void,
     onError?: (error: Event) => void
   ): () => void {
-    const sseUrl = `${this.baseUrl}/realtime/stream?userId=${encodeURIComponent(userId)}`;
+    let cancelled = false;
+    let streamCleaner: (() => void) | null = null;
+
+    void this.openAuthenticatedRealtimeStream(onEvent, onError)
+      .then((cleaner) => {
+        if (cancelled) {
+          cleaner();
+          return;
+        }
+        streamCleaner = cleaner;
+      })
+      .catch(() => {
+        if (onError) onError(new Event('sse-ticket-error'));
+      });
+
+    return () => {
+      cancelled = true;
+      if (streamCleaner) streamCleaner();
+    };
+  }
+
+  private async openAuthenticatedRealtimeStream(
+    onEvent: (event: RealtimeEvent) => void,
+    onError?: (error: Event) => void
+  ): Promise<() => void> {
+    const ticketData = await this.request<{ ticket: string; expiresIn: number }>('/realtime/ticket', {
+      method: 'POST',
+    });
+    const sseUrl = `${this.baseUrl}/realtime/stream?ticket=${encodeURIComponent(ticketData.ticket)}`;
     const eventSource = new EventSource(sseUrl);
 
     // 1. Listen to named events

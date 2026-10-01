@@ -1,12 +1,62 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ServerResponse } from 'node:http';
+import crypto from 'node:crypto';
+
+const TICKET_TTL_MS = 30_000;
 
 export class RealtimeEventStreamController {
   // Map of userId -> Set of active ServerResponse connections
   private connections: Map<string, Set<ServerResponse>> = new Map();
+  // SEC-01: one-time SSE connection tickets — single-use, short-lived
+  private tickets: Map<string, { userId: string; expiresAt: number }> = new Map();
 
   constructor() {
     this.handleStream = this.handleStream.bind(this);
+    this.requestTicket = this.requestTicket.bind(this);
+  }
+
+  /**
+   * Issue a cryptographically random, single-use ticket bound to a userId.
+   */
+  public issueTicket(userId: string, ttlMs: number = TICKET_TTL_MS): string {
+    this.purgeExpiredTickets();
+    const ticket = crypto.randomBytes(32).toString('base64url');
+    this.tickets.set(ticket, { userId, expiresAt: Date.now() + ttlMs });
+    return ticket;
+  }
+
+  private purgeExpiredTickets(): void {
+    const now = Date.now();
+    for (const [ticket, data] of this.tickets) {
+      if (data.expiresAt <= now) {
+        this.tickets.delete(ticket);
+      }
+    }
+  }
+
+  /**
+   * Fastify handler for POST /api/v1/realtime/ticket (SEC-01).
+   * Requires JWT authentication via the standard preHandler hook.
+   */
+  public requestTicket(req: FastifyRequest, reply: FastifyReply): void {
+    const userId = req.currentUserId;
+    if (!userId) {
+      reply.status(401).send({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required to open a realtime stream',
+        },
+      });
+      return;
+    }
+    reply.send({
+      success: true,
+      data: {
+        ticket: this.issueTicket(userId),
+        expiresIn: Math.round(TICKET_TTL_MS / 1000),
+      },
+    });
   }
 
   /**
@@ -16,11 +66,24 @@ export class RealtimeEventStreamController {
     const rawRes = reply.raw;
     const rawReq = req.raw;
 
-    // Identify user from header x-user-id or query param ?userId=
-    const userId =
-      ((req.headers['x-user-id'] as string | undefined) ||
-        (req.query as Record<string, string | undefined>)?.userId ||
-        'anonymous').trim();
+    // SEC-01: identity comes exclusively from a valid one-time ticket.
+    // Headers and plain userId query params are never trusted.
+    const query = req.query as Record<string, string | undefined>;
+    const ticket = query?.ticket?.trim();
+    const ticketData = ticket ? this.tickets.get(ticket) : undefined;
+    if (!ticketData || ticketData.expiresAt <= Date.now()) {
+      reply.status(401).send({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'A valid one-time realtime ticket is required (?ticket=). Obtain one via POST /api/v1/realtime/ticket.',
+        },
+      });
+      return;
+    }
+    // Tickets are single-use: consume immediately.
+    this.tickets.delete(ticket!);
+    const userId = ticketData.userId;
 
     reply.hijack();
 

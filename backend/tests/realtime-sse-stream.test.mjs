@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
 import { buildApp } from '../dist/app.js';
+import { authHeaders, fetchRealtimeTicket } from './helpers/auth.mjs';
 
 test('Realtime SSE Stream: client connects, receives heartbeat and live pushed events', async (t) => {
   process.env.NODE_ENV = 'test';
@@ -27,7 +28,9 @@ test('Realtime SSE Stream: client connects, receives heartbeat and live pushed e
     },
   });
 
-  // Connect SSE client via native http request
+  // Connect SSE client via one-time ticket (SEC-01)
+  const ticket = await fetchRealtimeTicket(app, user.id);
+
   let receivedConnectedEvent = false;
   let receivedNotificationEvent = false;
 
@@ -35,7 +38,7 @@ test('Realtime SSE Stream: client connects, receives heartbeat and live pushed e
     {
       hostname: '127.0.0.1',
       port: serverPort,
-      path: `/api/v1/realtime/stream?userId=${user.id}`,
+      path: `/api/v1/realtime/stream?ticket=${encodeURIComponent(ticket)}`,
       method: 'GET',
       headers: {
         Accept: 'text/event-stream',
@@ -68,7 +71,7 @@ test('Realtime SSE Stream: client connects, receives heartbeat and live pushed e
   await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': actor.id },
+    headers: authHeaders(actor.id),
     payload: { content: `Hello @${user.username} from SSE test!` },
   });
 

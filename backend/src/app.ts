@@ -300,7 +300,8 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
       v1.get('/search', searchController.search.bind(searchController));
       v1.get('/trending', searchController.getTrending.bind(searchController));
 
-      // Real-Time SSE Stream Endpoint
+      // Real-Time SSE Stream Endpoint (SEC-01: one-time ticket auth)
+      v1.post('/realtime/ticket', realtimeStreamController.requestTicket.bind(realtimeStreamController));
       v1.get('/realtime/stream', realtimeStreamController.handleStream.bind(realtimeStreamController));
 
       // Interactive Polls Endpoints (/api/v1/polls)
