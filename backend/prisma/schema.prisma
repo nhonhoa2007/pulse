@@ -70,6 +70,12 @@ model User {
   isDeleted     Boolean   @default(false)
   deletedAt     DateTime?
 
+  // PKG-04: Moderation
+  accountStatus UserAccountStatus @default(ACTIVE) @map("account_status")
+  isAdmin       Boolean           @default(false) @map("is_admin")
+  reportsFiled  Report[]          @relation("ReportReporter")
+  reportsReviewed Report[]        @relation("ReportReviewer")
+
   @@index([username])
 }
 
@@ -674,3 +680,59 @@ model RevokedToken {
 }
 
 
+
+// ================= PKG-04: Content Moderation & Report System =================
+
+enum ReportTargetType {
+  POST
+  USER
+  DM_MESSAGE
+  GROUP_MESSAGE
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  HATE_SPEECH
+  MISINFORMATION
+  COPYRIGHT
+  VIOLENCE
+  NUDE_SEXUAL
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum UserAccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model Report {
+  id            String           @id @default(uuid())
+  reporterId    String           @map("reporter_id")
+  targetType    ReportTargetType @map("target_type")
+  targetId      String           @map("target_id")
+  reason        ReportReason
+  details       String?
+  status        ReportStatus     @default(PENDING)
+  // PKG-15 pre-filter: heuristic scoring ghi sẵn để admin queue sort theo điểm
+  autoScore     Int              @default(0) @map("auto_score")
+  autoLabels    String[]         @default([]) @map("auto_labels")
+  reviewedById  String?          @map("reviewed_by_id")
+  actionTaken   String?          @map("action_taken")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  reporter    User  @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewedBy  User? @relation("ReportReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([reporterId, targetType, targetId], name: "unique_report_per_reporter")
+  @@index([status, createdAt(sort: Desc)])
+  @@map("reports")
+}

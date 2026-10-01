@@ -193,6 +193,11 @@ export class AuthService {
       throw new AuthUnauthorizedError('Tên đăng nhập hoặc mật khẩu không đúng');
     }
 
+    // PKG-04: tài khoản bị đình chỉ không được đăng nhập
+    if (user.accountStatus === 'SUSPENDED') {
+      throw new AuthValidationError('Tài khoản đã bị đình chỉ. Vui lòng liên hệ quản trị viên.', 'ACCOUNT_SUSPENDED');
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw new AuthUnauthorizedError('Tên đăng nhập hoặc mật khẩu không đúng');

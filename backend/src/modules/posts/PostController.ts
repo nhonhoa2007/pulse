@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { prisma } from '../../db/PrismaClientSingleton.js';
 import { publishPostService } from './PublishPostService.js';
 import { fetchPostDetailService } from './FetchPostDetailService.js';
 import { conversationThreadService } from './ConversationThreadService.js';
@@ -49,6 +50,19 @@ export class PostController {
       return {
         success: false,
         error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      };
+    }
+
+    // PKG-04: tài khoản bị đình chỉ không được đăng bài
+    const publisher = await prisma.user.findUnique({
+      where: { id: currentUserId },
+      select: { accountStatus: true },
+    });
+    if (publisher?.accountStatus === 'SUSPENDED') {
+      reply.status(403);
+      return {
+        success: false,
+        error: { code: 'ACCOUNT_SUSPENDED', message: 'Tài khoản đã bị đình chỉ' },
       };
     }
 

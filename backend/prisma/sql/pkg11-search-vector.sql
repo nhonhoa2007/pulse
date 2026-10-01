@@ -1,6 +1,11 @@
 -- PKG-11: Full-text search tiếng Việt
 -- unaccent() không immutable nên bọc trong hàm wrapper IMMUTABLE (chuẩn mức cộng đồng).
 -- Idempotent — chạy an toàn nhiều lần.
+--
+-- ⚠️ LƯU Ý VẬN HÀNH: cột generated này KHÔNG khai báo trong schema.prisma
+-- (Prisma không hỗ trợ generated column native), nên `prisma db push` sẽ DROP nó.
+-- Sau MỖI lần `db push`, phải chạy lại file này:
+--   psql $DATABASE_URL -f prisma/sql/pkg11-search-vector.sql
 
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
