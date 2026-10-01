@@ -37,7 +37,7 @@ import type {
   FollowActionResponse,
   LogoutResponseDto,
 } from '../types/PulseTypes.ts';
-import { PulseApiCore, IS_DEV } from './core';
+import { PulseApiCore, IS_DEV } from './core.ts';
 
 // SEC-06: môi trường dev detection chuyển vào api/core.ts (IS_DEV export dùng chung).
 
