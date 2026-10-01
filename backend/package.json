@@ -10,7 +10,7 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:seed": "node prisma/seed.mjs",
-    "test": "node --test --test-concurrency=1 tests/*.test.mjs"
+    "test": "node --import ./tests/setup-env.mjs --test --test-concurrency=1 tests/*.test.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^9.4.0",

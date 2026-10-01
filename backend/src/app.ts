@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify, { FastifyInstance, FastifyServerOptions } from 'fastify';
 import cors from '@fastify/cors';
 import fastifyMultipart from '@fastify/multipart';
@@ -7,6 +8,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import { tokenRevocationManager } from './modules/auth/TokenRevocationManager.js';
+import { getJwtSecret, getCookieSecret } from './config/Secrets.js';
 import { followRequestController } from './modules/users/FollowRequestController.js';
 import { postController } from './modules/posts/PostController.js';
 import { feedController } from './modules/feed/FeedController.js';
@@ -40,6 +42,11 @@ declare module 'fastify' {
 }
 
 export async function buildApp(options: FastifyServerOptions = {}): Promise<FastifyInstance> {
+  // 0. Fail-fast secrets (SEC-03): refuse to boot without mandatory secrets.
+  //    No hardcoded fallback values are allowed anywhere in the codebase.
+  const JWT_SECRET = getJwtSecret();
+  const COOKIE_SECRET = getCookieSecret();
+
   const app = Fastify({
     bodyLimit: 1048576, // 1MB payload limit to prevent resource exhaustion / DoS
     logger: process.env.NODE_ENV === 'test' ? false : {
@@ -66,7 +73,7 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
 
   // 1a. Register Fastify Cookie for HttpOnly refresh tokens
   await app.register(fastifyCookie, {
-    secret: process.env.COOKIE_SECRET || 'pulse-cookie-secret-key-123456789',
+    secret: COOKIE_SECRET,
   });
 
   // 1c. Initialize In-Memory Denylist Cache from PostgreSQL
@@ -111,7 +118,6 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
   });
 
   // 4. Request context hook to extract user identity (Bearer JWT or x-user-id fallback)
-  const JWT_SECRET = process.env.JWT_SECRET || 'pulse-secret-key-2026-production-token';
   app.addHook('preHandler', async (request, reply) => {
     let currentUserId: string | null = null;
     let authHeaderProvided = false;

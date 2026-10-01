@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { tokenRevocationManager } from './TokenRevocationManager.js';
+import { getJwtSecret } from '../../config/Secrets.js';
 import {
   RegisterInput,
   LoginInput,
@@ -80,7 +81,7 @@ export interface DualTokenAuthResult extends AuthResponseData {
 
 export class AuthService {
   private get jwtSecret(): string {
-    return process.env.JWT_SECRET || 'pulse-secret-key-2026-production-token';
+    return getJwtSecret();
   }
 
   /**
