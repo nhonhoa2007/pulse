@@ -269,6 +269,28 @@ class PulseApiClient extends PulseApiCore {
     return res ? !!res.bookmarked : false;
   }
 
+  // ================= PKG-01: LINK PREVIEW =================
+
+  /** Lấy OpenGraph metadata của URL (SSRF-guarded, cache 24h server-side). */
+  public async getLinkPreview(url: string): Promise<{
+    url: string;
+    domain: string;
+    title: string;
+    description: string;
+    image: string | null;
+    siteName: string;
+    themeColor: string | null;
+  } | null> {
+    try {
+      const res = await this.request<{ url: string; domain: string; title: string; description: string; image: string | null; siteName: string; themeColor: string | null } | null>(
+        `/link-preview?url=${encodeURIComponent(url)}`
+      );
+      return res || null;
+    } catch {
+      return null;
+    }
+  }
+
   // ================= PKG-04: REPORT & MODERATION =================
 
   /** Gửi báo cáo vi phạm cho POST / USER / DM_MESSAGE / GROUP_MESSAGE. */

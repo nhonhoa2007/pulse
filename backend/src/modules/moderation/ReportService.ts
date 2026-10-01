@@ -221,7 +221,7 @@ export class ReportService {
       throw new ReportValidationError('Báo cáo đã được xử lý', 'ALREADY_RESOLVED');
     }
 
-    let actionTaken = params.action;
+    let actionTaken: string = params.action;
     if (params.action === 'DELETE_POST') {
       if (report.targetType !== 'POST') {
         throw new ReportValidationError('Action DELETE_POST chỉ áp cho mục tiêu POST', 'ACTION_TARGET_MISMATCH');

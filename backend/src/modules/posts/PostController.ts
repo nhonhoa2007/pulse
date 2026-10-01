@@ -1,5 +1,4 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { prisma } from '../../db/PrismaClientSingleton.js';
 import { publishPostService } from './PublishPostService.js';
 import { fetchPostDetailService } from './FetchPostDetailService.js';
 import { conversationThreadService } from './ConversationThreadService.js';

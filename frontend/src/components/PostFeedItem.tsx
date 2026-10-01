@@ -7,6 +7,7 @@ import { VerifiedBadge } from './VerifiedBadge';
 import { QuotePostModal } from './QuotePostModal';
 import { PollComponent } from './PollComponent';
 import { ContentWarningShield } from './ContentWarningShield';
+import { LinkPreviewCard } from './LinkPreviewCard';
 import { EditPostModal } from './EditPostModal';
 import { PostVersionHistoryModal } from './PostVersionHistoryModal';
 import { computeEditWindowRemaining } from '../utils/trustSafety';
@@ -706,6 +707,9 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             {/* Attached Images / Smart Media Grid */}
             {renderMediaGrid(post.mediaUrls)}
           </ContentWarningShield>
+
+          {/* PKG-01: OpenGraph Link Preview */}
+          <LinkPreviewCard content={post.content} />
 
           {/* Embedded Interactive Poll */}
           {post.poll && (

@@ -32,6 +32,7 @@ import { federationResolveController } from '../modules/federation/FederationRes
 import { groupDmController } from '../modules/dm/GroupDmController.js';
 import { webPushController } from '../modules/push/WebPushController.js';
 import { moderationController } from '../modules/moderation/ModerationController.js';
+import { linkPreviewService } from '../modules/linkpreview/LinkPreviewService.js';
 
 // SEC-05: strict per-route rate-limit buckets. Credential endpoints are keyed
 // by IP; publishing is keyed by authenticated user (falls back to IP).
@@ -163,6 +164,9 @@ export async function registerV1Routes(v1: FastifyInstance): Promise<void> {
 
   // Federation Remote Discovery Endpoint (/api/v1/federation/resolve)
   v1.post('/federation/resolve', federationResolveController.resolve.bind(federationResolveController));
+
+  // PKG-01: OpenGraph Link Preview
+  v1.get('/link-preview', linkPreviewService.getPreview);
 
   // PKG-04: Report & Moderation Endpoints
   v1.post('/reports', moderationController.createReport.bind(moderationController));
