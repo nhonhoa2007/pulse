@@ -49,6 +49,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
       method: 'POST',
       url: '/api/v1/media/upload',
       headers: {
+        ...authHeaders(user1.id),
         'content-type': `multipart/form-data; boundary=${boundary}`,
       },
       payload,
@@ -90,6 +91,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
       method: 'POST',
       url: '/api/v1/media/upload',
       headers: {
+        ...authHeaders(user1.id),
         'content-type': `multipart/form-data; boundary=${boundary}`,
       },
       payload,
@@ -117,6 +119,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
       method: 'POST',
       url: '/api/v1/media/upload',
       headers: {
+        ...authHeaders(user1.id),
         'content-type': `multipart/form-data; boundary=${boundary}`,
       },
       payload,

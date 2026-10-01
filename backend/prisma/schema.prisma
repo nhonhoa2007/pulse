@@ -75,6 +75,7 @@ model User {
   isAdmin       Boolean           @default(false) @map("is_admin")
   reportsFiled  Report[]          @relation("ReportReporter")
   reportsReviewed Report[]        @relation("ReportReviewer")
+  mediaAssets   MediaAsset[]      @relation("UserMediaAssets")
 
   @@index([username])
 }
@@ -735,4 +736,23 @@ model Report {
   @@unique([reporterId, targetType, targetId], name: "unique_report_per_reporter")
   @@index([status, createdAt(sort: Desc)])
   @@map("reports")
+}
+
+// ================= PKG-09: Media Asset Registry (alt-text + metadata) =================
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  ownerId   String   @map("owner_id")
+  filename  String
+  mimeType  String   @map("mime_type")
+  sizeBytes Int      @map("size_bytes")
+  width     Int?
+  height    Int?
+  altText   String?  @map("alt_text")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner User @relation("UserMediaAssets", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@map("media_assets")
 }
