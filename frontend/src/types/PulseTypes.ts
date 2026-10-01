@@ -18,6 +18,7 @@ export interface UserDto {
   domain?: string | null;
   actorUri?: string | null;
   createdAt: string;
+  isAdmin?: boolean;
 }
 
 export type ReplyPrivacy = 'EVERYONE' | 'FOLLOWING' | 'MENTIONED';

@@ -1,4 +1,5 @@
 export interface UserDto {
+  isAdmin?: boolean;
   id: string;
   username: string;
   displayName: string;

@@ -16,6 +16,7 @@ import { ConversationThreadView } from './views/ConversationThreadView';
 import { DirectMessagingView } from './views/DirectMessagingView';
 import { BookmarksView } from './views/BookmarksView';
 import { StatsView } from './views/StatsView';
+import { ModerationCenterView } from './views/ModerationCenterView';
 
 const MainContentRouter: React.FC = () => {
   const { currentView } = usePulse();
@@ -37,6 +38,8 @@ const MainContentRouter: React.FC = () => {
       return <BookmarksView />;
     case 'stats':
       return <StatsView />;
+    case 'moderation':
+      return <ModerationCenterView />;
     default:
       return <HomeTimelineView />;
   }

@@ -41,6 +41,7 @@ export function toUserDto(user: {
   bio: string | null;
   isCelebrity: boolean;
   isPrivate?: boolean;
+  isAdmin?: boolean;
   followersCount: number;
   followingCount: number;
   postsCount: number;
@@ -61,6 +62,7 @@ export function toUserDto(user: {
     bio: user.bio,
     isCelebrity: user.isCelebrity,
     isPrivate: Boolean(user.isPrivate),
+    ...(user.isAdmin !== undefined ? { isAdmin: Boolean(user.isAdmin) } : {}),
     followersCount: user.followersCount,
     followingCount: user.followingCount,
     postsCount: user.postsCount,

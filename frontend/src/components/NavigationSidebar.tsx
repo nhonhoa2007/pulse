@@ -3,7 +3,7 @@ import { usePulse } from '../context/PulseContext';
 import { VerifiedBadge } from './VerifiedBadge';
 import { WebPushToggle } from './WebPushToggle';
 import { ThemeSwitcher } from './ThemeSwitcher';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, ShieldAlert } from 'lucide-react';
 
 // SEC-06: toàn bộ UI demo chỉ tồn tại ở môi trường dev
 const IS_DEV: boolean = import.meta.env.DEV;
@@ -342,6 +342,21 @@ export const NavigationSidebar: React.FC = () => {
 
                       {/* PKG-02: chuyển giao diện Light/Dark/Black/System */}
                       <ThemeSwitcher />
+
+                      {/* PKG-15: Trung tâm kiểm duyệt — chỉ admin */}
+                      {currentUser.isAdmin && (
+                        <button
+                          onClick={() => {
+                            setIsSwitcherOpen(false);
+                            navigateTo('moderation');
+                          }}
+                          className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-ink hover:bg-mist rounded-xl transition-colors text-left"
+                          data-testid="sidebar-moderation-btn"
+                        >
+                          <ShieldAlert className="w-4 h-4 text-graphite" />
+                          <span>Kiểm duyệt</span>
+                        </button>
+                      )}
 
                       {/* PKG-14: Creator Dashboard */}
                       <button

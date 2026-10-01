@@ -7,6 +7,7 @@ import { activityDeliveryWorkerService } from '../federation/ActivityDeliveryWor
 import { activityPubKeyManagerService } from '../federation/ActivityPubKeyManagerService.js';
 import { ActivityPubActivity, ActivityPubNote } from '../../contracts/ActivityPubContracts.js';
 import { sanitizeContentWarning } from './UpdatePostService.js';
+import { spamDetectionService } from '../moderation/SpamDetectionService.js';
 
 export interface PublishPostInput {
   authorId: string;
@@ -259,6 +260,13 @@ export class PublishPostService {
     await this.enqueueFederatedDelivery(createdPost).catch((err) => {
       console.error('Error enqueueing federated delivery jobs:', err);
     });
+
+    // PKG-15: pre-filter spam heuristic — auto-flag nếu vượt ngưỡng (không chặn đăng)
+    await spamDetectionService
+      .maybeAutoFlag(createdPost.id, authorId, createdPost.content)
+      .catch((err) => {
+        console.error('Spam auto-flag error:', err);
+      });
 
     return {
       id: createdPost.id,
