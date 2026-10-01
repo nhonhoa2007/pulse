@@ -161,7 +161,7 @@ Thứ tự khuyến nghị trong giai đoạn: **PKG-03 → PKG-01 → PKG-04 �
 
 | Mã | Hạng mục | Nguồn spec | Ghi chú điều chỉnh |
 |---|---|---|---|
-| PKG-03 | Trang Bookmarks + Post Drafts autosave | improve.md 3.3 | giữ nguyên |
+| PKG-03 | Trang Bookmarks + Post Drafts autosave | improve.md 3.3 | ✅ 2026-10-01 (BookmarksView + route /bookmarks + drafts autosave 1s) |
 | PKG-01 | OpenGraph Link Preview + Multi-image grid | improve.md 3.1 | tái dùng `SsrfProtectionGuardService`; cache 24h |
 | PKG-04 | Report & Moderation Queue | improve.md 3.4 | thêm sẵn 2 cột `autoScore`, `autoLabels` để GĐ5 không phải migrate |
 | PKG-09 | Media Pipeline v2 | **mới** | `sharp`: resize/WebP/thumbnail, strip EXIF (rò rỉ GPS), alt-text field, drag-drop/paste ảnh; schema `Media.altText` |
