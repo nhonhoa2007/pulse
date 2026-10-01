@@ -394,7 +394,7 @@ test('Authentication & User Profile Management Suite (TASK-13)', async (t) => {
     assert.equal(body.data.authorId, registeredUserId);
   });
 
-  await t.test('Backward Compatibility: x-user-id header still works seamlessly', async () => {
+  await t.test('SEC-02: legacy x-user-id header no longer grants identity', async () => {
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/users/me',
@@ -403,10 +403,10 @@ test('Authentication & User Profile Management Suite (TASK-13)', async (t) => {
       },
     });
 
-    assert.equal(res.statusCode, 200);
+    assert.equal(res.statusCode, 401);
     const body = res.json();
-    assert.equal(body.success, true);
-    assert.equal(body.data.id, registeredUserId);
+    assert.equal(body.success, false);
+    assert.equal(body.error.code, 'UNAUTHORIZED');
   });
 
   await app.close();

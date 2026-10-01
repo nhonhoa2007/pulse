@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { usePulse } from '../context/PulseContext';
 import { VerifiedBadge } from './VerifiedBadge';
 import { WebPushToggle } from './WebPushToggle';
+
+// SEC-06: toàn bộ UI demo chỉ tồn tại ở môi trường dev
+const IS_DEV: boolean = import.meta.env.DEV;
 import {
   Home,
   Search,
@@ -338,61 +341,65 @@ export const NavigationSidebar: React.FC = () => {
                       {/* Thông báo đẩy Web Push (TASK-20) */}
                       <WebPushToggle compact />
 
-                      {/* Đổi tài khoản demo */}
-                      <button
-                        onClick={() => setShowDemoAccounts((prev) => !prev)}
-                        className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-[#000000] hover:bg-[#efefef] rounded-xl transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Users className="w-4 h-4 text-[#424242]" />
-                          <span>Đổi tài khoản demo</span>
-                        </div>
-                        <ChevronRight
-                          className={`w-4 h-4 text-[#969696] transition-transform ${
-                            showDemoAccounts ? 'rotate-90' : ''
-                          }`}
-                        />
-                      </button>
+                      {/* Đổi tài khoản demo — chỉ hiển thị ở môi trường dev (SEC-06) */}
+                      {IS_DEV && (
+                        <>
+                          <button
+                            onClick={() => setShowDemoAccounts((prev) => !prev)}
+                            className="flex items-center justify-between px-3 py-2 text-[13px] font-medium text-[#000000] hover:bg-[#efefef] rounded-xl transition-colors text-left"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <Users className="w-4 h-4 text-[#424242]" />
+                              <span>Đổi tài khoản demo</span>
+                            </div>
+                            <ChevronRight
+                              className={`w-4 h-4 text-[#969696] transition-transform ${
+                                showDemoAccounts ? 'rotate-90' : ''
+                              }`}
+                            />
+                          </button>
 
-                      {/* Demo accounts sublist if expanded */}
-                      {showDemoAccounts && (
-                        <div className="pl-2 pr-1 py-1 flex flex-col gap-1 max-h-48 overflow-y-auto border-l-2 border-[#d5d5d5] ml-3 my-1">
-                          {users.map((user) => {
-                            const isSelected = user.id === currentUser.id;
-                            return (
-                              <button
-                                key={user.id}
-                                onClick={() => {
-                                  switchUser(user);
-                                  setIsSwitcherOpen(false);
-                                  setShowDemoAccounts(false);
-                                }}
-                                className={`flex items-center justify-between p-1.5 rounded-lg text-left transition-colors ${
-                                  isSelected
-                                    ? 'bg-[#efefef] text-[#000000]'
-                                    : 'hover:bg-[#efefef]/60 text-[#424242]'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <img
-                                    src={
-                                      user.avatarUrl ||
-                                      `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
-                                    }
-                                    alt={user.displayName}
-                                    className="w-6 h-6 rounded-full object-cover shrink-0"
-                                  />
-                                  <span className="text-[12px] font-medium truncate">
-                                    {user.displayName}
-                                  </span>
-                                </div>
-                                {isSelected && (
-                                  <Check className="w-3.5 h-3.5 text-[#385898] shrink-0" />
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
+                          {/* Demo accounts sublist if expanded */}
+                          {showDemoAccounts && (
+                            <div className="pl-2 pr-1 py-1 flex flex-col gap-1 max-h-48 overflow-y-auto border-l-2 border-[#d5d5d5] ml-3 my-1">
+                              {users.map((user) => {
+                                const isSelected = user.id === currentUser.id;
+                                return (
+                                  <button
+                                    key={user.id}
+                                    onClick={() => {
+                                      switchUser(user);
+                                      setIsSwitcherOpen(false);
+                                      setShowDemoAccounts(false);
+                                    }}
+                                    className={`flex items-center justify-between p-1.5 rounded-lg text-left transition-colors ${
+                                      isSelected
+                                        ? 'bg-[#efefef] text-[#000000]'
+                                        : 'hover:bg-[#efefef]/60 text-[#424242]'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <img
+                                        src={
+                                          user.avatarUrl ||
+                                          `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
+                                        }
+                                        alt={user.displayName}
+                                        className="w-6 h-6 rounded-full object-cover shrink-0"
+                                      />
+                                      <span className="text-[12px] font-medium truncate">
+                                        {user.displayName}
+                                      </span>
+                                    </div>
+                                    {isSelected && (
+                                      <Check className="w-3.5 h-3.5 text-[#385898] shrink-0" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </>
                       )}
 
                       <div className="h-px bg-[#d5d5d5]/80 my-1" />
@@ -455,56 +462,61 @@ export const NavigationSidebar: React.FC = () => {
                         </button>
                       )}
 
-                      <div className="px-3 py-1.5 text-[11px] font-semibold tracking-wider text-[#969696] uppercase">
-                        Chuyển tài khoản demo
-                      </div>
+                      {/* Chuyển tài khoản demo — chỉ hiển thị ở môi trường dev (SEC-06) */}
+                      {IS_DEV && (
+                        <>
+                          <div className="px-3 py-1.5 text-[11px] font-semibold tracking-wider text-[#969696] uppercase">
+                            Chuyển tài khoản demo
+                          </div>
 
-                      <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
-                        {users.map((user) => {
-                          const isSelected = user.id === currentUser.id;
-                          return (
-                            <button
-                              key={user.id}
-                              onClick={() => {
-                                switchUser(user);
-                                setIsSwitcherOpen(false);
-                              }}
-                              className={`flex items-center justify-between p-2 rounded-xl text-left transition-colors ${
-                                isSelected
-                                  ? 'bg-[#efefef] text-[#000000]'
-                                  : 'hover:bg-[#efefef]/60 text-[#000000]'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <img
-                                  src={
-                                    user.avatarUrl ||
-                                    `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
-                                  }
-                                  alt={user.displayName}
-                                  className="w-7 h-7 rounded-full object-cover shrink-0"
-                                />
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-[13px] font-semibold text-[#000000] truncate">
-                                      {user.displayName}
-                                    </span>
-                                    {user.isCelebrity && (
-                                      <VerifiedBadge size={11} title="Celebrity VIP" />
-                                    )}
+                          <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
+                            {users.map((user) => {
+                              const isSelected = user.id === currentUser.id;
+                              return (
+                                <button
+                                  key={user.id}
+                                  onClick={() => {
+                                    switchUser(user);
+                                    setIsSwitcherOpen(false);
+                                  }}
+                                  className={`flex items-center justify-between p-2 rounded-xl text-left transition-colors ${
+                                    isSelected
+                                      ? 'bg-[#efefef] text-[#000000]'
+                                      : 'hover:bg-[#efefef]/60 text-[#000000]'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <img
+                                      src={
+                                        user.avatarUrl ||
+                                        `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
+                                      }
+                                      alt={user.displayName}
+                                      className="w-7 h-7 rounded-full object-cover shrink-0"
+                                    />
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-[13px] font-semibold text-[#000000] truncate">
+                                          {user.displayName}
+                                        </span>
+                                        {user.isCelebrity && (
+                                          <VerifiedBadge size={11} title="Celebrity VIP" />
+                                        )}
+                                      </div>
+                                      <span className="text-[11px] text-[#969696] block truncate">
+                                        @{user.username}
+                                      </span>
+                                    </div>
                                   </div>
-                                  <span className="text-[11px] text-[#969696] block truncate">
-                                    @{user.username}
-                                  </span>
-                                </div>
-                              </div>
-                              {isSelected && (
-                                <Check className="w-4 h-4 text-[#385898] shrink-0" />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+                                  {isSelected && (
+                                    <Check className="w-4 h-4 text-[#385898] shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

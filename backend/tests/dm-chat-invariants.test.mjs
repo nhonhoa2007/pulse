@@ -1,3 +1,4 @@
+import { authHeaders, fetchRealtimeTicket } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -47,7 +48,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
       payload: { recipientId: userB.id },
     });
 
@@ -67,7 +68,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userB.id },
+      headers: authHeaders(userB.id),
       payload: { recipientId: userA.id },
     });
 
@@ -85,7 +86,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
       payload: { recipientId: userA.id },
     });
 
@@ -100,7 +101,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
       payload: {},
     });
 
@@ -114,7 +115,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
       payload: { recipientId: '00000000-0000-0000-0000-000000000000' },
     });
 
@@ -137,7 +138,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const resA = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
       payload: { recipientId: userC.id },
     });
     assert.equal(resA.statusCode, 403);
@@ -147,7 +148,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const resC = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userC.id },
+      headers: authHeaders(userC.id),
       payload: { recipientId: userA.id },
     });
     assert.equal(resC.statusCode, 403);
@@ -171,7 +172,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
       {
         hostname: '127.0.0.1',
         port: serverPort,
-        path: `/api/v1/realtime/stream?userId=${userB.id}`,
+        path: `/api/v1/realtime/stream?ticket=${await fetchRealtimeTicket(app, userB.id)}`,
         method: 'GET',
         headers: { Accept: 'text/event-stream' },
       },
@@ -203,7 +204,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const sendRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
       payload: {
         content: 'Hello Bob! This is our first direct message.',
         messageType: 'TEXT',
@@ -235,7 +236,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
       payload: { content: 'Second message from Alice' },
     });
 
@@ -243,7 +244,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const resB = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userB.id },
+      headers: authHeaders(userB.id),
     });
 
     assert.equal(resB.statusCode, 200);
@@ -256,7 +257,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const resA = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
     });
 
     assert.equal(resA.statusCode, 200);
@@ -275,7 +276,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
       {
         hostname: '127.0.0.1',
         port: serverPort,
-        path: `/api/v1/realtime/stream?userId=${userA.id}`,
+        path: `/api/v1/realtime/stream?ticket=${await fetchRealtimeTicket(app, userA.id)}`,
         method: 'GET',
         headers: { Accept: 'text/event-stream' },
       },
@@ -296,7 +297,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const readRes = await app.inject({
       method: 'PUT',
       url: `/api/v1/dm/conversations/${conversationId}/read`,
-      headers: { 'x-user-id': userB.id },
+      headers: authHeaders(userB.id),
       payload: {},
     });
 
@@ -315,7 +316,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const verifyRes = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': userB.id },
+      headers: authHeaders(userB.id),
     });
     assert.equal(verifyRes.json().data.conversations[0].unreadCount, 0);
   });
@@ -329,7 +330,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
       await app.inject({
         method: 'POST',
         url: `/api/v1/dm/conversations/${conversationId}/messages`,
-        headers: { 'x-user-id': userA.id },
+        headers: authHeaders(userA.id),
         payload: { content: `Pagination message ${i}` },
       });
     }
@@ -338,7 +339,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const page1Res = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/conversations/${conversationId}/messages?limit=2`,
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
     });
 
     assert.equal(page1Res.statusCode, 200);
@@ -351,7 +352,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const page2Res = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/conversations/${conversationId}/messages?limit=2&cursor=${page1.nextCursor}&direction=before`,
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
     });
 
     assert.equal(page2Res.statusCode, 200);
@@ -367,7 +368,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const unauthorizedDelete = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/messages/${sentMessageId}`,
-      headers: { 'x-user-id': userB.id },
+      headers: authHeaders(userB.id),
     });
     assert.equal(unauthorizedDelete.statusCode, 403);
     assert.equal(unauthorizedDelete.json().error.code, 'FORBIDDEN');
@@ -376,7 +377,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const authorizedDelete = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/messages/${sentMessageId}`,
-      headers: { 'x-user-id': userA.id },
+      headers: authHeaders(userA.id),
     });
     assert.equal(authorizedDelete.statusCode, 200);
     assert.equal(authorizedDelete.json().data.deleted, true);
@@ -385,7 +386,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const messagesRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': userB.id },
+      headers: authHeaders(userB.id),
     });
 
     const msgs = messagesRes.json().data.messages;
@@ -404,7 +405,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const readAttempt = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': userC.id },
+      headers: authHeaders(userC.id),
     });
     assert.equal(readAttempt.statusCode, 403);
     assert.equal(readAttempt.json().error.code, 'FORBIDDEN');
@@ -413,7 +414,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const sendAttempt = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': userC.id },
+      headers: authHeaders(userC.id),
       payload: { content: 'Malicious injection from C' },
     });
     assert.equal(sendAttempt.statusCode, 403);
@@ -423,7 +424,7 @@ test('Direct Messaging (1-1 DMs): Complete Invariants, Lifecycle, Realtime SSE &
     const markAttempt = await app.inject({
       method: 'PUT',
       url: `/api/v1/dm/conversations/${conversationId}/read`,
-      headers: { 'x-user-id': userC.id },
+      headers: authHeaders(userC.id),
       payload: {},
     });
     assert.equal(markAttempt.statusCode, 403);

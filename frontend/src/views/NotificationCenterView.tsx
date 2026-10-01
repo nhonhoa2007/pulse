@@ -19,6 +19,9 @@ import {
   Lock,
 } from 'lucide-react';
 
+// SEC-06: mock/fallback notifications chỉ tồn tại ở môi trường dev
+const IS_DEV: boolean = import.meta.env.DEV;
+
 export const NotificationCenterView: React.FC = () => {
   const {
     currentUser,
@@ -410,7 +413,7 @@ export const NotificationCenterView: React.FC = () => {
 };
 
 function getFallbackNotifications(): NotificationDto[] {
-  return [
+  return IS_DEV ? [
     {
       id: 'mock-notif-1',
       recipientId: '11111111-1111-1111-1111-111111111111',
@@ -447,5 +450,5 @@ function getFallbackNotifications(): NotificationDto[] {
           'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
       },
     },
-  ];
+  ] : [];
 }

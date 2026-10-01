@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -52,7 +53,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Default privacy post' },
     });
 
@@ -67,7 +68,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resFollow = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Followers only post', reply_privacy: 'FOLLOWING' },
     });
     assert.equal(resFollow.statusCode, 201);
@@ -76,7 +77,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resMention = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: `Mentioned only @${mentionedUser.username}`, reply_privacy: 'MENTIONED' },
     });
     assert.equal(resMention.statusCode, 201);
@@ -87,7 +88,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Invalid privacy', reply_privacy: 'NOBODY' },
     });
     assert.equal(res.statusCode, 400);
@@ -103,7 +104,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const created = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Post before update', reply_privacy: 'EVERYONE' },
     });
     postToUpdate = created.json().data;
@@ -120,7 +121,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resForbidden = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${postToUpdate.id}`,
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { reply_privacy: 'FOLLOWING' },
     });
     assert.equal(resForbidden.statusCode, 403);
@@ -130,7 +131,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resSuccess = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${postToUpdate.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { reply_privacy: 'FOLLOWING' },
     });
     assert.equal(resSuccess.statusCode, 200);
@@ -145,7 +146,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${postToUpdate.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { reply_privacy: 'INVALID_ENUM' },
     });
     assert.equal(res.statusCode, 400);
@@ -159,7 +160,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const rootRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Public post for everyone', reply_privacy: 'EVERYONE' },
     });
     const publicPost = rootRes.json().data;
@@ -168,7 +169,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resAuthor = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Author reply', replyToId: publicPost.id },
     });
     assert.equal(resAuthor.statusCode, 201);
@@ -177,7 +178,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resStranger = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Stranger reply', replyToId: publicPost.id },
     });
     assert.equal(resStranger.statusCode, 201);
@@ -186,7 +187,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resBlocked = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': blockedUser.id },
+      headers: authHeaders(blockedUser.id),
       payload: { content: 'Blocked reply', replyToId: publicPost.id },
     });
     assert.equal(resBlocked.statusCode, 403);
@@ -200,7 +201,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const rootRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'People I follow only', reply_privacy: 'FOLLOWING' },
     });
     const followingPost = rootRes.json().data;
@@ -209,7 +210,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resAuthor = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Author reply', replyToId: followingPost.id },
     });
     assert.equal(resAuthor.statusCode, 201);
@@ -218,7 +219,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resFollowed = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
       payload: { content: 'Followed user reply', replyToId: followingPost.id },
     });
     assert.equal(resFollowed.statusCode, 201);
@@ -227,7 +228,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resStranger = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Stranger trying to reply', replyToId: followingPost.id },
     });
     assert.equal(resStranger.statusCode, 403);
@@ -237,7 +238,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resFollowerOnly = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followerOnlyUser.id },
+      headers: authHeaders(followerOnlyUser.id),
       payload: { content: 'Follower only trying to reply', replyToId: followingPost.id },
     });
     assert.equal(resFollowerOnly.statusCode, 403);
@@ -251,7 +252,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const rootRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: `Hey @${mentionedUser.username}, what do you think?`,
         reply_privacy: 'MENTIONED',
@@ -263,7 +264,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resAuthor = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Author reply', replyToId: mentionedPost.id },
     });
     assert.equal(resAuthor.statusCode, 201);
@@ -272,7 +273,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resMentioned = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': mentionedUser.id },
+      headers: authHeaders(mentionedUser.id),
       payload: { content: 'I was mentioned, here is my reply!', replyToId: mentionedPost.id },
     });
     assert.equal(resMentioned.statusCode, 201);
@@ -281,7 +282,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resFollowed = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
       payload: { content: 'I am followed but not mentioned', replyToId: mentionedPost.id },
     });
     assert.equal(resFollowed.statusCode, 403);
@@ -291,7 +292,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resStranger = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Stranger trying to reply', replyToId: mentionedPost.id },
     });
     assert.equal(resStranger.statusCode, 403);
@@ -301,7 +302,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resSelfMentionBypass = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: {
         content: `I mention myself @${stranger.username} to bypass check`,
         replyToId: mentionedPost.id,
@@ -319,7 +320,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const rootRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Root thread: Following only', reply_privacy: 'FOLLOWING' },
     });
     const rootPost = rootRes.json().data;
@@ -328,7 +329,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const reply1Res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
       payload: { content: 'Reply 1 by followed user', replyToId: rootPost.id },
     });
     assert.equal(reply1Res.statusCode, 201);
@@ -338,7 +339,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resHijack = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Hijack attempt on reply 1', replyToId: reply1.id },
     });
     assert.equal(resHijack.statusCode, 403);
@@ -352,7 +353,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const postRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Evaluation test post', reply_privacy: 'FOLLOWING' },
     });
     const post = postRes.json().data;
@@ -361,7 +362,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resAuthor = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${post.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
     });
     assert.equal(resAuthor.json().data.canReply, true);
 
@@ -369,7 +370,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resFollowed = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${post.id}`,
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
     });
     assert.equal(resFollowed.json().data.canReply, true);
 
@@ -377,7 +378,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const resStranger = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${post.id}`,
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
     });
     assert.equal(resStranger.json().data.canReply, false);
 
@@ -385,7 +386,7 @@ test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t)
     const threadStranger = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${post.id}/thread`,
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
     });
     assert.equal(threadStranger.json().data.rootPost.canReply, false);
 

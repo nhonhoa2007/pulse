@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -35,7 +36,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const createRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Original post content by Alice with #initialTag and @bob',
         mediaUrls: ['https://pulse.social/uploads/orig.jpg'],
@@ -59,7 +60,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const edit1Res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post1Id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'First edit content with #updatedTag #trending and @charlie',
         mediaUrls: ['https://pulse.social/uploads/orig.jpg', 'https://pulse.social/uploads/new.jpg'],
@@ -108,7 +109,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const edit2Res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post1Id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Second edit final content with #finalTag',
         contentWarning: null,
@@ -149,7 +150,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const edit3Res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post1Id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Check out #Pulse #pulse_news and @bob @charlie @bob again',
       },
@@ -178,7 +179,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const versionsRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${post1Id}/versions`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(versionsRes.statusCode, 200);
@@ -206,7 +207,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const forbiddenRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post1Id}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: {
         content: 'Malicious modification by Bob',
       },
@@ -241,7 +242,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const expiredRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${expiredPost.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Attempted edit after edit window has elapsed',
       },
@@ -277,7 +278,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const editDeletedRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${softDeleted.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Trying to edit soft deleted' },
     });
     assert.equal(editDeletedRes.statusCode, 404);
@@ -287,7 +288,7 @@ test('TASK-18: Post Lifecycle - 15-Minute Edit Window & Immutable PostVersion Au
     const notFoundRes = await app.inject({
       method: 'PATCH',
       url: '/api/v1/posts/00000000-0000-0000-0000-000000000000',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Non-existent post' },
     });
     assert.equal(notFoundRes.statusCode, 404);

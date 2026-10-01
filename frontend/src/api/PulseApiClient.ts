@@ -38,8 +38,17 @@ import type {
   LogoutResponseDto,
 } from '../types/PulseTypes.ts';
 
+// SEC-06: dữ liệu demo chỉ tồn tại trong bản dev. Build production chỉ giữ
+// một placeholder "Khách" trống (không kèm định danh/credential nào).
+// Optional chaining để module vẫn chạy được dưới Node thuần (node --test).
+const IS_DEV: boolean = (import.meta as any).env?.DEV ?? true;
+
+// SEC-02: Demo User Switcher đăng nhập thật qua /auth/login bằng mật khẩu seed chung.
+export const DEMO_LOGIN_PASSWORD = 'PulseDemo2026!';
+
 // Initial fallback mock users matching backend prisma seed
-export const PRESET_USERS: UserDto[] = [
+export const PRESET_USERS: UserDto[] = IS_DEV
+  ? [
   {
     id: '11111111-1111-1111-1111-111111111111',
     username: 'hoa_dev',
@@ -88,10 +97,23 @@ export const PRESET_USERS: UserDto[] = [
     postsCount: 1,
     createdAt: new Date().toISOString(),
   },
+] : [
+  {
+    id: '',
+    username: 'guest',
+    displayName: 'Khách',
+    avatarUrl: '',
+    bio: '',
+    isCelebrity: false,
+    followersCount: 0,
+    followingCount: 0,
+    postsCount: 0,
+    createdAt: new Date().toISOString(),
+  },
 ];
 
 class PulseApiClient {
-  private activeUserId: string = PRESET_USERS[0].id;
+  private activeUserId: string = PRESET_USERS[0]?.id ?? '';
   private token: string | null = null;
   private baseUrl: string = '/api/v1';
 
@@ -140,7 +162,6 @@ class PulseApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<T> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'x-user-id': this.activeUserId,
       ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
       ...(options.headers as Record<string, string>),
     };
@@ -169,7 +190,6 @@ class PulseApiClient {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'x-user-id': this.activeUserId,
                 },
                 credentials: 'include',
               });
@@ -412,7 +432,6 @@ class PulseApiClient {
     formData.append('file', file);
 
     const headers: Record<string, string> = {
-      'x-user-id': this.activeUserId,
       ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
     };
 
@@ -503,13 +522,25 @@ class PulseApiClient {
     return user;
   }
 
+  /**
+   * SEC-02: Demo User Switcher đăng nhập THẬT qua /auth/login bằng mật khẩu
+   * seed chung thay vì tự định danh. Chỉ có ý nghĩa trong môi trường dev
+   * (PRESET_USERS rỗng ở build production nên switcher không hiển thị).
+   */
+  public async loginAsDemoUser(user: UserDto): Promise<{ user: UserDto; token: string }> {
+    // SEC-06: mật khẩu demo bị loại khỏi bundle production qua constant folding.
+    if (!IS_DEV) {
+      throw new Error('Demo user switcher is disabled in production builds');
+    }
+    return this.login(user.username, IS_DEV ? DEMO_LOGIN_PASSWORD : '');
+  }
+
   public async logout(): Promise<ApiResponse<LogoutResponseDto>> {
     try {
       await fetch(`${this.baseUrl}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': this.activeUserId,
           ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
         },
         credentials: 'include',
@@ -518,7 +549,7 @@ class PulseApiClient {
       console.warn('Backend logout request failed:', err);
     } finally {
       this.setToken(null);
-      this.setActiveUserId(PRESET_USERS[0].id);
+      this.setActiveUserId(PRESET_USERS[0]?.id ?? '');
       if (typeof window !== 'undefined') {
         localStorage.removeItem('pulse_auth_token');
         localStorage.removeItem('pulse_active_user_id');
@@ -551,7 +582,6 @@ class PulseApiClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': this.activeUserId,
         },
         credentials: 'include',
       });

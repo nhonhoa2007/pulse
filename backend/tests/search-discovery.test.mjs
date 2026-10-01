@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -39,7 +40,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
   await app.inject({
     method: 'POST',
     url: '/api/v1/graph/follow',
-    headers: { 'x-user-id': alice.id },
+    headers: authHeaders(alice.id),
     payload: { targetUserId: bob.id },
   });
 
@@ -47,7 +48,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
   const post1Res = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': alice.id },
+    headers: authHeaders(alice.id),
     payload: {
       content: `Exploring quantum computing advances today #quantum_${timestamp} #deeptech_${timestamp}`,
     },
@@ -58,7 +59,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
   const post2Res = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': bob.id },
+    headers: authHeaders(bob.id),
     payload: {
       content: `Classical algorithms vs quantum supremacy #quantum_${timestamp} #computing`,
     },
@@ -69,7 +70,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
   const post3Res = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': charlie.id },
+    headers: authHeaders(charlie.id),
     payload: {
       content: `Gardening and urban farming secrets #greenery_${timestamp}`,
     },
@@ -81,19 +82,19 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
   await app.inject({
     method: 'POST',
     url: `/api/v1/posts/${post2.id}/like`,
-    headers: { 'x-user-id': alice.id },
+    headers: authHeaders(alice.id),
   });
   await app.inject({
     method: 'POST',
     url: `/api/v1/posts/${post2.id}/bookmark`,
-    headers: { 'x-user-id': alice.id },
+    headers: authHeaders(alice.id),
   });
 
   await t.test('1. Keyword Post Search: finds posts matching query, attaches engagements and author', async () => {
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=quantum+supremacy&type=posts`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -113,7 +114,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const resWithHash = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=%23quantum_${timestamp}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(resWithHash.statusCode, 200);
@@ -131,7 +132,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const resByUsername = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=@bob_search_${timestamp}&type=users`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(resByUsername.statusCode, 200);
@@ -146,7 +147,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const resByDisplayName = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=Chaplin_${timestamp}&type=users`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(resByDisplayName.statusCode, 200);
@@ -160,7 +161,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const blockRes = await app.inject({
       method: 'POST',
       url: '/api/v1/graph/block',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { targetUserId: alice.id },
     });
     assert.equal(blockRes.statusCode, 200);
@@ -169,7 +170,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const alicePostSearch = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=gardening&type=posts`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(alicePostSearch.statusCode, 200);
     const alicePosts = alicePostSearch.json().data.posts;
@@ -180,7 +181,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const aliceUserSearch = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=charlie_search_${timestamp}&type=users`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(aliceUserSearch.statusCode, 200);
     const hasCharlieUser = aliceUserSearch.json().data.users.some((u) => u.id === charlie.id);
@@ -190,7 +191,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const charliePostSearch = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=quantum&type=posts`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(charliePostSearch.statusCode, 200);
     const charliePosts = charliePostSearch.json().data.posts;
@@ -251,7 +252,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const allRes = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=quantum&type=all`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(allRes.statusCode, 200);
     const allBody = allRes.json();
@@ -263,7 +264,7 @@ test('Search & Discovery Engine: full-text search, hashtag indexing, block priva
     const pageRes = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=quantum&type=posts&limit=1&offset=0`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(pageRes.statusCode, 200);
     const pageBody = pageRes.json();

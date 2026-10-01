@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -39,7 +40,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const muteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/users/${bob.id}/mute`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(muteRes.statusCode, 200);
@@ -74,7 +75,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const listMutesRes = await app.inject({
       method: 'GET',
       url: '/api/v1/mutes/users',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(listMutesRes.statusCode, 200);
     const mutesList = listMutesRes.json().data.mutes;
@@ -88,7 +89,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const selfMuteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/users/${alice.id}/mute`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(selfMuteRes.statusCode, 400);
@@ -105,7 +106,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const bobPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { content: 'Post from muted Bob - should not appear on Alice Home feed' },
     });
     assert.equal(bobPostRes.statusCode, 201);
@@ -115,7 +116,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const charliePostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Post from normal Charlie - should appear on Alice Home feed' },
     });
     assert.equal(charliePostRes.statusCode, 201);
@@ -125,7 +126,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const feedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(feedRes.statusCode, 200);
     const feedPosts = feedRes.json().data.posts;
@@ -179,7 +180,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const notifsRes = await app.inject({
       method: 'GET',
       url: '/api/v1/notifications',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(notifsRes.statusCode, 200);
@@ -201,7 +202,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const muteKwRes = await app.inject({
       method: 'POST',
       url: '/api/v1/mutes/keywords',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         keyword: 'crypto',
         matchType: 'CONTAINS',
@@ -220,7 +221,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const cryptoPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Join the latest cryptocurrency wave today!' },
     });
     assert.equal(cryptoPostRes.statusCode, 201);
@@ -230,7 +231,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const cleanPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Hiking in the mountains is refreshing!' },
     });
     assert.equal(cleanPostRes.statusCode, 201);
@@ -240,7 +241,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const feedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(feedRes.statusCode, 200);
     const posts = feedRes.json().data.posts;
@@ -258,7 +259,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const muteExactRes = await app.inject({
       method: 'POST',
       url: '/api/v1/mutes/keywords',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         keyword: 'cat',
         matchType: 'EXACT_WORD',
@@ -273,7 +274,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const caterpillarRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Look at this fuzzy caterpillar on the leaf' },
     });
     assert.equal(caterpillarRes.statusCode, 201);
@@ -283,7 +284,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const catRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'My cute cat is sleeping on the couch' },
     });
     assert.equal(catRes.statusCode, 201);
@@ -293,7 +294,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const feedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(feedRes.statusCode, 200);
     const posts = feedRes.json().data.posts;
@@ -321,7 +322,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const expiredTermPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'This post discusses expiredterm in detail' },
     });
     assert.equal(expiredTermPostRes.statusCode, 201);
@@ -331,7 +332,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const feedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(feedRes.statusCode, 200);
     const posts = feedRes.json().data.posts;
@@ -350,7 +351,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const unmuteUserRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/users/${bob.id}/mute`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(unmuteUserRes.statusCode, 200);
     assert.equal(unmuteUserRes.json().data.isMuted, false);
@@ -368,7 +369,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
       const delKw1 = await app.inject({
         method: 'DELETE',
         url: `/api/v1/mutes/keywords/${containsKwId}`,
-        headers: { 'x-user-id': alice.id },
+        headers: authHeaders(alice.id),
       });
       assert.equal(delKw1.statusCode, 200);
     }
@@ -377,7 +378,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
       const delKw2 = await app.inject({
         method: 'DELETE',
         url: `/api/v1/mutes/keywords/${exactKwId}`,
-        headers: { 'x-user-id': alice.id },
+        headers: authHeaders(alice.id),
       });
       assert.equal(delKw2.statusCode, 200);
     }
@@ -386,7 +387,7 @@ test('TASK-18: Trust & Safety - One-Way User and Keyword Muting Suite', async (t
     const feedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(feedRes.statusCode, 200);
     const posts = feedRes.json().data.posts;

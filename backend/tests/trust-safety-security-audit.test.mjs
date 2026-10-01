@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -50,7 +51,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const expiredRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${postA.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Alice attempting edit at 15m 1s' },
     });
 
@@ -72,7 +73,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
       method: 'PATCH',
       url: `/api/v1/posts/${postB.id}`,
       headers: {
-        'x-user-id': alice.id,
+        ...authHeaders(alice.id),
         'Date': new Date().toUTCString(),
         'x-client-timestamp': String(Date.now()),
       },
@@ -97,7 +98,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
       app.inject({
         method: 'PATCH',
         url: `/api/v1/posts/${racePost.id}`,
-        headers: { 'x-user-id': alice.id },
+        headers: authHeaders(alice.id),
         payload: { content: `Concurrent edit content iteration ${i + 1}` },
       })
     );
@@ -142,7 +143,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const editRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Edited content for immutability test' },
     });
     assert.equal(editRes.statusCode, 200);
@@ -156,7 +157,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const mutateRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post.id}/versions`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Hacker trying to tamper version history' },
     });
     assert.equal(mutateRes.statusCode, 404);
@@ -164,7 +165,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const deleteVersionRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/posts/${post.id}/versions/${version1.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(deleteVersionRes.statusCode, 404);
 
@@ -177,7 +178,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const blockedVersionRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${post.id}/versions`,
-      headers: { 'x-user-id': eve.id },
+      headers: authHeaders(eve.id),
     });
     assert.equal(blockedVersionRes.statusCode, 404);
     assert.equal(blockedVersionRes.json().error.code, 'POST_NOT_FOUND');
@@ -194,7 +195,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const deletedVersionRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${deletedPost.id}/versions`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(deletedVersionRes.statusCode, 404);
     assert.equal(deletedVersionRes.json().error.code, 'POST_NOT_FOUND');
@@ -220,7 +221,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const pinOtherRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${alicePost.id}/pin`,
-      headers: { 'x-user-id': eve.id },
+      headers: authHeaders(eve.id),
     });
     assert.equal(pinOtherRes.statusCode, 403);
     assert.equal(pinOtherRes.json().error.code, 'FORBIDDEN');
@@ -238,7 +239,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const pinReplyRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${replyPost.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(pinReplyRes.statusCode, 400);
     assert.equal(pinReplyRes.json().error.code, 'CANNOT_PIN_REPLY');
@@ -255,7 +256,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const pinDeletedRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${softDeletedPost.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(pinDeletedRes.statusCode, 400);
     assert.equal(pinDeletedRes.json().error.code, 'CANNOT_PIN_DELETED');
@@ -265,13 +266,13 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${alicePost.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     const unpinOtherRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/posts/${alicePost.id}/pin`,
-      headers: { 'x-user-id': eve.id },
+      headers: authHeaders(eve.id),
     });
     assert.equal(unpinOtherRes.statusCode, 403);
     assert.equal(unpinOtherRes.json().error.code, 'FORBIDDEN');
@@ -285,7 +286,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const muteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/users/${bob.id}/mute`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(muteRes.statusCode, 200);
     assert.equal(muteRes.json().data.isMuted, true);
@@ -305,7 +306,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const bobPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { content: 'Secret post by muted Bob' },
     });
     assert.equal(bobPostRes.statusCode, 201);
@@ -314,7 +315,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const aliceHomeFeed = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(aliceHomeFeed.statusCode, 200);
     const homePosts = aliceHomeFeed.json().data.posts;
@@ -328,14 +329,14 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const bobLikeRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${alicePost.id}/like`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(bobLikeRes.statusCode, 200);
 
     const aliceNotificationsRes = await app.inject({
       method: 'GET',
       url: '/api/v1/notifications',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(aliceNotificationsRes.statusCode, 200);
     const notifs = aliceNotificationsRes.json().data;
@@ -373,7 +374,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     await sseApp.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { content: 'Another post by muted Bob during live SSE' },
     });
 
@@ -393,7 +394,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const searchRes = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=${encodeURIComponent(bob.username)}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(searchRes.statusCode, 200);
     const searchData = searchRes.json().data;
@@ -409,7 +410,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const xssCreationRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Post testing XSS in contentWarning',
         contentWarning: '<script>alert(1)</script><img src=x onerror=alert(2)>Sensitive Topic',
@@ -429,7 +430,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const nestedXssRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${postWithWarning.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         contentWarning: '<<script>script>alert("XSS")</script>Nested Bypass Test',
       },
@@ -445,7 +446,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const xssKeywordRes = await app.inject({
       method: 'POST',
       url: '/api/v1/mutes/keywords',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         keyword: '<script>alert("XSS")</script>maliciousKeyword',
         matchType: 'CONTAINS',
@@ -464,7 +465,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Trust, Safety & Post Life
     const longKeywordRes = await app.inject({
       method: 'POST',
       url: '/api/v1/mutes/keywords',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         keyword: longKeyword,
         matchType: 'CONTAINS',

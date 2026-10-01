@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -37,7 +38,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const createRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Original content by Alice with #initialTag and @bob',
         mediaUrls: ['https://pulse.social/uploads/img1.png'],
@@ -57,7 +58,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const edit1Res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${originalPost.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'First edit content with #updatedTag and @charlie',
         contentWarning: 'Spoilers for episode 2',
@@ -93,7 +94,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const edit2Res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${originalPost.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Second edit final version with #finalTag',
         contentWarning: null,
@@ -121,7 +122,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const versionsRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${originalPost.id}/versions`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(versionsRes.statusCode, 200);
@@ -139,7 +140,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const forbiddenRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${originalPost.id}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { content: 'Bob trying to modify Alice post' },
     });
     assert.equal(forbiddenRes.statusCode, 403);
@@ -156,7 +157,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const expiredRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${originalPost.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Alice trying to edit after 15 minutes window' },
     });
     assert.equal(expiredRes.statusCode, 403);
@@ -180,7 +181,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const editDeletedRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${deletedPost.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Edit deleted post' },
     });
     assert.equal(editDeletedRes.statusCode, 404);
@@ -221,7 +222,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const pinRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post1.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(pinRes.statusCode, 200);
@@ -236,7 +237,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const pin2Res = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post2.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(pin2Res.statusCode, 200);
     assert.equal(pin2Res.json().data.pinnedPostId, post2.id);
@@ -245,7 +246,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const pinReplyRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${replyPost.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(pinReplyRes.statusCode, 400);
     assert.equal(pinReplyRes.json().error.code, 'CANNOT_PIN_REPLY');
@@ -254,7 +255,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const pinStrangerRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post1.id}/pin`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(pinStrangerRes.statusCode, 403);
     assert.equal(pinStrangerRes.json().error.code, 'FORBIDDEN');
@@ -263,7 +264,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post1.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     // 2e. GET /api/v1/users/:username/posts đưa pinned post lên vị trí index 0
@@ -288,7 +289,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const unpinRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/posts/${post1.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(unpinRes.statusCode, 200);
     assert.equal(unpinRes.json().data.isPinned, false);
@@ -306,7 +307,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const muteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/users/${bob.id}/mute`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(muteRes.statusCode, 200);
     assert.equal(muteRes.json().data.isMuted, true);
@@ -326,7 +327,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const selfMuteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/users/${alice.id}/mute`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(selfMuteRes.statusCode, 400);
     assert.equal(selfMuteRes.json().error.code, 'SELF_MUTE_NOT_ALLOWED');
@@ -335,7 +336,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const listMutesRes = await app.inject({
       method: 'GET',
       url: '/api/v1/mutes/users',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(listMutesRes.statusCode, 200);
     const mutesList = listMutesRes.json().data.mutes;
@@ -346,7 +347,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const bobPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { content: 'Post by muted Bob' },
     });
     assert.equal(bobPostRes.statusCode, 201);
@@ -356,7 +357,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const aliceHomeFeed = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(aliceHomeFeed.statusCode, 200);
     const homePosts = aliceHomeFeed.json().data.posts;
@@ -366,7 +367,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const searchRes = await app.inject({
       method: 'GET',
       url: `/api/v1/search?q=${encodeURIComponent(bob.username)}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(searchRes.statusCode, 200);
     assert.ok(!searchRes.json().data.users.some((u) => u.id === bob.id));
@@ -376,7 +377,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const unmuteRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/users/${bob.id}/mute`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(unmuteRes.statusCode, 200);
     assert.equal(unmuteRes.json().data.isMuted, false);
@@ -391,7 +392,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const muteKwRes = await app.inject({
       method: 'POST',
       url: '/api/v1/mutes/keywords',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         keyword: 'Crypto',
         matchType: 'CONTAINS',
@@ -409,14 +410,14 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Invest in cryptocurrency now!' },
     });
 
     const charlieSafePost = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Beautiful sunny day in Da Nang' },
     });
     assert.equal(charlieSafePost.statusCode, 201);
@@ -425,7 +426,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const feedAfterKwMute = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(feedAfterKwMute.statusCode, 200);
     const postsAfterKw = feedAfterKwMute.json().data.posts;
@@ -436,7 +437,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const listKwRes = await app.inject({
       method: 'GET',
       url: '/api/v1/mutes/keywords',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(listKwRes.statusCode, 200);
     const kwList = listKwRes.json().data.keywords;
@@ -446,7 +447,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const deleteKwRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/mutes/keywords/${kwData.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(deleteKwRes.statusCode, 200);
 
@@ -454,7 +455,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const exactMuteRes = await app.inject({
       method: 'POST',
       url: '/api/v1/mutes/keywords',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         keyword: 'apple',
         matchType: 'EXACT_WORD',
@@ -468,7 +469,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const pineapplePost = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'I love fresh pineapple juice' },
     });
     assert.equal(pineapplePost.statusCode, 201);
@@ -476,7 +477,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const applePost = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Eating a crisp apple today' },
     });
     assert.equal(applePost.statusCode, 201);
@@ -484,7 +485,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const feedAfterExact = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(feedAfterExact.statusCode, 200);
     const exactPosts = feedAfterExact.json().data.posts;
@@ -495,7 +496,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     await app.inject({
       method: 'DELETE',
       url: `/api/v1/mutes/keywords/${exactKwId}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
   });
 
@@ -507,7 +508,7 @@ test('TASK-18: Trust, Safety & Post Lifecycle Management Suite', async (t) => {
     const xssPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Post with XSS payload in contentWarning',
         contentWarning: '<script>alert("XSS")</script>Sensitive Topic',

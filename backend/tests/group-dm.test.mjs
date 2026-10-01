@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -82,7 +83,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res1 = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { title: '', memberIds: [bob.id] },
     });
     assert.equal(res1.statusCode, 400);
@@ -90,7 +91,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res2 = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { title: 'Valid Title', memberIds: [] },
     });
     assert.equal(res2.statusCode, 400);
@@ -100,7 +101,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { title: 'Blocked Group Attempt', memberIds: [eveBlocked.id] },
     });
     assert.equal(res.statusCode, 403);
@@ -112,7 +113,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { title: 'Pulse Core Team', memberIds: [bob.id, charlie.id] },
     });
 
@@ -137,7 +138,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -149,7 +150,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const strangerRes = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': daveStranger.id },
+      headers: authHeaders(daveStranger.id),
     });
     assert.equal(strangerRes.statusCode, 200);
     assert.equal(strangerRes.json().data.groups.length, 0);
@@ -160,7 +161,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${testGroupId}`,
-      headers: { 'x-user-id': daveStranger.id },
+      headers: authHeaders(daveStranger.id),
     });
 
     assert.equal(res.statusCode, 403);
@@ -174,7 +175,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const bobRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/dm/groups/${testGroupId}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { title: 'Hacked by Bob' },
     });
     assert.equal(bobRes.statusCode, 403);
@@ -183,7 +184,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const aliceRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/dm/groups/${testGroupId}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { title: 'Pulse Core Team (Updated)' },
     });
     assert.equal(aliceRes.statusCode, 200);
@@ -195,7 +196,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${testGroupId}/messages`,
-      headers: { 'x-user-id': daveStranger.id },
+      headers: authHeaders(daveStranger.id),
       payload: { content: 'I am not a member' },
     });
     assert.equal(res.statusCode, 403);
@@ -205,7 +206,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${testGroupId}/messages`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { content: 'Hello team from Bob!' },
     });
 
@@ -223,7 +224,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${testGroupId}/messages`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -238,7 +239,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const aliceRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${testGroupId}/messages/${sentMessageId}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(aliceRes.statusCode, 403);
 
@@ -246,7 +247,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const bobRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${testGroupId}/messages/${sentMessageId}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(bobRes.statusCode, 200);
 
@@ -254,7 +255,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const queryRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${testGroupId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     const msg = queryRes.json().data.messages.find((m) => m.id === sentMessageId);
     assert.equal(msg.content, 'This message was deleted');
@@ -266,7 +267,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/dm/groups/${testGroupId}/read`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { messageId: sentMessageId },
     });
 
@@ -281,7 +282,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const leaveRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${testGroupId}/members/${charlie.id}`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(leaveRes.statusCode, 200);
 
@@ -289,7 +290,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const bobKickRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${testGroupId}/members/${alice.id}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(bobKickRes.statusCode, 403);
 
@@ -297,7 +298,7 @@ test('TASK-20 Pillar 3: Group Direct Messaging (Group DMs) Comprehensive Suite',
     const aliceKickRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${testGroupId}/members/${bob.id}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(aliceKickRes.statusCode, 200);
   });

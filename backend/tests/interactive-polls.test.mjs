@@ -1,3 +1,4 @@
+import { authHeaders, fetchRealtimeTicket } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -25,7 +26,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
   const postRes = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': author.id },
+    headers: authHeaders(author.id),
     payload: { content: 'What is your favorite TypeScript framework?' },
   });
   assert.equal(postRes.statusCode, 201);
@@ -39,7 +40,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resNoQuestion = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         postId: post.id,
         question: '',
@@ -53,7 +54,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resOneChoice = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         postId: post.id,
         question: 'Too few choices?',
@@ -67,7 +68,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resFiveChoices = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         postId: post.id,
         question: 'Too many choices?',
@@ -81,7 +82,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resEmptyChoice = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         postId: post.id,
         question: 'Valid question',
@@ -100,7 +101,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         postId: post.id,
         question: 'Which frontend library do you prefer?',
@@ -171,7 +172,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resNegative = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${pollId}/vote`,
-      headers: { 'x-user-id': voter.id },
+      headers: authHeaders(voter.id),
       payload: { choiceIndex: -1 },
     });
     assert.equal(resNegative.statusCode, 400);
@@ -180,7 +181,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resTooHigh = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${pollId}/vote`,
-      headers: { 'x-user-id': voter.id },
+      headers: authHeaders(voter.id),
       payload: { choiceIndex: 4 },
     });
     assert.equal(resTooHigh.statusCode, 400);
@@ -189,7 +190,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resVote1 = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${pollId}/vote`,
-      headers: { 'x-user-id': voter.id },
+      headers: authHeaders(voter.id),
       payload: { choiceIndex: 0 },
     });
     assert.equal(resVote1.statusCode, 200);
@@ -204,7 +205,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resVoteDup = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${pollId}/vote`,
-      headers: { 'x-user-id': voter.id },
+      headers: authHeaders(voter.id),
       payload: { choiceIndex: 1 },
     });
     assert.equal(resVoteDup.statusCode, 409);
@@ -219,7 +220,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const concPollRes = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         question: 'Concurrent load test poll?',
         choices: ['Option 0', 'Option 1', 'Option 2', 'Option 3'],
@@ -260,7 +261,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
         app.inject({
           method: 'POST',
           url: `/api/v1/polls/${concPoll.id}/vote`,
-          headers: { 'x-user-id': user.id },
+          headers: authHeaders(user.id),
           payload: { choiceIndex },
         })
       )
@@ -306,7 +307,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const equalPollRes = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         question: 'Equal votes test?',
         choices: ['A', 'B', 'C', 'D'],
@@ -331,7 +332,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
       const voteRes = await app.inject({
         method: 'POST',
         url: `/api/v1/polls/${equalPoll.id}/vote`,
-        headers: { 'x-user-id': fourUsers[i].id },
+        headers: authHeaders(fourUsers[i].id),
         payload: { choiceIndex: i },
       });
       assert.equal(voteRes.statusCode, 200);
@@ -369,7 +370,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
       {
         hostname: '127.0.0.1',
         port: serverPort,
-        path: `/api/v1/realtime/stream?userId=${sseUser.id}`,
+        path: `/api/v1/realtime/stream?ticket=${await fetchRealtimeTicket(app, sseUser.id)}`,
         method: 'GET',
         headers: {
           Accept: 'text/event-stream',
@@ -402,7 +403,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const voteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${pollId}/vote`,
-      headers: { 'x-user-id': sseUser.id },
+      headers: authHeaders(sseUser.id),
       payload: { choiceIndex: 1 },
     });
     assert.equal(voteRes.statusCode, 200);
@@ -434,7 +435,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const unauthorizedRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/polls/${pollId}`,
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
     });
     assert.equal(unauthorizedRes.statusCode, 403);
     assert.equal(unauthorizedRes.json().error.code, 'FORBIDDEN');
@@ -444,7 +445,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const deleteRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/polls/${pollId}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
     });
     assert.equal(deleteRes.statusCode, 200);
     const closedData = deleteRes.json().data;
@@ -462,7 +463,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const lateVoteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${pollId}/vote`,
-      headers: { 'x-user-id': lateVoter.id },
+      headers: authHeaders(lateVoter.id),
       payload: { choiceIndex: 2 },
     });
     assert.equal(lateVoteRes.statusCode, 409);
@@ -477,7 +478,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const expPollRes = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         question: 'Expiring poll test?',
         choices: ['Yes', 'No'],
@@ -515,7 +516,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const expiredVoteRes = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${expPoll.id}/vote`,
-      headers: { 'x-user-id': expVoter.id },
+      headers: authHeaders(expVoter.id),
       payload: { choiceIndex: 0 },
     });
     assert.equal(expiredVoteRes.statusCode, 409);
@@ -530,7 +531,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resObjChoices = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         question: 'Object choices test?',
         choices: [{ text: 'Alpha' }, { text: 'Beta' }],
@@ -545,7 +546,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resInvalidExp = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         question: 'Invalid expiry?',
         choices: ['A', 'B'],
@@ -559,7 +560,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resPastExp = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         question: 'Past expiry?',
         choices: ['A', 'B'],
@@ -574,7 +575,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resFutureExp = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         question: 'Future ISO expiry?',
         choices: ['X', 'Y'],
@@ -587,7 +588,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resDupPoll = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         postId: post.id,
         question: 'Another poll on same post?',
@@ -602,7 +603,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resAutoPost = await app.inject({
       method: 'POST',
       url: '/api/v1/polls',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         postId: newPostId,
         question: 'Auto post poll?',
@@ -625,7 +626,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resNonExistentVote = await app.inject({
       method: 'POST',
       url: '/api/v1/polls/00000000-0000-0000-0000-000000000000/vote',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { choiceIndex: 0 },
     });
     assert.equal(resNonExistentVote.statusCode, 404);
@@ -643,7 +644,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resChoiceIdVote = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${objPoll.id}/vote`,
-      headers: { 'x-user-id': voterChoiceId.id },
+      headers: authHeaders(voterChoiceId.id),
       payload: { choiceId: targetChoiceId },
     });
     assert.equal(resChoiceIdVote.statusCode, 200);
@@ -653,7 +654,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resFloatChoice = await app.inject({
       method: 'POST',
       url: `/api/v1/polls/${objPoll.id}/vote`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { choiceIndex: 1.5 },
     });
     assert.equal(resFloatChoice.statusCode, 400);
@@ -663,7 +664,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     const resDeleteNotFound = await app.inject({
       method: 'DELETE',
       url: '/api/v1/polls/00000000-0000-0000-0000-000000000000',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
     });
     assert.equal(resDeleteNotFound.statusCode, 404);
 

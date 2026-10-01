@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -31,7 +32,7 @@ test('TASK-18: Trust & Safety - Content Warnings, Sensitive Media & ActivityPub 
     const createRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Post with sensitive content warning attached',
         mediaUrls: ['https://pulse.social/uploads/cw-test.png'],
@@ -61,7 +62,7 @@ test('TASK-18: Trust & Safety - Content Warnings, Sensitive Media & ActivityPub 
     const edit1Res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${testPostId}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Updated post content',
         contentWarning: 'Cảnh báo: Ánh sáng nhấp nháy',
@@ -90,7 +91,7 @@ test('TASK-18: Trust & Safety - Content Warnings, Sensitive Media & ActivityPub 
     const edit2Res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${testPostId}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Clean post without any warning',
         contentWarning: null,
@@ -120,7 +121,7 @@ test('TASK-18: Trust & Safety - Content Warnings, Sensitive Media & ActivityPub 
     const fedPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'ActivityPub federated note with spoiler warning',
         contentWarning: 'Spoiler Alert: Season 4 Finale',
@@ -159,7 +160,7 @@ test('TASK-18: Trust & Safety - Content Warnings, Sensitive Media & ActivityPub 
     const xssPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Post testing XSS defense in contentWarning',
         contentWarning: xssPayload,
@@ -184,7 +185,7 @@ test('TASK-18: Trust & Safety - Content Warnings, Sensitive Media & ActivityPub 
     const spaceRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Post with spaces only in content warning',
         contentWarning: '     ',
@@ -200,7 +201,7 @@ test('TASK-18: Trust & Safety - Content Warnings, Sensitive Media & ActivityPub 
     const trimRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Post with padded content warning',
         contentWarning: '   Nội dung cảnh báo có khoảng trắng   ',

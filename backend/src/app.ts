@@ -64,7 +64,6 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
     allowedHeaders: [
       'Content-Type',
       'Authorization',
-      'x-user-id',
       'Signature',
       'Date',
       'Digest',
@@ -140,15 +139,13 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
     decorateReply: false,
   });
 
-  // 4. Request context hook to extract user identity (Bearer JWT or x-user-id fallback)
+  // 4. Request context hook to extract user identity exclusively from the Bearer JWT (SEC-02)
   app.addHook('preHandler', async (request, reply) => {
     let currentUserId: string | null = null;
-    let authHeaderProvided = false;
     const authHeader = request.headers['authorization'];
     if (typeof authHeader === 'string') {
       const match = authHeader.match(/^bearer\s+(.+)$/i);
       if (match) {
-        authHeaderProvided = true;
         const token = match[1].trim();
 
         // Zero-Trust Token Revocation Check
@@ -174,13 +171,8 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
       }
     }
 
-    // Zero-Trust Guard: in production, x-user-id is strictly rejected to prevent identity spoofing.
-    // In development/testing, allow x-user-id ONLY if no authorization header was supplied.
-    if (!currentUserId && !authHeaderProvided && process.env.NODE_ENV !== 'production') {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      currentUserId = userId?.trim() || null;
-    }
-
+    // Zero-Trust Guard (SEC-02): identity comes exclusively from the Bearer JWT.
+    // The legacy x-user-id identity channel has been removed entirely.
     request.currentUserId = currentUserId;
   });
 

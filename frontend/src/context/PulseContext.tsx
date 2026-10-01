@@ -232,20 +232,28 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }));
   }, []);
 
-  // Switch user function for demo testing
+  // SEC-02: Switch user qua ĐĂNG NHẬP THẬT (không còn tự định danh qua header).
   const switchUser = useCallback(
-    (selectedUser: UserDto) => {
-      // Clear real auth token when switching to demo user
-      api.setToken(null);
-      setToken(null);
-      setIsAuthenticated(false);
-
-      setCurrentUser(selectedUser);
-      api.setActiveUserId(selectedUser.id);
-      addToast(`Đã chuyển tài khoản sang: ${selectedUser.displayName} (@${selectedUser.username})`, 'info');
-      checkNotifications();
-      refreshDmUnreadCount();
-      refreshFollowRequestsCount();
+    async (selectedUser: UserDto) => {
+      try {
+        const res = await api.loginAsDemoUser(selectedUser);
+        setToken(res.token);
+        setIsAuthenticated(true);
+        setCurrentUser(res.user);
+        setUsers((prev) => {
+          const exists = prev.some((u) => u.id === res.user.id);
+          return exists ? prev.map((u) => (u.id === res.user.id ? res.user : u)) : [res.user, ...prev];
+        });
+        addToast(`Đã chuyển tài khoản sang: ${res.user.displayName} (@${res.user.username})`, 'info');
+        checkNotifications();
+        refreshDmUnreadCount();
+        refreshFollowRequestsCount();
+      } catch {
+        addToast(
+          `Không đăng nhập được tài khoản demo @${selectedUser.username}. Hãy chạy "npm run db:seed" ở backend.`,
+          'error'
+        );
+      }
     },
     [addToast, checkNotifications, refreshDmUnreadCount, refreshFollowRequestsCount]
   );

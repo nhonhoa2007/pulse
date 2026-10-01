@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -54,7 +55,7 @@ test('Smart Notification Aggregator: 24h aggregation window and dynamic actor su
   const postRes = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': author.id },
+    headers: authHeaders(author.id),
     payload: { content: 'Exciting announcement! 🎉' },
   });
   const post = postRes.json().data;
@@ -63,7 +64,7 @@ test('Smart Notification Aggregator: 24h aggregation window and dynamic actor su
   await app.inject({
     method: 'POST',
     url: `/api/v1/posts/${post.id}/like`,
-    headers: { 'x-user-id': userB.id },
+    headers: authHeaders(userB.id),
   });
 
   let notifs = await prisma.notification.findMany({
@@ -77,7 +78,7 @@ test('Smart Notification Aggregator: 24h aggregation window and dynamic actor su
   await app.inject({
     method: 'POST',
     url: `/api/v1/posts/${post.id}/like`,
-    headers: { 'x-user-id': userC.id },
+    headers: authHeaders(userC.id),
   });
 
   notifs = await prisma.notification.findMany({
@@ -91,7 +92,7 @@ test('Smart Notification Aggregator: 24h aggregation window and dynamic actor su
   await app.inject({
     method: 'POST',
     url: `/api/v1/posts/${post.id}/like`,
-    headers: { 'x-user-id': userD.id },
+    headers: authHeaders(userD.id),
   });
 
   notifs = await prisma.notification.findMany({
@@ -105,7 +106,7 @@ test('Smart Notification Aggregator: 24h aggregation window and dynamic actor su
   await app.inject({
     method: 'POST',
     url: `/api/v1/posts/${post.id}/like`,
-    headers: { 'x-user-id': userE.id },
+    headers: authHeaders(userE.id),
   });
 
   notifs = await prisma.notification.findMany({
@@ -119,7 +120,7 @@ test('Smart Notification Aggregator: 24h aggregation window and dynamic actor su
   const getRes = await app.inject({
     method: 'GET',
     url: '/api/v1/notifications',
-    headers: { 'x-user-id': author.id },
+    headers: authHeaders(author.id),
   });
   assert.equal(getRes.statusCode, 200);
   const data = getRes.json().data;
@@ -133,7 +134,7 @@ test('Smart Notification Aggregator: 24h aggregation window and dynamic actor su
   const markRes = await app.inject({
     method: 'PATCH',
     url: '/api/v1/notifications/read-all',
-    headers: { 'x-user-id': author.id },
+    headers: authHeaders(author.id),
   });
   assert.equal(markRes.statusCode, 200);
   assert.equal(markRes.json().data.markedCount >= 1, true);

@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -47,7 +48,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
   const setupRes = await app.inject({
     method: 'POST',
     url: '/api/v1/dm/conversations',
-    headers: { 'x-user-id': alice.id },
+    headers: authHeaders(alice.id),
     payload: { recipientId: bob.id },
   });
   assert.equal(setupRes.statusCode, 201);
@@ -60,7 +61,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(res.statusCode, 403);
     assert.equal(res.json().error.code, 'FORBIDDEN');
@@ -70,7 +71,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Malicious unauthorized message from Charlie' },
     });
     assert.equal(res.statusCode, 403);
@@ -81,7 +82,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/dm/conversations/${conversationId}/read`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: {},
     });
     assert.equal(res.statusCode, 403);
@@ -93,7 +94,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const sendRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Alice private sensitive message' },
     });
     assert.equal(sendRes.statusCode, 201);
@@ -103,7 +104,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const deleteRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/messages/${aliceMessageId}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(deleteRes.statusCode, 403);
     assert.equal(deleteRes.json().error.code, 'FORBIDDEN');
@@ -113,7 +114,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(res.statusCode, 200);
     const body = res.json();
@@ -135,7 +136,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
       const res = await app.inject({
         method: 'POST',
         url: `/api/v1/dm/conversations/${conversationId}/messages`,
-        headers: { 'x-user-id': alice.id },
+        headers: authHeaders(alice.id),
         payload: { content: payload },
       });
       assert.equal(res.statusCode, 201);
@@ -151,7 +152,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const res = await app.inject({
       method: 'GET',
       url: "/api/v1/dm/conversations/'%20OR%201=1%20--/messages",
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     // Should be 404 NOT_FOUND since no conversation matches literal ID
     assert.equal(res.statusCode, 404);
@@ -169,7 +170,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
       const res = await app.inject({
         method: 'POST',
         url: `/api/v1/dm/conversations/${conversationId}/messages`,
-        headers: { 'x-user-id': alice.id },
+        headers: authHeaders(alice.id),
         payload: { content: xss },
       });
       assert.equal(res.statusCode, 201);
@@ -182,7 +183,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const emptyRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: '' },
     });
     assert.equal(emptyRes.statusCode, 400);
@@ -191,7 +192,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const wsRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: '    \n\t   ' },
     });
     assert.equal(wsRes.statusCode, 400);
@@ -200,7 +201,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const tooLongRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'a'.repeat(5001) },
     });
     assert.equal(tooLongRes.statusCode, 400);
@@ -209,7 +210,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const maxRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'a'.repeat(5000) },
     });
     assert.equal(maxRes.statusCode, 201);
@@ -218,8 +219,9 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
   // ---------------------------------------------------------------------------
   // DOMAIN 3: REAL-TIME SSE SECURITY & UNAUTHORIZED SUBSCRIPTION VULNERABILITY
   // ---------------------------------------------------------------------------
-  await t.test('AUDIT-3.1: Real-time Security Flaw - Unauthenticated client can subscribe to arbitrary user SSE stream via ?userId=', async () => {
+  await t.test('AUDIT-3.1 (FIXED by SEC-01/SEC-02): unauthenticated client cannot subscribe to arbitrary user SSE stream via ?userId=', async () => {
     let interceptedEvent = null;
+    let attackerStatusCode = null;
 
     // Attacker Charlie connects to SSE WITHOUT ANY AUTHENTICATION, claiming Alice's userId via query param ?userId=
     const attackerSseReq = http.request(
@@ -231,6 +233,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
         headers: { Accept: 'text/event-stream' },
       },
       (res) => {
+        attackerStatusCode = res.statusCode;
         res.on('data', (chunk) => {
           const text = chunk.toString();
           if (text.includes('event: dm.message.new')) {
@@ -248,7 +251,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     );
     attackerSseReq.end();
 
-    // Wait for SSE handshake
+    // Wait for the rejected handshake
     await new Promise((r) => setTimeout(r, 120));
 
     // Bob sends a sensitive private message to Alice
@@ -256,18 +259,18 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const sendRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { content: secretContent },
     });
     assert.equal(sendRes.statusCode, 201);
 
-    // Wait for SSE delivery to the attacker's eavesdropping stream
     await new Promise((r) => setTimeout(r, 180));
     attackerSseReq.destroy();
 
-    // VERIFICATION OF REAL-TIME DATA LEAKAGE:
-    assert.ok(interceptedEvent, 'CRITICAL VULNERABILITY DEMONSTRATED: Attacker intercepted Alice\'s private SSE stream!');
-    assert.equal(interceptedEvent.message?.content, secretContent, 'Attacker was able to read Bob\'s private DM to Alice in cleartext!');
+    // VERIFICATION THE FLAW IS FIXED: the unauthenticated subscription is rejected 401
+    // and no private DM content ever reaches the attacker.
+    assert.equal(attackerStatusCode, 401, 'Legacy ?userId= subscription must be rejected with 401');
+    assert.equal(interceptedEvent, null, 'Attacker must NOT intercept any private DM SSE event');
   });
 
   // ---------------------------------------------------------------------------
@@ -278,7 +281,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const sendRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: {
         content: 'Confidential bank PIN 9988',
         mediaUrls: ['https://cdn.pulse.social/receipt.png'],
@@ -290,7 +293,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const delRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/messages/${msgId}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(delRes.statusCode, 200);
 
@@ -298,7 +301,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const listRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/conversations/${conversationId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     const messages = listRes.json().data.messages;
     const deletedMsg = messages.find((m) => m.id === msgId);
@@ -314,7 +317,7 @@ test('Security Audit: Direct Messaging (DM) Vulnerability & Invariant Verificati
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/conversations',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     const conv = res.json().data.conversations[0];
     const otherUser = conv.otherUser;

@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -41,14 +42,14 @@ test('Hybrid Fan-Out Feed: regular user fan-out on write & celebrity fan-out on 
   await app.inject({
     method: 'POST',
     url: '/api/v1/graph/follow',
-    headers: { 'x-user-id': followerUser.id },
+    headers: authHeaders(followerUser.id),
     payload: { targetUserId: regularUser.id },
   });
 
   await app.inject({
     method: 'POST',
     url: '/api/v1/graph/follow',
-    headers: { 'x-user-id': followerUser.id },
+    headers: authHeaders(followerUser.id),
     payload: { targetUserId: celebUser.id },
   });
 
@@ -56,7 +57,7 @@ test('Hybrid Fan-Out Feed: regular user fan-out on write & celebrity fan-out on 
   const resReg = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': regularUser.id },
+    headers: authHeaders(regularUser.id),
     payload: { content: 'Post from regular user #hello' },
   });
   assert.equal(resReg.statusCode, 201);
@@ -75,7 +76,7 @@ test('Hybrid Fan-Out Feed: regular user fan-out on write & celebrity fan-out on 
   const resCeleb = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': celebUser.id },
+    headers: authHeaders(celebUser.id),
     payload: { content: 'Post from celebrity KOL ✨' },
   });
   assert.equal(resCeleb.statusCode, 201);
@@ -94,7 +95,7 @@ test('Hybrid Fan-Out Feed: regular user fan-out on write & celebrity fan-out on 
   const feedRes = await app.inject({
     method: 'GET',
     url: '/api/v1/feed/home',
-    headers: { 'x-user-id': followerUser.id },
+    headers: authHeaders(followerUser.id),
   });
   assert.equal(feedRes.statusCode, 200);
   const feedData = feedRes.json().data;

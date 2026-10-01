@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -1305,7 +1306,7 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
     const newPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: `Hello fediverse world! #activitypub_${timestamp}`,
       },
@@ -1398,7 +1399,7 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
       const postRes = await app.inject({
         method: 'POST',
         url: '/api/v1/posts',
-        headers: { 'x-user-id': alice.id },
+        headers: authHeaders(alice.id),
         payload: {
           content: `Broadcast post to fediverse subscribers! #broadcast_${timestamp}`,
         },
@@ -1504,7 +1505,7 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
     const postRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': authorUser.id },
+      headers: authHeaders(authorUser.id),
       payload: {
         content: `SharedInbox optimization test content #${timestamp}`,
       },

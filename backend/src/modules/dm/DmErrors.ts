@@ -16,7 +16,7 @@ export class DmValidationError extends DmError {
 }
 
 export class DmUnauthorizedError extends DmError {
-  constructor(message: string = 'Authentication required via x-user-id header') {
+  constructor(message: string = 'Authentication required') {
     super(message, 401, 'UNAUTHORIZED');
   }
 }

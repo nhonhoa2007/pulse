@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -109,7 +110,7 @@ test('TASK-20 Pillar 1: Algorithmic "For You" Recommendation Feed Test Suite', a
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': reader.id },
+      headers: authHeaders(reader.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -150,7 +151,7 @@ test('TASK-20 Pillar 1: Algorithmic "For You" Recommendation Feed Test Suite', a
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': reader.id },
+      headers: authHeaders(reader.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -206,7 +207,7 @@ test('TASK-20 Pillar 1: Algorithmic "For You" Recommendation Feed Test Suite', a
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': reader.id },
+      headers: authHeaders(reader.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -253,7 +254,7 @@ test('TASK-20 Pillar 1: Algorithmic "For You" Recommendation Feed Test Suite', a
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': reader.id },
+      headers: authHeaders(reader.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -320,7 +321,7 @@ test('TASK-20 Pillar 1: Algorithmic "For You" Recommendation Feed Test Suite', a
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': reader.id },
+      headers: authHeaders(reader.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -342,7 +343,7 @@ test('TASK-20 Pillar 1: Algorithmic "For You" Recommendation Feed Test Suite', a
     const resPage1 = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=2',
-      headers: { 'x-user-id': reader.id },
+      headers: authHeaders(reader.id),
     });
 
     assert.equal(resPage1.statusCode, 200);
@@ -354,7 +355,7 @@ test('TASK-20 Pillar 1: Algorithmic "For You" Recommendation Feed Test Suite', a
     const resPage2 = await app.inject({
       method: 'GET',
       url: `/api/v1/feed/for-you?limit=2&cursor=${encodeURIComponent(page1Body.nextCursor)}`,
-      headers: { 'x-user-id': reader.id },
+      headers: authHeaders(reader.id),
     });
 
     assert.equal(resPage2.statusCode, 200);

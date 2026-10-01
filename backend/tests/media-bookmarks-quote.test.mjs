@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -136,7 +137,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': user1.id },
+      headers: authHeaders(user1.id),
       payload: { content: 'Post to be bookmarked by others #pulse' },
     });
     assert.equal(res.statusCode, 201);
@@ -162,7 +163,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const toggleRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${bookmarkedPostId}/bookmark`,
-      headers: { 'x-user-id': user2.id },
+      headers: authHeaders(user2.id),
     });
     assert.equal(toggleRes.statusCode, 200);
     assert.deepEqual(toggleRes.json(), {
@@ -180,7 +181,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const listRes = await app.inject({
       method: 'GET',
       url: '/api/v1/bookmarks',
-      headers: { 'x-user-id': user2.id },
+      headers: authHeaders(user2.id),
     });
     assert.equal(listRes.statusCode, 200);
     const listBody = listRes.json();
@@ -195,14 +196,14 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const postDetailUser2 = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${bookmarkedPostId}`,
-      headers: { 'x-user-id': user2.id },
+      headers: authHeaders(user2.id),
     });
     assert.equal(postDetailUser2.json().data.isBookmarked, true);
 
     const postDetailUser1 = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${bookmarkedPostId}`,
-      headers: { 'x-user-id': user1.id },
+      headers: authHeaders(user1.id),
     });
     assert.equal(postDetailUser1.json().data.isBookmarked, false);
   });
@@ -212,7 +213,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const toggleRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${bookmarkedPostId}/bookmark`,
-      headers: { 'x-user-id': user2.id },
+      headers: authHeaders(user2.id),
     });
     assert.equal(toggleRes.statusCode, 200);
     assert.deepEqual(toggleRes.json(), {
@@ -230,7 +231,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const listRes = await app.inject({
       method: 'GET',
       url: '/api/v1/bookmarks',
-      headers: { 'x-user-id': user2.id },
+      headers: authHeaders(user2.id),
     });
     assert.equal(listRes.statusCode, 200);
     assert.equal(listRes.json().data.length, 0);
@@ -245,7 +246,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': user1.id },
+      headers: authHeaders(user1.id),
       payload: { content: 'Original insight about distributed systems #tech' },
     });
     assert.equal(res.statusCode, 201);
@@ -258,7 +259,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const quoteRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': user2.id },
+      headers: authHeaders(user2.id),
       payload: {
         content: quoteContent,
         quoteOfId: originalPostId,
@@ -283,7 +284,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const getRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${originalPostId}`,
-      headers: { 'x-user-id': user1.id },
+      headers: authHeaders(user1.id),
     });
     assert.equal(getRes.statusCode, 200);
     assert.equal(getRes.json().data.quotesCount, 1);
@@ -292,7 +293,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const getQuoteRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${quotePost.id}`,
-      headers: { 'x-user-id': user2.id },
+      headers: authHeaders(user2.id),
     });
     assert.equal(getQuoteRes.statusCode, 200);
     assert.ok(getQuoteRes.json().data.quoteOf);
@@ -317,7 +318,7 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const selfQuoteRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': user1.id },
+      headers: authHeaders(user1.id),
       payload: {
         content: 'I am quoting my own post for further context',
         quoteOfId: originalPostId,

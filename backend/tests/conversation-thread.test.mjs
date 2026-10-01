@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -38,7 +39,7 @@ test('Conversation Thread: 3-tier reply chain flattened with rootPostId in singl
   const resA = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': user1.id },
+    headers: authHeaders(user1.id),
     payload: { content: 'Level 1: Root discussion post #architecture' },
   });
   assert.equal(resA.statusCode, 201);
@@ -50,7 +51,7 @@ test('Conversation Thread: 3-tier reply chain flattened with rootPostId in singl
   const resB = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': user2.id },
+    headers: authHeaders(user2.id),
     payload: { content: 'Level 2: Replying to post A', replyToId: postA.id },
   });
   assert.equal(resB.statusCode, 201);
@@ -62,7 +63,7 @@ test('Conversation Thread: 3-tier reply chain flattened with rootPostId in singl
   const resC = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': user3.id },
+    headers: authHeaders(user3.id),
     payload: { content: 'Level 3: Deep reply to post B', replyToId: postB.id },
   });
   assert.equal(resC.statusCode, 201);
@@ -74,7 +75,7 @@ test('Conversation Thread: 3-tier reply chain flattened with rootPostId in singl
   const threadFromC = await app.inject({
     method: 'GET',
     url: `/api/v1/posts/${postC.id}/thread`,
-    headers: { 'x-user-id': user1.id },
+    headers: authHeaders(user1.id),
   });
   assert.equal(threadFromC.statusCode, 200);
   const dataC = threadFromC.json().data;

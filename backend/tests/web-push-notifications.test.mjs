@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -102,7 +103,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const resNoKeys = await app.inject({
       method: 'POST',
       url: '/api/v1/push/subscriptions',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { endpoint: mockPushEndpoint },
     });
     assert.equal(resNoKeys.statusCode, 400);
@@ -111,7 +112,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const resNoEndpoint = await app.inject({
       method: 'POST',
       url: '/api/v1/push/subscriptions',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { keys: { p256dh: 'abc', auth: 'def' } },
     });
     assert.equal(resNoEndpoint.statusCode, 400);
@@ -131,7 +132,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const res1 = await app.inject({
       method: 'POST',
       url: '/api/v1/push/subscriptions',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: initialPayload,
     });
     assert.equal(res1.statusCode, 201);
@@ -154,7 +155,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const res2 = await app.inject({
       method: 'POST',
       url: '/api/v1/push/subscriptions',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: updatedPayload,
     });
     assert.equal(res2.statusCode, 201);
@@ -182,7 +183,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/push/test',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: {
         title: 'RFC 8292 Compliance Check',
         body: 'Testing VAPID JWT generation',
@@ -252,7 +253,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/push/test',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { title: 'Auto-prune test 410' },
     });
 
@@ -283,7 +284,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/push/test',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { title: 'Auto-prune test 404' },
     });
 
@@ -317,7 +318,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Compr
     const res = await app.inject({
       method: 'DELETE',
       url: '/api/v1/push/subscriptions',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { endpoint: unregisterEndpoint },
     });
 

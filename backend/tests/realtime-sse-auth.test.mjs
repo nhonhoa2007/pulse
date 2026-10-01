@@ -62,7 +62,7 @@ test('SEC-01: legacy identity channels (x-user-id, ?userId=) no longer authentic
   const withHeader = await app.inject({
     method: 'GET',
     url: '/api/v1/realtime/stream',
-    headers: { 'x-user-id': user.id },
+    headers: authHeaders(user.id),
   });
   assert.equal(withHeader.statusCode, 401, 'x-user-id header must not open the stream');
 

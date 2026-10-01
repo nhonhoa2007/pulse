@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -155,7 +156,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const aliceFeedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(aliceFeedRes.statusCode, 200);
     const aliceFeedPosts = aliceFeedRes.json().data.posts;
@@ -170,7 +171,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const davidFeedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': davidBlocked.id },
+      headers: authHeaders(davidBlocked.id),
     });
     assert.equal(davidFeedRes.statusCode, 200);
     const davidFeedPosts = davidFeedRes.json().data.posts;
@@ -228,7 +229,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(res.statusCode, 200);
     const postIds = res.json().data.posts.map((p) => p.id);
@@ -260,7 +261,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/for-you?limit=50',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
     assert.equal(res.statusCode, 200);
     const postIds = res.json().data.posts.map((p) => p.id);
@@ -289,7 +290,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
       const res = await app.inject({
         method: 'POST',
         url: '/api/v1/posts/views',
-        headers: { 'x-user-id': malloryAttacker.id },
+        headers: authHeaders(malloryAttacker.id),
         payload: { postIds: [targetPost.id] },
       });
       assert.equal(res.statusCode, 200);
@@ -331,7 +332,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
       const res = await app.inject({
         method: 'POST',
         url: '/api/v1/posts/views',
-        headers: { 'x-user-id': malloryAttacker.id },
+        headers: authHeaders(malloryAttacker.id),
         payload,
       });
 
@@ -434,7 +435,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const createRes = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         title: 'Confidential Security Group',
         memberIds: [bob.id],
@@ -447,7 +448,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const sendRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${auditGroupId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Alice secret trade payload' },
     });
     assert.equal(sendRes.statusCode, 201);
@@ -457,7 +458,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const getGroupRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${auditGroupId}`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(getGroupRes.statusCode, 403);
     assert.equal(getGroupRes.json().error.code, 'FORBIDDEN');
@@ -466,7 +467,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const getMessagesRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${auditGroupId}/messages`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(getMessagesRes.statusCode, 403);
     assert.equal(getMessagesRes.json().error.code, 'FORBIDDEN');
@@ -475,7 +476,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const injectRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${auditGroupId}/messages`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { content: 'Charlie malicious injected message' },
     });
     assert.equal(injectRes.statusCode, 403);
@@ -485,7 +486,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const deleteRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${auditGroupId}/messages/${secretMsgId}`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
     });
     assert.equal(deleteRes.statusCode, 403);
     assert.equal(deleteRes.json().error.code, 'FORBIDDEN');
@@ -494,7 +495,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const readRes = await app.inject({
       method: 'PUT',
       url: `/api/v1/dm/groups/${auditGroupId}/read`,
-      headers: { 'x-user-id': charlie.id },
+      headers: authHeaders(charlie.id),
       payload: { messageId: secretMsgId },
     });
     assert.equal(readRes.statusCode, 403);
@@ -507,7 +508,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const patchRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/dm/groups/${auditGroupId}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { title: 'Hacked by Bob' },
     });
     assert.equal(patchRes.statusCode, 403);
@@ -517,7 +518,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const addRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${auditGroupId}/members`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
       payload: { userId: charlie.id },
     });
     assert.equal(addRes.statusCode, 403);
@@ -527,7 +528,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const kickRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${auditGroupId}/members/${alice.id}`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(kickRes.statusCode, 403);
     assert.equal(kickRes.json().error.code, 'FORBIDDEN');
@@ -539,7 +540,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const createRes = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         title: 'Illegal Group with Blocked User',
         memberIds: [davidBlocked.id],
@@ -552,7 +553,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const davidCreateRes = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': davidBlocked.id },
+      headers: authHeaders(davidBlocked.id),
       payload: {
         title: 'David illegal attempt',
         memberIds: [alice.id],
@@ -565,7 +566,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const addBlockedRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${auditGroupId}/members`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { userId: davidBlocked.id },
     });
     assert.equal(addBlockedRes.statusCode, 403);
@@ -577,7 +578,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const titleXssRes = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         title: '<script>alert("XSS")</script>Secure Chat',
         memberIds: [bob.id],
@@ -590,7 +591,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const avatarXssRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/dm/groups/${auditGroupId}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { avatarUrl: 'javascript:alert("XSS")' },
     });
     assert.equal(avatarXssRes.statusCode, 400, 'Dangerous avatarUrl must be rejected with 400');
@@ -599,7 +600,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const mediaXssRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${auditGroupId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: {
         content: 'Check out this photo',
         mediaUrls: ['javascript:alert(document.cookie)'],
@@ -611,7 +612,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     const msgRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${auditGroupId}/messages`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
       payload: { content: 'Secret confidential message' },
     });
     const msgId = msgRes.json().data.id;
@@ -619,13 +620,13 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
     await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${auditGroupId}/messages/${msgId}`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     const messagesRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${auditGroupId}/messages`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     const deletedMsg = messagesRes.json().data.messages.find((m) => m.id === msgId);
     assert.ok(deletedMsg);
@@ -653,7 +654,7 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group
       const res = await app.inject({
         method: 'POST',
         url: '/api/v1/push/subscriptions',
-        headers: { 'x-user-id': alice.id },
+        headers: authHeaders(alice.id),
         payload: {
           endpoint,
           keys: {

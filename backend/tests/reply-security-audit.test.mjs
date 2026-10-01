@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -39,7 +40,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const rootRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Root discussion thread', reply_privacy: 'EVERYONE' },
     });
     assert.equal(rootRes.statusCode, 201);
@@ -49,7 +50,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const reply1Res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': commenter.id },
+      headers: authHeaders(commenter.id),
       payload: {
         content: 'I reply and restrict replies to people I follow only',
         replyToId: rootPost.id,
@@ -63,7 +64,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const authorReplyRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: 'I am the root author responding to your comment',
         replyToId: reply1.id,
@@ -84,7 +85,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const rootRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Restricted root: Following only', reply_privacy: 'FOLLOWING' },
     });
     const rootPost = rootRes.json().data;
@@ -104,7 +105,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const bypassRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: {
         content: 'Attacker replying to unlinked legacy reply',
         replyToId: legacyReply.id,
@@ -124,7 +125,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const postRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Author public post' },
     });
     const post = postRes.json().data;
@@ -133,7 +134,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const quoteRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': blockedUser.id },
+      headers: authHeaders(blockedUser.id),
       payload: {
         content: 'Blocked user quoting blocker post',
         quoteOfId: post.id,
@@ -157,7 +158,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const postRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: `Please email us at support@${emailUser.username} for assistance`,
         reply_privacy: 'MENTIONED',
@@ -171,7 +172,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const replyRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': emailUser.id },
+      headers: authHeaders(emailUser.id),
       payload: {
         content: 'I replied because my username was part of an email address',
         replyToId: post.id,
@@ -206,7 +207,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const replyDeletedRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: {
         content: 'Trying to reply to deleted post',
         replyToId: deletedPost.id,
@@ -219,7 +220,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const idorRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${deletedPost.id}`,
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { reply_privacy: 'FOLLOWING' },
     });
     // Post is deleted -> 404; or if active -> 403
@@ -233,7 +234,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
     const postRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Concurrency test post', reply_privacy: 'EVERYONE' },
     });
     const post = postRes.json().data;
@@ -244,7 +245,7 @@ test('SECURITY PENETRATION & REMEDIATION VERIFICATION SUITE: Reply Endpoints Acc
       app.inject({
         method: 'POST',
         url: '/api/v1/posts',
-        headers: { 'x-user-id': commenter.id },
+        headers: authHeaders(commenter.id),
         payload: {
           content: `Concurrent reply #${i}`,
           replyToId: post.id,

@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -75,7 +76,7 @@ test('TASK-20 Pillar 2: Post Views & Impressions Buffer Service and Endpoints Su
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts/views',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { postIds: [post1.id, post2.id] },
     });
 
@@ -92,7 +93,7 @@ test('TASK-20 Pillar 2: Post Views & Impressions Buffer Service and Endpoints Su
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts/views',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { postIds: 'invalid-string-not-array' },
     });
 
@@ -110,7 +111,7 @@ test('TASK-20 Pillar 2: Post Views & Impressions Buffer Service and Endpoints Su
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts/views',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { postIds: [post1.id, post2.id] },
     });
 
@@ -177,7 +178,7 @@ test('TASK-20 Pillar 2: Post Views & Impressions Buffer Service and Endpoints Su
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post3.id}/view`,
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -223,7 +224,7 @@ test('TASK-20 Pillar 2: Post Views & Impressions Buffer Service and Endpoints Su
         method: 'POST',
         url: '/api/v1/posts/views',
         headers: {
-          'x-user-id': `conc_viewer_${timestamp}_${i}`,
+          ...authHeaders(`conc_viewer_${timestamp}_${i}`),
           'x-forwarded-for': `10.200.${Math.floor(i / 250)}.${i % 250}`,
         },
         payload: { postIds: [concPost.id] },

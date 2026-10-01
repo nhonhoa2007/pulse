@@ -1,3 +1,4 @@
+import { authHeaders, fetchRealtimeTicket } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -85,7 +86,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resEmpty = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { title: '', memberIds: [memberBob.id] },
     });
     assert.equal(resEmpty.statusCode, 400);
@@ -94,7 +95,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resWhitespace = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { title: '    ', memberIds: [memberBob.id] },
     });
     assert.equal(resWhitespace.statusCode, 400);
@@ -103,7 +104,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resLong = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { title: 'X'.repeat(101), memberIds: [memberBob.id] },
     });
     assert.equal(resLong.statusCode, 400);
@@ -114,7 +115,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resNoMembers = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { title: 'Solo Group Attempt', memberIds: [] },
     });
     assert.equal(resNoMembers.statusCode, 400);
@@ -125,7 +126,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resWithBlocked = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { title: 'Blocked Group', memberIds: [blockedEve.id, memberBob.id] },
     });
     assert.equal(resWithBlocked.statusCode, 403);
@@ -136,7 +137,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: {
         title: 'Pulse Engineering Team',
         memberIds: [memberBob.id, memberCharlie.id],
@@ -170,7 +171,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/members`,
-      headers: { 'x-user-id': memberBob.id }, // Bob is MEMBER
+      headers: authHeaders(memberBob.id), // Bob is MEMBER
       payload: { userId: prospectiveDave.id },
     });
     assert.equal(res.statusCode, 403);
@@ -181,7 +182,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/members`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { userId: prospectiveDave.id },
     });
     assert.equal(res.statusCode, 201);
@@ -194,7 +195,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const groupRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${targetGroupId}`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
     });
     assert.equal(groupRes.json().data.members.length, 4);
   });
@@ -203,7 +204,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/members`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { userId: blockedEve.id },
     });
     assert.equal(res.statusCode, 403);
@@ -214,7 +215,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${targetGroupId}/members/${prospectiveDave.id}`,
-      headers: { 'x-user-id': memberBob.id },
+      headers: authHeaders(memberBob.id),
     });
     assert.equal(res.statusCode, 403);
   });
@@ -223,7 +224,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${targetGroupId}/members/${prospectiveDave.id}`,
-      headers: { 'x-user-id': prospectiveDave.id }, // Self-leave
+      headers: authHeaders(prospectiveDave.id), // Self-leave
     });
     assert.equal(res.statusCode, 200);
     assert.equal(res.json().success, true);
@@ -232,7 +233,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const checkRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${targetGroupId}`,
-      headers: { 'x-user-id': prospectiveDave.id },
+      headers: authHeaders(prospectiveDave.id),
     });
     assert.equal(checkRes.statusCode, 403);
   });
@@ -241,7 +242,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${targetGroupId}/members/${memberCharlie.id}`,
-      headers: { 'x-user-id': creatorAdmin.id }, // Admin kicks Charlie
+      headers: authHeaders(creatorAdmin.id), // Admin kicks Charlie
     });
     assert.equal(res.statusCode, 200);
     assert.equal(res.json().success, true);
@@ -250,7 +251,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const groupRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${targetGroupId}`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
     });
     const remainingMemberIds = groupRes.json().data.members.map((m) => m.userId);
     assert.equal(remainingMemberIds.includes(memberCharlie.id), false);
@@ -263,7 +264,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/messages`,
-      headers: { 'x-user-id': strangerFrank.id },
+      headers: authHeaders(strangerFrank.id),
       payload: { content: 'Intruder message' },
     });
     assert.equal(res.statusCode, 403);
@@ -275,7 +276,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resText = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/messages`,
-      headers: { 'x-user-id': memberBob.id },
+      headers: authHeaders(memberBob.id),
       payload: { content: 'Sprint planning agenda: TASK-20 deployment', messageType: 'TEXT' },
     });
     assert.equal(resText.statusCode, 201);
@@ -290,7 +291,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resImage = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/messages`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: {
         content: 'System Architecture Diagram',
         messageType: 'IMAGE',
@@ -309,7 +310,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resAdminDeleteBob = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${targetGroupId}/messages/${textMessageId}`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
     });
     assert.equal(resAdminDeleteBob.statusCode, 403);
 
@@ -317,7 +318,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const resBobDelete = await app.inject({
       method: 'DELETE',
       url: `/api/v1/dm/groups/${targetGroupId}/messages/${textMessageId}`,
-      headers: { 'x-user-id': memberBob.id },
+      headers: authHeaders(memberBob.id),
     });
     assert.equal(resBobDelete.statusCode, 200);
 
@@ -325,7 +326,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const queryRes = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${targetGroupId}/messages`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
     });
     const deletedMsg = queryRes.json().data.messages.find((m) => m.id === textMessageId);
     assert.ok(deletedMsg, 'Deleted message must still exist in history');
@@ -341,13 +342,13 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/messages`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { content: 'History message A' },
     });
     const msgB = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/messages`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { content: 'History message B' },
     });
 
@@ -355,7 +356,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const page1Res = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${targetGroupId}/messages?limit=2`,
-      headers: { 'x-user-id': memberBob.id },
+      headers: authHeaders(memberBob.id),
     });
     assert.equal(page1Res.statusCode, 200);
     const page1 = page1Res.json().data;
@@ -366,7 +367,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const page2Res = await app.inject({
       method: 'GET',
       url: `/api/v1/dm/groups/${targetGroupId}/messages?limit=2&cursor=${encodeURIComponent(page1.nextCursor)}`,
-      headers: { 'x-user-id': memberBob.id },
+      headers: authHeaders(memberBob.id),
     });
     assert.equal(page2Res.statusCode, 200);
     const page2 = page2Res.json().data;
@@ -384,7 +385,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const listBefore = await app.inject({
       method: 'GET',
       url: '/api/v1/dm/groups',
-      headers: { 'x-user-id': memberBob.id },
+      headers: authHeaders(memberBob.id),
     });
     const groupBefore = listBefore.json().data.groups.find((g) => g.id === targetGroupId);
     assert.ok(groupBefore.unreadCount > 0, 'Bob should have unread messages');
@@ -393,7 +394,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const readRes = await app.inject({
       method: 'PUT',
       url: `/api/v1/dm/groups/${targetGroupId}/read`,
-      headers: { 'x-user-id': memberBob.id },
+      headers: authHeaders(memberBob.id),
       payload: { messageId: imageMessageId },
     });
     assert.equal(readRes.statusCode, 200);
@@ -415,7 +416,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
       {
         hostname: '127.0.0.1',
         port: serverPort,
-        path: `/api/v1/realtime/stream?userId=${memberBob.id}`,
+        path: `/api/v1/realtime/stream?ticket=${await fetchRealtimeTicket(app, memberBob.id)}`,
         method: 'GET',
         headers: { Accept: 'text/event-stream' },
       },
@@ -448,7 +449,7 @@ test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipt
     const sendRes = await app.inject({
       method: 'POST',
       url: `/api/v1/dm/groups/${targetGroupId}/messages`,
-      headers: { 'x-user-id': creatorAdmin.id },
+      headers: authHeaders(creatorAdmin.id),
       payload: { content: broadcastContent, messageType: 'TEXT' },
     });
     assert.equal(sendRes.statusCode, 201);

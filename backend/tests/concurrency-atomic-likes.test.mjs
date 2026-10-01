@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -21,7 +22,7 @@ test('Concurrency & Atomic Invariants: 50 concurrent likes/unlikes maintain exac
   const postRes = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': author.id },
+    headers: authHeaders(author.id),
     payload: { content: 'High concurrency like test post' },
   });
   assert.equal(postRes.statusCode, 201);
@@ -46,7 +47,7 @@ test('Concurrency & Atomic Invariants: 50 concurrent likes/unlikes maintain exac
       app.inject({
         method: 'POST',
         url: `/api/v1/posts/${post.id}/like`,
-        headers: { 'x-user-id': user.id },
+        headers: authHeaders(user.id),
       })
     )
   );
@@ -76,7 +77,7 @@ test('Concurrency & Atomic Invariants: 50 concurrent likes/unlikes maintain exac
       app.inject({
         method: 'POST',
         url: `/api/v1/posts/${post.id}/like`,
-        headers: { 'x-user-id': user.id },
+        headers: authHeaders(user.id),
       })
     )
   );

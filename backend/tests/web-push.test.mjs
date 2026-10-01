@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -93,7 +94,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Suite
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/push/subscriptions',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload,
     });
 
@@ -119,7 +120,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Suite
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/push/test',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { title: 'Test Title', body: 'Test Message' },
     });
 
@@ -158,7 +159,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Suite
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/push/test',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
     });
 
     assert.equal(res.statusCode, 200);
@@ -188,7 +189,7 @@ test('TASK-20 Pillar 4: Web Push Notifications (RFC 8030 / RFC 8292 VAPID) Suite
     const res = await app.inject({
       method: 'DELETE',
       url: '/api/v1/push/subscriptions',
-      headers: { 'x-user-id': testUser.id },
+      headers: authHeaders(testUser.id),
       payload: { endpoint: endpointToDelete },
     });
 

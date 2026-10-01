@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -30,14 +31,14 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   await app.inject({
     method: 'POST',
     url: '/api/v1/graph/follow',
-    headers: { 'x-user-id': userA.id },
+    headers: authHeaders(userA.id),
     payload: { targetUserId: userB.id },
   });
 
   await app.inject({
     method: 'POST',
     url: '/api/v1/graph/follow',
-    headers: { 'x-user-id': userB.id },
+    headers: authHeaders(userB.id),
     payload: { targetUserId: userA.id },
   });
 
@@ -53,7 +54,7 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   const postARes = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': userA.id },
+    headers: authHeaders(userA.id),
     payload: { content: 'Secret post by A' },
   });
   const postA = postARes.json().data;
@@ -61,7 +62,7 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   const postBRes = await app.inject({
     method: 'POST',
     url: '/api/v1/posts',
-    headers: { 'x-user-id': userB.id },
+    headers: authHeaders(userB.id),
     payload: { content: 'Secret post by B' },
   });
   const postB = postBRes.json().data;
@@ -80,7 +81,7 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   const blockRes = await app.inject({
     method: 'POST',
     url: '/api/v1/graph/block',
-    headers: { 'x-user-id': userA.id },
+    headers: authHeaders(userA.id),
     payload: { targetUserId: userB.id },
   });
   assert.equal(blockRes.statusCode, 200);
@@ -121,7 +122,7 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   const bViewsAProfile = await app.inject({
     method: 'GET',
     url: `/api/v1/users/${userA.username}`,
-    headers: { 'x-user-id': userB.id },
+    headers: authHeaders(userB.id),
   });
   assert.equal(bViewsAProfile.statusCode, 404, 'Blocked user viewing blocker profile must return 404');
 
@@ -129,7 +130,7 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   const bViewsAPost = await app.inject({
     method: 'GET',
     url: `/api/v1/posts/${postA.id}`,
-    headers: { 'x-user-id': userB.id },
+    headers: authHeaders(userB.id),
   });
   assert.equal(bViewsAPost.statusCode, 404, 'Blocked user viewing blocker post must return 404');
 
@@ -137,7 +138,7 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   const aViewsBProfile = await app.inject({
     method: 'GET',
     url: `/api/v1/users/${userB.username}`,
-    headers: { 'x-user-id': userA.id },
+    headers: authHeaders(userA.id),
   });
   assert.equal(aViewsBProfile.statusCode, 200);
   assert.equal(aViewsBProfile.json().data.isBlocked, true);
@@ -146,7 +147,7 @@ test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and priva
   const unblockRes = await app.inject({
     method: 'POST',
     url: '/api/v1/graph/unblock',
-    headers: { 'x-user-id': userA.id },
+    headers: authHeaders(userA.id),
     payload: { targetUserId: userB.id },
   });
   assert.equal(unblockRes.statusCode, 200);

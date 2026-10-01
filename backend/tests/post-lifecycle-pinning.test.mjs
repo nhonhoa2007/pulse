@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -64,7 +65,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     const pinRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post1Id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(pinRes.statusCode, 200);
@@ -85,7 +86,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     const pin2Res = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post2Id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(pin2Res.statusCode, 200);
@@ -106,7 +107,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     const forbiddenRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post1Id}/pin`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
 
     assert.equal(forbiddenRes.statusCode, 403);
@@ -127,7 +128,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     const replyPinRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${replyPostId}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(replyPinRes.statusCode, 400);
@@ -147,7 +148,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     const deletedPinRes = await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${deletedPost.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(deletedPinRes.statusCode, 400);
@@ -163,7 +164,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     const unpinRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/posts/${post2Id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     assert.equal(unpinRes.statusCode, 200);
@@ -193,7 +194,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${tempPost.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     let userCheck = await prisma.user.findUnique({ where: { id: alice.id } });
@@ -227,7 +228,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${hardDeletePost.id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     userCheck = await prisma.user.findUnique({ where: { id: alice.id } });
@@ -249,7 +250,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     await app.inject({
       method: 'POST',
       url: `/api/v1/posts/${post1Id}/pin`,
-      headers: { 'x-user-id': alice.id },
+      headers: authHeaders(alice.id),
     });
 
     // Fetch Alice's profile feed
@@ -289,7 +290,7 @@ test('TASK-18: Post Lifecycle - Pinned Post to Profile & Query Invariants', asyn
     const bobUnpinRes = await app.inject({
       method: 'DELETE',
       url: `/api/v1/posts/${post1Id}/pin`,
-      headers: { 'x-user-id': bob.id },
+      headers: authHeaders(bob.id),
     });
     assert.equal(bobUnpinRes.statusCode, 403);
     assert.equal(bobUnpinRes.json().error.code, 'FORBIDDEN');

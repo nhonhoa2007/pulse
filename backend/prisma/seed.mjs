@@ -1,4 +1,10 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+// SEC-02: demo users đăng nhập thật qua /auth/login thay vì tự định danh qua header.
+// Mật khẩu chung cho tài khoản demo (chỉ tồn tại trong dữ liệu seed cục bộ).
+const DEMO_PASSWORD = 'PulseDemo2026!';
+const demoPasswordHash = bcrypt.hashSync(DEMO_PASSWORD, 10);
 
 const prisma = new PrismaClient();
 
@@ -42,6 +48,7 @@ async function main() {
   // 1. Tạo Users mẫu
   const hoa = await prisma.user.create({
     data: {
+      passwordHash: demoPasswordHash,
       username: 'hoa_dev',
       email: 'hoa@pulse.local',
       displayName: 'Hoà Phùng',
@@ -53,6 +60,7 @@ async function main() {
 
   const alice = await prisma.user.create({
     data: {
+      passwordHash: demoPasswordHash,
       username: 'alice',
       email: 'alice@pulse.local',
       displayName: 'Alice Nguyễn',
@@ -64,6 +72,7 @@ async function main() {
 
   const bob = await prisma.user.create({
     data: {
+      passwordHash: demoPasswordHash,
       username: 'bob',
       email: 'bob@pulse.local',
       displayName: 'Bob Trần',
@@ -75,6 +84,7 @@ async function main() {
 
   const sontung = await prisma.user.create({
     data: {
+      passwordHash: demoPasswordHash,
       username: 'sontungmtp',
       email: 'sontung@pulse.local',
       displayName: 'Sơn Tùng M-TP',

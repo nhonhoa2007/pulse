@@ -8,6 +8,9 @@ import { LiveFeedToastIndicator } from '../components/LiveFeedToastIndicator';
 import { useViewportImpressionTracker } from '../utils/useViewportImpressionTracker';
 import { RefreshCw, Inbox, AlertCircle } from 'lucide-react';
 
+// SEC-06: mock/fallback feed chỉ tồn tại ở môi trường dev
+const IS_DEV: boolean = import.meta.env.DEV;
+
 export const HomeTimelineView: React.FC = () => {
   const { currentUser } = usePulse();
 
@@ -233,7 +236,7 @@ export const HomeTimelineView: React.FC = () => {
 
 // Fallback initial posts for instant preview
 function getFallbackFeed(): PostDto[] {
-  return [
+  return IS_DEV ? [
     {
       id: 'mock-post-1',
       authorId: '44444444-4444-4444-4444-444444444444',
@@ -264,5 +267,5 @@ function getFallbackFeed(): PostDto[] {
       isLiked: false,
       isReposted: false,
     },
-  ];
+  ] : [];
 }

@@ -1,3 +1,4 @@
+import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../dist/db/PrismaClientSingleton.js';
@@ -67,7 +68,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const resDefault = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Contract test: default privacy' },
     });
     assert.equal(resDefault.statusCode, 201);
@@ -81,7 +82,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const resFollowing = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Contract test: following', reply_privacy: 'FOLLOWING' },
     });
     assert.equal(resFollowing.statusCode, 201);
@@ -91,7 +92,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const resMentioned = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: `Contract test: mentioned @${mentionedUser.username}`,
         reply_privacy: 'MENTIONED',
@@ -105,7 +106,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const resInvalid = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Invalid enum test', reply_privacy: 'PRIVATE_CIRCLES' },
     });
     assert.equal(resInvalid.statusCode, 400);
@@ -116,7 +117,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const patchInvalid = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${postDefault.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { reply_privacy: 'INVALID_STATUS' },
     });
     assert.equal(patchInvalid.statusCode, 400);
@@ -126,7 +127,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const patchRes = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${postDefault.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { reply_privacy: 'FOLLOWING' },
     });
     assert.equal(patchRes.statusCode, 200);
@@ -136,7 +137,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const getDetailRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${postDefault.id}`,
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
     });
     assert.equal(getDetailRes.statusCode, 200);
     const detailData = getDetailRes.json().data;
@@ -148,7 +149,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const getThreadRes = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${postDefault.id}/thread`,
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
     });
     assert.equal(getThreadRes.statusCode, 200);
     assert.equal(getThreadRes.json().data.rootPost.canReply, true, 'Followed user can reply in thread');
@@ -157,7 +158,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const feedRes = await app.inject({
       method: 'GET',
       url: '/api/v1/feed/home',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
     });
     assert.equal(feedRes.statusCode, 200);
     const feedPosts = feedRes.json().data.posts;
@@ -169,7 +170,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const searchRes = await app.inject({
       method: 'GET',
       url: '/api/v1/search?q=Contract&type=posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
     });
     assert.equal(searchRes.statusCode, 200);
     const searchPosts = searchRes.json().data.posts;
@@ -184,7 +185,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rootPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: `Matrix EVERYONE post mentioning @${mentionedUser.username}`,
         reply_privacy: 'EVERYONE',
@@ -193,7 +194,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const post = rootPostRes.json().data;
 
     const testReply = async (user, headers = {}) => {
-      const authHeader = user ? { 'x-user-id': user.id } : {};
+      const authHeader = user ? authHeaders(user.id) : {};
       return app.inject({
         method: 'POST',
         url: '/api/v1/posts',
@@ -246,7 +247,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rootPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: `Matrix FOLLOWING post mentioning @${mentionedUser.username}`,
         reply_privacy: 'FOLLOWING',
@@ -255,7 +256,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const post = rootPostRes.json().data;
 
     const testReply = async (user) => {
-      const authHeader = user ? { 'x-user-id': user.id } : {};
+      const authHeader = user ? authHeaders(user.id) : {};
       return app.inject({
         method: 'POST',
         url: '/api/v1/posts',
@@ -308,7 +309,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rootPostRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: `Matrix MENTIONED: calling @${mentionedUser.username} and @${mutualFollow.username} and @${mentionedAndBlocked.username}`,
         reply_privacy: 'MENTIONED',
@@ -321,7 +322,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     assert.ok(post.mentions.includes(mutualFollow.username.toLowerCase()));
 
     const testReply = async (user) => {
-      const authHeader = user ? { 'x-user-id': user.id } : {};
+      const authHeader = user ? authHeaders(user.id) : {};
       return app.inject({
         method: 'POST',
         url: '/api/v1/posts',
@@ -377,7 +378,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rootRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Deep Thread: Following Only', reply_privacy: 'FOLLOWING' },
     });
     const rootPost = rootRes.json().data;
@@ -386,7 +387,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const l1Res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
       payload: { content: 'Level 1 reply by followed user', replyToId: rootPost.id },
     });
     assert.equal(l1Res.statusCode, 201);
@@ -396,7 +397,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const l2Res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': mutualFollow.id },
+      headers: authHeaders(mutualFollow.id),
       payload: { content: 'Level 2 reply by mutual follow', replyToId: l1Reply.id },
     });
     assert.equal(l2Res.statusCode, 201);
@@ -406,7 +407,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const hijackL1 = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Hijack attempt on L1', replyToId: l1Reply.id },
     });
     assert.equal(hijackL1.statusCode, 403);
@@ -416,7 +417,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const hijackL2 = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Hijack attempt on L2', replyToId: l2Reply.id },
     });
     assert.equal(hijackL2.statusCode, 403);
@@ -426,7 +427,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const authorL3Res = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Root author replies to L2', replyToId: l2Reply.id },
     });
     assert.equal(authorL3Res.statusCode, 201);
@@ -435,14 +436,14 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const threadAsStranger = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${rootPost.id}/thread`,
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
     });
     assert.equal(threadAsStranger.json().data.rootPost.canReply, false);
 
     const threadAsFollowed = await app.inject({
       method: 'GET',
       url: `/api/v1/posts/${rootPost.id}/thread`,
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
     });
     assert.equal(threadAsFollowed.json().data.rootPost.canReply, true);
   });
@@ -455,7 +456,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const createRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: {
         content: `Lifecycle post mentioning @${mentionedUser.username}`,
         reply_privacy: 'EVERYONE',
@@ -467,7 +468,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rep1 = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Stranger reply during EVERYONE', replyToId: post.id },
     });
     assert.equal(rep1.statusCode, 201);
@@ -476,7 +477,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const patchToFollowing = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { reply_privacy: 'FOLLOWING' },
     });
     assert.equal(patchToFollowing.statusCode, 200);
@@ -485,7 +486,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rep2Blocked = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Stranger reply during FOLLOWING', replyToId: post.id },
     });
     assert.equal(rep2Blocked.statusCode, 403);
@@ -495,7 +496,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rep2Allowed = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
       payload: { content: 'Followed user reply during FOLLOWING', replyToId: post.id },
     });
     assert.equal(rep2Allowed.statusCode, 201);
@@ -504,7 +505,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const patchToMentioned = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { reply_privacy: 'MENTIONED' },
     });
     assert.equal(patchToMentioned.statusCode, 200);
@@ -513,7 +514,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rep3Blocked = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
       payload: { content: 'Followed user reply during MENTIONED', replyToId: post.id },
     });
     assert.equal(rep3Blocked.statusCode, 403);
@@ -523,7 +524,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rep3Allowed = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': mentionedUser.id },
+      headers: authHeaders(mentionedUser.id),
       payload: { content: 'Mentioned user reply during MENTIONED', replyToId: post.id },
     });
     assert.equal(rep3Allowed.statusCode, 201);
@@ -532,7 +533,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const patchBackToEveryone = await app.inject({
       method: 'PATCH',
       url: `/api/v1/posts/${post.id}`,
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { reply_privacy: 'EVERYONE' },
     });
     assert.equal(patchBackToEveryone.statusCode, 200);
@@ -541,7 +542,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const rep4Allowed = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Stranger reply back in EVERYONE mode', replyToId: post.id },
     });
     assert.equal(rep4Allowed.statusCode, 201);
@@ -555,7 +556,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const nonExistentRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Reply to phantom post', replyToId: '00000000-0000-0000-0000-000000000000' },
     });
     assert.equal(nonExistentRes.statusCode, 404);
@@ -572,7 +573,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     const deletedRes = await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': author.id },
+      headers: authHeaders(author.id),
       payload: { content: 'Reply to deleted post', replyToId: deletedPost.id },
     });
     assert.equal(deletedRes.statusCode, 404);
@@ -593,7 +594,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': stranger.id },
+      headers: authHeaders(stranger.id),
       payload: { content: 'Failed reply attempt', replyToId: targetPost.id },
     });
 
@@ -604,7 +605,7 @@ test('TASK-16: Reply Privacy Controls - Exhaustive Integration & E2E Matrix Suit
     await app.inject({
       method: 'POST',
       url: '/api/v1/posts',
-      headers: { 'x-user-id': followedUser.id },
+      headers: authHeaders(followedUser.id),
       payload: { content: 'Successful reply', replyToId: targetPost.id },
     });
 

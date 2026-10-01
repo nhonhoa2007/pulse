@@ -38,7 +38,7 @@ export class WebPushController {
       reply.status(401);
       return {
         success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Authentication required via x-user-id header' },
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
       };
     }
 
@@ -79,7 +79,7 @@ export class WebPushController {
       reply.status(401);
       return {
         success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Authentication required via x-user-id header' },
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
       };
     }
 
@@ -120,7 +120,7 @@ export class WebPushController {
       reply.status(401);
       return {
         success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Authentication required via x-user-id header' },
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
       };
     }
 
