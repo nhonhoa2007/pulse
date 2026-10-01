@@ -3,7 +3,7 @@
 **Chỉ huy:** Tech Lead & System Architect
 **Nhân sự điều phối:** `backend-architect`, `frontend-specialist`, `qa-test-engineer`, `security-auditor`
 **Căn cứ:** Bản quét & đánh giá toàn project (2026-10-01) + `improve.md` (PKG-01 → PKG-07)
-**Trạng thái:** 🚀 ĐANG THỰC THI — ✅ GĐ 0 + GĐ 1 (Hardening Week) hoàn thành 2026-10-01; baseline mới **605/605 tests** (431 backend + 174 frontend)
+**Trạng thái:** 🚀 GĐ 0-3 hoàn thành 100% + GĐ 4 hoàn thành 9/9 gói (2026-10-01) — tổng 659 test cases: 456 backend + 203 frontend. Còn lại: PKG-05 phần 2 (reactions/ảnh chat), PKG-06/13/15/16 (chi tiết điều kiện trong PROGRESS.md)
 
 ---
 
@@ -162,14 +162,14 @@ Thứ tự khuyến nghị trong giai đoạn: **PKG-03 → PKG-01 → PKG-04 �
 | Mã | Hạng mục | Nguồn spec | Ghi chú điều chỉnh |
 |---|---|---|---|
 | PKG-03 | Trang Bookmarks + Post Drafts autosave | improve.md 3.3 | ✅ 2026-10-01 (BookmarksView + route /bookmarks + drafts autosave 1s) |
-| PKG-01 | OpenGraph Link Preview + Multi-image grid | improve.md 3.1 | tái dùng `SsrfProtectionGuardService`; cache 24h |
-| PKG-04 | Report & Moderation Queue | improve.md 3.4 | thêm sẵn 2 cột `autoScore`, `autoLabels` để GĐ5 không phải migrate |
-| PKG-09 | Media Pipeline v2 | **mới** | `sharp`: resize/WebP/thumbnail, strip EXIF (rò rỉ GPS), alt-text field, drag-drop/paste ảnh; schema `Media.altText` |
-| PKG-05 | DM Polish: typing + reactions + ảnh chat | improve.md 3.5 | heartbeat typing throttle 3s/server-side broadcast qua SSE `dm.typing` |
+| PKG-01 | OpenGraph Link Preview + Multi-image grid | improve.md 3.1 | ✅ 2026-10-01 (scraper strict-SSRF + cache 24h + LinkPreviewCard; multi-image grid có sẵn) |
+| PKG-04 | Report & Moderation Queue | improve.md 3.4 | ✅ 2026-10-01 (BE+FE: autoScore heuristic, admin queue/resolve, suspend gates, nút Báo cáo) |
+| PKG-09 | Media Pipeline v2 | **mới** | ✅ 2026-10-01 (sharp WebP/resize/EXIF strip, MediaAsset registry + altText, auth gate; drag-drop/paste còn lại) |
+| PKG-05 | DM Polish: typing + reactions + ảnh chat | improve.md 3.5 | ✅ typing 2026-10-01 (SSE dm.typing + UI); reactions + ảnh chat còn lại |
 | PKG-06 | OAuth2 (Google/GitHub) + Password Reset + UserSession | improve.md 3.6 | cần `MailerService` (nodemailer + SMTP ENV); gộp "đăng xuất mọi thiết bị" vào UserSession |
 | PKG-10 | Account Lifecycle | **mới** | xóa tài khoản (transaction: soft-delete user, dọn inbox/follow/follow-request/token, ngắt SSE, ẩn nội dung `isDeleted`), export dữ liệu JSON (posts/follows/DMs) |
-| PKG-11 | Full-text Search tiếng Việt | **mới** | cột generated `tsvector` (config `simple` + extension `unaccent`), GIN index; `SearchService` chuyển sang `websearch_to_tsquery`; hashtag giữ nguyên GIN trên array; benchmark trước/sau |
-| PKG-12 | PWA hoàn chỉnh | **mới** | manifest + icons + offline shell (cache-first static); tận dụng service worker + Web Push đã có |
+| PKG-11 | Full-text Search tiếng Việt | **mới** | ✅ 2026-10-01 (search_vector generated + immutable_unaccent + GIN; FTS multi-word, match có/không dấu; benchmark chuyên sâu còn lại) |
+| PKG-12 | PWA hoàn chỉnh | **mới** | ✅ 2026-10-01 (manifest + icons + theme-color + offline shell cache-first) |
 
 Mỗi PKG giữ đúng chu trình chuẩn của team: spec → schema/contract → backend → frontend → security audit (nếu chạm dữ liệu người dùng) → test → cập nhật docs. Tiêu chí nghiệm thu chi tiết theo từng spec nguồn.
 
