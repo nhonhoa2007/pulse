@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { tokenRevocationManager } from './TokenRevocationManager.js';
 import { getJwtSecret } from '../../config/Secrets.js';
+import { validateRegisterInput, validateLoginInput } from '../../contracts/AuthSchemas.js';
 import {
   RegisterInput,
   LoginInput,
@@ -123,28 +124,9 @@ export class AuthService {
   }
 
   public async register(input: RegisterInput): Promise<DualTokenAuthResult> {
-    const { username, email, password, displayName } = input || {};
-
-    // 1. Validation
-    if (!username || typeof username !== 'string' || !/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-      throw new AuthValidationError(
-        'Tên người dùng phải từ 3-30 ký tự, chỉ gồm chữ cái, số và dấu gạch dưới',
-        'INVALID_USERNAME'
-      );
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || typeof email !== 'string' || !emailRegex.test(email)) {
-      throw new AuthValidationError('Địa chỉ email không hợp lệ', 'INVALID_EMAIL');
-    }
-
-    if (!password || typeof password !== 'string' || password.length < 6) {
-      throw new AuthValidationError('Mật khẩu phải có ít nhất 6 ký tự', 'INVALID_PASSWORD');
-    }
-
-    if (!displayName || typeof displayName !== 'string' || displayName.trim().length === 0) {
-      throw new AuthValidationError('Tên hiển thị không được để trống', 'INVALID_DISPLAY_NAME');
-    }
+    // INF-05: validation theo TypeBox contract (src/contracts/AuthSchemas.ts)
+    validateRegisterInput(input);
+    const { username, email, password, displayName } = input;
 
     // 2. Check if username or email already taken
     const existing = await prisma.user.findFirst({
@@ -190,11 +172,10 @@ export class AuthService {
   }
 
   public async login(input: LoginInput): Promise<DualTokenAuthResult> {
-    const { identifier, password } = input || {};
-
-    if (!identifier || typeof identifier !== 'string' || !password || typeof password !== 'string') {
-      throw new AuthUnauthorizedError('Tên đăng nhập hoặc mật khẩu không đúng');
-    }
+    // INF-05: validation theo TypeBox contract (presence-only, giữ nguyên
+    // hợp đồng UNAUTHORIZED cho sai định dạng đăng nhập)
+    validateLoginInput(input);
+    const { identifier, password } = input;
 
     const trimmedIdentifier = identifier.trim();
 
