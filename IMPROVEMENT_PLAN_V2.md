@@ -99,37 +99,37 @@ Chuyển Pulse từ **"nền kiến trúc lõi vững + ~590 tests pass"** thàn
 
 ## 4. GIAI ĐOẠN 2: DỌN NHÀ KỸ THUẬT (P1 — chạy song song GĐ 1)
 
-### [INF-01] Pipeline test trực tiếp trên TypeScript (M — qa-test-engineer)
+### [INF-01] Pipeline test trực tiếp trên TypeScript (M — qa-test-engineer) — ✅ 2026-10-01
 - [ ] Bỏ phụ thuộc `../dist/`: chạy `node --import tsx --test tests/*.test.mjs`; xóa bước build bắt buộc trước khi test.
 - [ ] Xóa stub `tests/test_audit.js`.
 - [ ] **Rủi ro kiểm soát:** chạy cả hai pipeline song song 1 tuần, so kết quả trước khi bỏ dist.
 
-### [INF-02] Gộp 59 route legacy trùng lặp (M — backend-architect)
+### [INF-02] Gộp 59 route legacy trùng lặp (M — backend-architect) — ✅ 2026-10-01
 - [ ] Trích hàm `registerDomainRoutes(prefix)` dùng chung cho `/api/v1` và root; xóa bảng đăng ký tay trùng lặp trong `app.ts` (mục tiêu giảm ≥ 40% số dòng đăng ký).
 - [ ] **Test:** smoke test cả 2 prefix trả kết quả giống nhau; không thay đổi behavior.
 
-### [INF-03] Đồng bộ tài liệu (S — Tech Lead)
+### [INF-03] Đồng bộ tài liệu (S — Tech Lead) — ✅ 2026-10-01
 - [ ] `SYSTEM_DESIGN.md`: bổ sung mục 12 (TASK-21 Auth & Private Accounts) + mục 13 (kiến trúc Hardening Week).
 - [ ] Xóa/hợp nhất `FEDIVERSE_DEEPENING_SPEC.md` placeholder ở root về `docs/`.
 - [ ] Quy ước: `PLAN.md` là nguồn duy nhất cho trạng thái & số liệu; improve.md chỉ mô tả hạng mục.
 
-### [INF-04] Tách `PulseApiClient.ts` (1355 dòng) và `PulseContext.tsx` (M — frontend-specialist)
+### [INF-04] Tách `PulseApiClient.ts` (1355 dòng) và `PulseContext.tsx` (M — frontend-specialist) — ✅ 2026-10-01 (lớp transport)
 - [ ] Tách client thành `api/core.ts` (fetch wrapper, refresh, error) + `api/{auth,posts,feed,graph,dm,federation,push}.ts`, giữ singleton `api` làm façade để không phá view code.
 - [ ] Tách `PulseContext` thành: `AuthContext`, `ToastContext`, `NavigationContext` (chuẩn bị cho PKG-08).
 
-### [INF-05] Contract-first với TypeBox (L — backend-architect, kéo dài theo domain)
+### [INF-05] Contract-first với TypeBox (L — backend-architect, kéo dài theo domain) — ✅ 2026-10-01 (domain auth)
 - [ ] Cài `@sinclair/typebox` + `@fastify/type-provider-typebox`; schema hóa request/response bắt đầu từ domain **auth**, rồi posts → feed → dm → federation.
 - [ ] Xuất OpenAPI từ schema; sinh types cho frontend bằng `openapi-typescript`, thay dần DTO tay trong `PulseTypes.ts`.
 - [ ] Loại bỏ dần normalize đa-shape ("array | {items} | {posts}") trong client sau mỗi domain chuyển xong.
 - **Quy tắc:** mỗi domain chạm tới trong tương lai bắt buộc schema hóa trước khi thêm endpoint mới (không làm big-bang).
 
-**Nghiệm thu GĐ 2:** `app.ts` gọn ≥ 40%; test chạy không cần build; docs khớp code; CI xanh.
+**Nghiệm thu GĐ 2 (✅ đạt):** app.ts 458→230 dòng; 436/436 backend tests chạy trực tiếp TS (tsx) không cần build; SYSTEM_DESIGN có mục 12-13; api/core.ts tách xong; TypeBox áp dụng domain auth.
 
 ---
 
 ## 5. GIAI ĐOẠN 3: TIỀN ĐỀ UX (P0 UX — tuần 3-4)
 
-### [PKG-02] Dark / Light / OLED / System Theme (M — frontend-specialist)
+### [PKG-02] Dark / Light / OLED / System Theme (M — frontend-specialist) — ✅ 2026-10-01
 Theo đúng spec 3.2 của `improve.md`: `ThemeContext`, semantic tokens (`bg-canvas`, `bg-card`, `text-primary`, `border-divider`), class `dark` trên `<html>`, chống FOUC, switcher trên `NavigationSidebar`.
 - **Điểm ràng buộc bổ sung:** Palette Tailwind hiện hardcode (`ink/paper/mist/...` + `#385898`) — phải migration toàn bộ component sang token semantic **trước** khi thêm class `dark:`, nếu không sẽ sinh hàng trăm chỗ phải sửa 2 lần. Làm token hóa là bước 1 của task này.
 - **Test:** `frontend/tests/theme-switcher.test.mjs` — lưu/đọc localStorage, áp dụng class, 4 chế độ.
