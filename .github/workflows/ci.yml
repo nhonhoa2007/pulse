@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (build + tsc + tests)
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres@localhost:5432/pulse_social?schema=public
+      JWT_SECRET: ci-only-secret-not-production
+      COOKIE_SECRET: ci-only-cookie-secret
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: pulse_social
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Sync Prisma schema
+        run: npx prisma db push
+      - name: Build (tsc)
+        run: npm run build
+      - name: Type check strict
+        run: npx tsc --noEmit
+      - name: Run tests
+        run: npm test
+
+  frontend:
+    name: Frontend (build + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build (tsc + vite)
+        run: npm run build
+      - name: Run tests
+        run: npm test
