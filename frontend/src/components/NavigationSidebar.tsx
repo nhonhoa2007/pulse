@@ -70,10 +70,7 @@ export const NavigationSidebar: React.FC = () => {
   const isExploreActive = currentView === 'explore';
   const isNotificationsActive = currentView === 'notifications';
   const isMessagesActive = currentView === 'messages';
-  const isBookmarksActive =
-    currentView === 'profile' &&
-    (!viewParams.username || viewParams.username === currentUser.username) &&
-    viewParams.tab === 'bookmarks';
+  const isBookmarksActive = currentView === 'bookmarks';
   const isProfileActive =
     currentView === 'profile' &&
     (!viewParams.username || viewParams.username === currentUser.username) &&
@@ -179,7 +176,7 @@ export const NavigationSidebar: React.FC = () => {
             {/* Bookmarks / Đã lưu */}
             <button
               onClick={() =>
-                navigateTo('profile', { username: currentUser.username, tab: 'bookmarks' })
+                navigateTo('bookmarks')
               }
               className={`w-12 h-12 flex items-center justify-center rounded-xl transition-colors focus:outline-none ${
                 isBookmarksActive ? 'text-ink' : 'text-ash hover:text-ink'
@@ -599,7 +596,7 @@ export const NavigationSidebar: React.FC = () => {
 
         <button
           onClick={() =>
-            navigateTo('profile', { username: currentUser.username, tab: 'bookmarks' })
+            navigateTo('bookmarks')
           }
           className={`p-2 transition-colors ${
             isBookmarksActive ? 'text-ink' : 'text-ash'

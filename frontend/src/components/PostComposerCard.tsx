@@ -4,6 +4,13 @@ import { api } from '../api/PulseApiClient';
 import { PostDto, TrendingItemDto, ReplyPrivacy } from '../types/PulseTypes';
 import { VerifiedBadge } from './VerifiedBadge';
 import { ReplyPrivacySelector } from './ReplyPrivacySelector';
+import {
+  slotKeyForComposer,
+  loadDraft,
+  clearDraft,
+  isDraftMeaningful,
+  createAutosaver,
+} from '../utils/drafts';
 import { Image, X, Loader2, Link as LinkIcon, BarChart2, Plus, Trash2, Lock, AlertCircle, ShieldAlert } from 'lucide-react';
 
 interface PostComposerCardProps {
@@ -98,6 +105,18 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
   const remainingChars = MAX_CHARS - content.length;
   const isOverLimit = remainingChars < 0;
 
+  // PKG-03: Post Drafts — autosave (debounce 1s) + khôi phục khi quay lại
+  const draftSlot = replyToPost
+    ? slotKeyForComposer('reply', replyToPost.id)
+    : quoteOfPost
+      ? slotKeyForComposer('quote', quoteOfPost.id)
+      : slotKeyForComposer('post');
+  const draftAutosaverRef = useRef<ReturnType<typeof createAutosaver> | null>(null);
+  if (!draftAutosaverRef.current) {
+    draftAutosaverRef.current = createAutosaver(draftSlot, localStorage);
+  }
+  const draftRestoredRef = useRef(false);
+
   const validPollChoices = pollChoices.map((c) => c.trim()).filter((c) => c.length > 0);
   const isPollValid = !showPollBuilder || (validPollChoices.length >= 2 && validPollChoices.length <= 4);
 
@@ -108,6 +127,46 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
     !isOverLimit &&
     !isSubmitting &&
     !isUploadingMedia;
+
+  // PKG-03: khôi phục nháp một lần khi mount
+  useEffect(() => {
+    if (draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
+    const saved = loadDraft(draftSlot);
+    if (!saved) return;
+    if (!content && saved.content) {
+      setContent(saved.content);
+    }
+    if (mediaUrls.length === 0 && saved.mediaUrls && saved.mediaUrls.length > 0) {
+      setMediaUrls(saved.mediaUrls);
+      setShowMediaInput(true);
+    }
+    if (saved.contentWarning) {
+      setContentWarningText(saved.contentWarning);
+      setShowContentWarning(true);
+      setIsSensitive(Boolean(saved.isSensitive));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // PKG-03: autosave nháp mỗi khi nội dung thay đổi (debounce 1s trong createAutosaver)
+  useEffect(() => {
+    const draft = {
+      content,
+      mediaUrls,
+      pollChoices: pollChoices.filter((c) => c.trim().length > 0),
+      contentWarning: contentWarningText,
+      isSensitive,
+      replyToId: replyToPost?.id ?? null,
+    };
+    if (isDraftMeaningful(draft)) {
+      draftAutosaverRef.current?.save(draft);
+    } else {
+      draftAutosaverRef.current?.cancel();
+      clearDraft(draftSlot);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, mediaUrls, pollChoices, contentWarningText, isSensitive]);
 
   // Load trending hashtags on mount
   useEffect(() => {
@@ -504,6 +563,10 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
       }
 
       setReplyPrivacy('EVERYONE');
+
+      // PKG-03: đăng thành công → xoá nháp đã autosave cho slot này
+      draftAutosaverRef.current?.cancel();
+      clearDraft(draftSlot);
 
       addToast(
         replyToPost ? 'Đã gửi câu trả lời' : 'Đã đăng bài viết',

@@ -7,7 +7,8 @@
  *   /notifications                 → notifications
  *   /messages                      → messages
  *   /messages/:conversationId      → messages
- *   /@:username                    → profile (?tab=posts|replies|bookmarks)
+ *   /@:username                    → profile (?tab=posts|replies)
+ *   /bookmarks                     → bookmarks (PKG-03)
  *   /post/:id                      → thread
  *
  * Backward-compat: URL cũ dạng /?view=profile&username=abc&tab=posts được
@@ -15,7 +16,7 @@
  */
 // PKG-08: type definitions đặt tại đây (nguồn duy nhất) — PulseContext
 // re-export lại để giữ tương thích với các import hiện có.
-export type ViewType = 'home' | 'explore' | 'notifications' | 'profile' | 'thread' | 'messages';
+export type ViewType = 'home' | 'explore' | 'notifications' | 'profile' | 'thread' | 'messages' | 'bookmarks';
 
 export interface ViewParams {
   postId?: string;
@@ -33,7 +34,7 @@ export interface RouteLocation {
   path: string;
 }
 
-const VIEWS: ViewType[] = ['home', 'explore', 'notifications', 'profile', 'thread', 'messages'];
+const VIEWS: ViewType[] = ['home', 'explore', 'notifications', 'profile', 'thread', 'messages', 'bookmarks'];
 
 /** View + params → path chuẩn (dùng cho pushState). */
 export function viewToPath(view: ViewType, params: ViewParams = {}): string {
@@ -44,6 +45,8 @@ export function viewToPath(view: ViewType, params: ViewParams = {}): string {
       return '/notifications';
     case 'messages':
       return params.conversationId ? `/messages/${encodeURIComponent(params.conversationId)}` : '/messages';
+    case 'bookmarks':
+      return '/bookmarks';
     case 'profile': {
       if (!params.username) return '/';
       const query = params.tab ? `?tab=${encodeURIComponent(params.tab)}` : '';
@@ -88,6 +91,9 @@ export function parsePath(pathname: string, search = ''): RouteLocation | null {
   }
   if (path === '/messages') {
     return { view: 'messages', params: {}, path };
+  }
+  if (path === '/bookmarks') {
+    return { view: 'bookmarks', params: {}, path };
   }
   const messagesMatch = path.match(/^\/messages\/([^/]+)$/);
   if (messagesMatch) {

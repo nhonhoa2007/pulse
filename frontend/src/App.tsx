@@ -14,6 +14,7 @@ import { NotificationCenterView } from './views/NotificationCenterView';
 import { UserProfileView } from './views/UserProfileView';
 import { ConversationThreadView } from './views/ConversationThreadView';
 import { DirectMessagingView } from './views/DirectMessagingView';
+import { BookmarksView } from './views/BookmarksView';
 
 const MainContentRouter: React.FC = () => {
   const { currentView } = usePulse();
@@ -31,6 +32,8 @@ const MainContentRouter: React.FC = () => {
       return <ConversationThreadView />;
     case 'messages':
       return <DirectMessagingView />;
+    case 'bookmarks':
+      return <BookmarksView />;
     default:
       return <HomeTimelineView />;
   }
