@@ -143,6 +143,7 @@ export async function registerV1Routes(v1: FastifyInstance): Promise<void> {
   v1.get('/dm/conversations/:id/messages', dmController.getMessages.bind(dmController));
   v1.post('/dm/conversations/:id/messages', dmController.sendMessage.bind(dmController));
   v1.put('/dm/conversations/:id/read', dmController.markAsRead.bind(dmController));
+      v1.post('/dm/conversations/:id/typing', dmController.sendTyping.bind(dmController));
   v1.delete('/dm/messages/:id', dmController.deleteMessage.bind(dmController));
 
   // Group Direct Messaging (Group DMs) Endpoints (/api/v1/dm/groups)

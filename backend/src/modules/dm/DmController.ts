@@ -169,6 +169,35 @@ export class DmController {
    * PUT /dm/conversations/:id/read
    * Update read receipt.
    */
+  /**
+   * PKG-05: POST /dm/conversations/:id/typing — heartbeat đang soạn tin.
+   * Broadcast SSE dm.typing cho đối phương, throttle 2s server-side.
+   */
+  public async sendTyping(
+    req: FastifyRequest<{ Params: ConversationParams }>,
+    reply: FastifyReply
+  ): Promise<ApiResponse<{ sent: boolean }>> {
+    const currentUserId = req.currentUserId;
+    if (!currentUserId) {
+      reply.status(401);
+      return {
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      };
+    }
+
+    try {
+      const { id } = req.params;
+      const result = await dmMessageService.sendTyping(currentUserId, id);
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (err: unknown) {
+      return this.handleError(err, reply);
+    }
+  }
+
   public async markAsRead(
     req: FastifyRequest<{ Params: ConversationParams; Body: MarkDmReadInput }>,
     reply: FastifyReply

@@ -291,6 +291,15 @@ class PulseApiClient extends PulseApiCore {
     }
   }
 
+  // ================= PKG-05: DM TYPING =================
+
+  /** Heartbeat "đang soạn tin" — server throttle 2s, broadcast SSE dm.typing. */
+  public async sendTypingHeartbeat(conversationId: string): Promise<{ sent: boolean }> {
+    return this.request<{ sent: boolean }>(`/dm/conversations/${encodeURIComponent(conversationId)}/typing`, {
+      method: 'POST',
+    });
+  }
+
   // ================= PKG-14: CREATOR STATS =================
 
   public async getMyStats(): Promise<unknown> {
@@ -1248,6 +1257,23 @@ class PulseApiClient extends PulseApiCore {
     });
 
     // Direct Messaging Real-time events
+    eventSource.addEventListener('dm.typing', (e: MessageEvent) => {
+      try {
+        const data = e.data ? JSON.parse(e.data) : null;
+        onEvent({
+          type: 'dm.typing',
+          data,
+          timestamp: new Date().toISOString(),
+        });
+      } catch {
+        onEvent({
+          type: 'dm.typing',
+          data: e.data,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+
     eventSource.addEventListener('dm.message.new', (e: MessageEvent) => {
       try {
         const data = e.data ? JSON.parse(e.data) : null;

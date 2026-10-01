@@ -13,6 +13,47 @@ import {
 import { realtimeStreamController } from '../notifications/RealtimeEventStreamController.js';
 
 export class DmMessageService {
+  // PKG-05: throttle typing — mỗi user mỗi conversation tối đa 1 heartbeat / 2s
+  private lastTypingAt: Map<string, number> = new Map();
+
+  /**
+   * PKG-05: heartbeat "đang soạn tin" — broadcast SSE dm.typing cho đối phương.
+   * Throttle in-memory 2s/user/conversation để tránh flood SSE.
+   */
+  public async sendTyping(userId: string, conversationId: string): Promise<{ sent: boolean }> {
+    const conv = await prisma.dmConversation.findUnique({
+      where: { id: conversationId },
+      select: { participant1Id: true, participant2Id: true },
+    });
+    if (!conv) {
+      throw new DmNotFoundError('Không tìm thấy hội thoại');
+    }
+    if (conv.participant1Id !== userId && conv.participant2Id !== userId) {
+      throw new DmForbiddenError('Bạn không phải thành viên của hội thoại này');
+    }
+
+    const key = `${userId}:${conversationId}`;
+    const now = Date.now();
+    const last = this.lastTypingAt.get(key) || 0;
+    if (now - last < 2000) {
+      return { sent: false };
+    }
+    this.lastTypingAt.set(key, now);
+    if (this.lastTypingAt.size > 10000) {
+      this.lastTypingAt.clear();
+    }
+
+    const sender =
+      userId === conv.participant1Id ? conv.participant2Id : conv.participant1Id;
+    const username = (await prisma.user.findUnique({ where: { id: userId }, select: { username: true } }))?.username || '';
+    realtimeStreamController.sendToUser(sender, 'dm.typing', {
+      conversationId,
+      userId,
+      username,
+    });
+    return { sent: true };
+  }
+
   /**
    * Send a direct message into an existing conversation.
    * Enforces:

@@ -129,6 +129,23 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
   }, [loadInitialMessages]);
 
   // Send message
+  // PKG-05: typing heartbeat + trạng thái đối phương đang soạn
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTyping = () => {
+    if (conversation.id) {
+      api.sendTypingHeartbeat(conversation.id).catch(() => {});
+    }
+  };
+
+  const handleIncomingTyping = (data: any) => {
+    if (!data || data.conversationId !== conversation.id) return;
+    setTypingUser(data.username || 'Ai đó');
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => setTypingUser(null), 3000);
+  };
+
   const handleSendMessage = async (content: string) => {
     setIsSending(true);
     try {
@@ -215,6 +232,10 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
               )
             );
           }
+        }
+        // 2b. PKG-05: đối phương đang soạn tin
+        else if (event.type === 'dm.typing') {
+          handleIncomingTyping(event.data);
         }
         // 3. Read receipt updated
         else if (event.type === 'dm.read_receipt.updated') {
@@ -387,6 +408,18 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
             <div ref={messagesEndRef} className="h-2" />
           </>
         )}
+
+        {/* PKG-05: chỉ báo đang soạn tin */}
+        {typingUser && (
+          <div data-testid="dm-typing-indicator" className="flex items-center gap-2 px-2 py-1 animate-fade-in">
+            <div className="flex gap-1 px-3 py-2 bg-mist rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-ash animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-ash animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-ash animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <span className="text-[12px] text-graphite">{typingUser} đang soạn tin…</span>
+          </div>
+        )}
       </div>
 
       {/* Composer at bottom */}
@@ -394,6 +427,7 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
         conversationId={conversation.id}
         isBlocked={!!conversation.isBlocked}
         onSendMessage={handleSendMessage}
+        onTyping={handleTyping}
         isSending={isSending}
       />
     </div>

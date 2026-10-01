@@ -6,6 +6,8 @@ interface DmMessageComposerProps {
   isBlocked?: boolean;
   onSendMessage: (content: string) => Promise<void>;
   isSending?: boolean;
+  /** PKG-05: callback khi người dùng gõ (composer tự throttle 2s) */
+  onTyping?: () => void;
 }
 
 export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
@@ -13,9 +15,23 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
   isBlocked = false,
   onSendMessage,
   isSending = false,
+  onTyping,
 }) => {
   const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastTypingSentRef = useRef<number>(0);
+
+  // PKG-05: throttle heartbeat 2s phía client (server cũng throttle)
+  const handleContentChange = (value: string) => {
+    setContent(value);
+    if (onTyping && value.trim().length > 0) {
+      const now = Date.now();
+      if (now - lastTypingSentRef.current >= 2000) {
+        lastTypingSentRef.current = now;
+        onTyping();
+      }
+    }
+  };
 
   // Focus textarea when conversation changes
   useEffect(() => {
@@ -85,7 +101,7 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
         <textarea
           ref={textareaRef}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => handleContentChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter xuống dòng)"
           disabled={isSending}

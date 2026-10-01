@@ -334,6 +334,7 @@ export interface DmMessageListResponse {
 }
 
 export type DmRealtimeEventType =
+  | 'dm.typing'
   | 'dm.message.new'
   | 'dm.message.deleted'
   | 'dm.read_receipt.updated';
