@@ -1,18 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { UserDto, RealtimeEvent } from '../types/PulseTypes';
 import { api, PRESET_USERS } from '../api/PulseApiClient';
+import { parsePath, viewToPath, isLegacyQueryUrl } from '../utils/router.ts';
+import type { ViewType, ViewParams } from '../utils/router.ts';
 
-export type ViewType = 'home' | 'explore' | 'notifications' | 'profile' | 'thread' | 'messages';
-
-export interface ViewParams {
-  postId?: string;
-  username?: string;
-  hashtag?: string;
-  tab?: string;
-  conversationId?: string;
-  recipientId?: string;
-  groupId?: string;
-}
+export type { ViewType, ViewParams } from '../utils/router.ts';
 
 export interface ToastItem {
   id: string;
@@ -89,23 +81,21 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return matched || PRESET_USERS[0];
   });
 
+  // PKG-08: khởi tạo view từ URL path (/post/:id, /@user, /messages...) —
+  // URL cũ dạng ?view=... vẫn được nhận diện (legacy) và sẽ được chuyển sang path sạch.
   const [currentView, setCurrentView] = useState<ViewType>(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const view = params.get('view') as ViewType;
-      if (view) return view;
+      const parsed = parsePath(window.location.pathname, window.location.search);
+      if (parsed) return parsed.view;
     }
     return 'home';
   });
   const [viewParams, setViewParams] = useState<ViewParams>(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const postId = params.get('postId');
-      const username = params.get('username');
-      const tab = params.get('tab');
-      if (postId || username || tab) {
-        return { postId: postId || undefined, username: username || undefined, tab: tab || undefined };
-      }
+      const parsed = parsePath(window.location.pathname, window.location.search);
+      if (parsed) return parsed.params;
+      const postId = new URLSearchParams(window.location.search).get('postId') || undefined;
+      if (postId) return { postId };
     }
     return {};
   });
@@ -150,14 +140,57 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  // PKG-08: điều hướng sync URL (pushState) — back/forward hoạt động qua popstate.
   const navigateTo = useCallback(
     (view: ViewType, params: ViewParams = {}) => {
+      if (typeof window !== 'undefined' && typeof window.history?.pushState === 'function') {
+        const path = viewToPath(view, params);
+        const current = window.location.pathname + window.location.search;
+        if (current !== path) {
+          window.history.pushState({ view, params }, '', path);
+        }
+      }
       setCurrentView(view);
       setViewParams(params);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     },
     []
   );
+
+  // PKG-08: chuyển URL legacy (?view=...) sang path sạch + seed history state.
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.history?.replaceState !== 'function') return;
+    const { pathname, search } = window.location;
+    if (isLegacyQueryUrl(search)) {
+      const parsed = parsePath(pathname, search);
+      if (parsed) {
+        window.history.replaceState({ view: parsed.view, params: parsed.params }, '', parsed.path);
+      }
+    } else {
+      window.history.replaceState(
+        { view: currentView, params: viewParams },
+        '',
+        pathname + search
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // PKG-08: back/forward browser sync vào view state.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onPopState = () => {
+      const parsed = parsePath(window.location.pathname, window.location.search);
+      if (parsed) {
+        setCurrentView(parsed.view);
+        setViewParams(parsed.params);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   // Sync users with backend on initial load to get real database IDs if backend is running
   const refreshUsers = useCallback(async () => {
