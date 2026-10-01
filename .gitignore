@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+backend/dist/
+frontend/dist/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# User uploads (runtime artifacts)
+backend/uploads/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

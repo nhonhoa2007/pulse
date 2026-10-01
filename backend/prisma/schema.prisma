@@ -1,0 +1,672 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String   @id @default(uuid())
+  username        String   @unique
+  email           String   @unique
+  displayName     String
+  passwordHash    String?
+  avatarUrl       String?
+  bio             String?
+  isCelebrity     Boolean  @default(false)
+  isPrivate       Boolean  @default(false)
+  followersCount  Int      @default(0)
+  followingCount  Int      @default(0)
+  postsCount      Int      @default(0)
+  isRemote        Boolean  @default(false)
+  federatedActorId String? @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  posts           Post[]          @relation("UserPosts")
+  following       Follow[]        @relation("UserFollowing")
+  followers       Follow[]        @relation("UserFollowers")
+  blockedUsers    Block[]         @relation("UserBlocker")
+  blockedBy       Block[]         @relation("UserBlocked")
+  likes           Like[]
+  reposts         Repost[]
+  bookmarks       Bookmark[]
+  timelineInboxes TimelineInbox[] @relation("UserTimeline")
+  notificationsReceived Notification[] @relation("NotificationRecipient")
+  notificationsActed    Notification[] @relation("NotificationActor")
+
+  federationKey    FederationKey?
+  federatedFollows FederatedFollow[]
+  federatedActor   FederatedActor?  @relation("ShadowUserFederatedActor", fields: [federatedActorId], references: [id], onDelete: SetNull)
+
+  dmConversationsAs1 DmConversation[] @relation("DmParticipant1")
+  dmConversationsAs2 DmConversation[] @relation("DmParticipant2")
+  dmSentMessages     DmMessage[]      @relation("DmMessageSender")
+  dmReadReceipts     DmReadReceipt[]  @relation("DmUserReadReceipt")
+
+  pinnedPostId       String?          @unique
+  pinnedPost         Post?            @relation("UserPinnedPost", fields: [pinnedPostId], references: [id], onDelete: SetNull)
+  postVersionsCreated PostVersion[]   @relation("PostVersionEditor")
+  mutesGiven         UserMute[]       @relation("UserMutesGiven")
+  mutesReceived      UserMute[]       @relation("UserMutesReceived")
+  keywordMutes       KeywordMute[]    @relation("UserKeywordMutes")
+
+  // TASK-20 Group DMs & Web Push Notifications
+  groupConversationsCreated GroupConversation[] @relation("GroupConversationCreator")
+  groupMemberships          GroupMember[]       @relation("UserGroupMemberships")
+  groupSentMessages         GroupMessage[]      @relation("GroupSentMessages")
+  groupReadReceipts         GroupReadReceipt[]  @relation("UserGroupReadReceipts")
+  pushSubscriptions         WebPushSubscription[] @relation("UserWebPushSubscriptions")
+
+  // TASK-21 Auth Hardening & Private Accounts
+  followRequestsSent        FollowRequest[]       @relation("SentFollowRequests")
+  followRequestsReceived    FollowRequest[]       @relation("ReceivedFollowRequests")
+  refreshTokens             RefreshToken[]        @relation("UserRefreshTokens")
+  revokedTokens             RevokedToken[]        @relation("UserRevokedTokens")
+
+  @@index([username])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+  @@index([followerId])
+}
+
+model Block {
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker   User     @relation("UserBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("UserBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+enum ReplyPrivacy {
+  EVERYONE
+  FOLLOWING
+  MENTIONED
+}
+
+model Post {
+  id           String   @id @default(uuid())
+  authorId     String
+  content      String
+  mediaUrls    String[] @default([])
+  
+  replyToId    String?
+  rootPostId   String?
+  repostOfId   String?
+  quoteOfId    String?
+
+  reply_privacy ReplyPrivacy @default(EVERYONE)
+
+  isEdited     Boolean  @default(false)
+  editCount    Int      @default(0)
+  lastEditedAt DateTime?
+
+  isSensitive    Boolean  @default(false)
+  contentWarning String?
+
+  likesCount   Int      @default(0)
+  repliesCount Int      @default(0)
+  repostsCount Int      @default(0)
+  quotesCount  Int      @default(0)
+  viewsCount   Int      @default(0)
+
+  hashtags     String[] @default([])
+  mentions     String[] @default([])
+
+  isRemote     Boolean  @default(false)
+  federatedUri String?  @unique
+
+  isDeleted    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author       User     @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  replyTo      Post?    @relation("PostReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies      Post[]   @relation("PostReplies")
+  repostOf     Post?    @relation("PostReposts", fields: [repostOfId], references: [id], onDelete: SetNull)
+  reposts      Post[]   @relation("PostReposts")
+  quoteOf      Post?    @relation("PostQuotes", fields: [quoteOfId], references: [id], onDelete: SetNull)
+  quotes       Post[]   @relation("PostQuotes")
+
+  pinnedByUser User?    @relation("UserPinnedPost")
+  versions     PostVersion[]
+
+  likes        Like[]
+  userReposts  Repost[]
+  bookmarks    Bookmark[]
+  inboxes      TimelineInbox[]
+  poll         Poll?
+
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([rootPostId, createdAt(sort: Asc)])
+  @@index([replyToId])
+}
+
+model TimelineInbox {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  user      User     @relation("UserTimeline", fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Like {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+}
+
+model Repost {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+}
+
+model Bookmark {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model Notification {
+  id              String   @id @default(uuid())
+  recipientId     String
+  actorId         String
+  verb            String   // LIKE, REPLY, REPOST, QUOTE, MENTION, FOLLOW
+  targetType      String   // POST, USER
+  targetId        String
+  aggregatedCount Int      @default(1)
+  actorSummary    String
+  isRead          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  recipient       User     @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor           User     @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, isRead, createdAt(sort: Desc)])
+}
+
+model Hashtag {
+  id         String   @id @default(uuid())
+  tag        String   @unique
+  postsCount Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@index([postsCount(sort: Desc)])
+}
+
+model Poll {
+  id        String       @id @default(uuid())
+  postId    String?      @unique @map("post_id")
+  question  String
+  expiresAt DateTime     @map("expires_at")
+  isActive  Boolean      @default(true) @map("is_active")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  post      Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  choices   PollChoice[]
+  votes     PollVote[]
+
+  @@index([postId])
+  @@index([expiresAt, isActive])
+  @@map("polls")
+}
+
+model PollChoice {
+  id        String     @id @default(uuid())
+  pollId    String     @map("poll_id")
+  index     Int        @map("choice_index")
+  text      String
+  voteCount Int        @default(0) @map("vote_count")
+
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes     PollVote[]
+
+  @@unique([pollId, index])
+  @@index([pollId])
+  @@map("poll_choices")
+}
+
+model PollVote {
+  id          String     @id @default(uuid())
+  pollId      String     @map("poll_id")
+  choiceId    String     @map("choice_id")
+  choiceIndex Int        @map("choice_index")
+  userId      String     @map("user_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  poll        Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  choice      PollChoice @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@index([pollId])
+  @@index([userId])
+  @@map("poll_votes")
+}
+
+// ----------------------------------------------------
+// ACTIVITYPUB FEDERATION SUBSYSTEM (W3C / Mastodon / Threads)
+// ----------------------------------------------------
+
+model FederationKey {
+  id            String   @id @default(uuid())
+  userId        String?  @unique
+  keyId         String   @unique
+  publicKeyPem  String   @db.Text
+  privateKeyPem String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([keyId])
+  @@map("federation_keys")
+}
+
+model FederatedActor {
+  id             String   @id @default(uuid())
+  uri            String   @unique
+  username       String
+  domain         String
+  name           String?
+  summary        String?  @db.Text
+  avatarUrl      String?
+  inboxUrl       String
+  sharedInboxUrl String?
+  publicKeyPem   String   @db.Text
+  publicKeyId    String
+  lastFetchedAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  shadowUser     User?    @relation("ShadowUserFederatedActor")
+  follows        FederatedFollow[]
+
+  @@index([domain, username])
+  @@index([uri])
+  @@map("federated_actors")
+}
+
+enum FederatedFollowDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum FederatedFollowStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model FederatedFollow {
+  id            String                   @id @default(uuid())
+  localUserId   String
+  remoteActorId String
+  direction     FederatedFollowDirection
+  status        FederatedFollowStatus    @default(ACCEPTED)
+  activityUri   String?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  localUser     User                     @relation(fields: [localUserId], references: [id], onDelete: Cascade)
+  remoteActor   FederatedActor           @relation(fields: [remoteActorId], references: [id], onDelete: Cascade)
+
+  @@unique([localUserId, remoteActorId, direction])
+  @@index([remoteActorId])
+  @@index([localUserId, direction, status])
+  @@map("federated_follows")
+}
+
+enum DeliveryJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model ActivityDeliveryJob {
+  id             String            @id @default(uuid())
+  activityId     String
+  activityType   String
+  actorUri       String
+  targetInboxUrl String
+  payloadJson    String            @db.Text
+  attempts       Int               @default(0)
+  maxAttempts    Int               @default(5)
+  status         DeliveryJobStatus @default(PENDING)
+  lastError      String?           @db.Text
+  nextRunAt      DateTime          @default(now())
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([status, nextRunAt])
+  @@index([targetInboxUrl])
+  @@map("activity_delivery_jobs")
+}
+
+model DmConversation {
+  id              String   @id @default(uuid())
+  participant1Id  String
+  participant2Id  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  participant1    User     @relation("DmParticipant1", fields: [participant1Id], references: [id], onDelete: Cascade)
+  participant2    User     @relation("DmParticipant2", fields: [participant2Id], references: [id], onDelete: Cascade)
+  messages        DmMessage[]
+  readReceipts    DmReadReceipt[]
+
+  @@unique([participant1Id, participant2Id], name: "unique_dm_participants")
+  @@index([participant1Id, updatedAt(sort: Desc)])
+  @@index([participant2Id, updatedAt(sort: Desc)])
+  @@index([updatedAt(sort: Desc)])
+  @@map("dm_conversations")
+}
+
+model DmMessage {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String    @db.Text
+  messageType    String    @default("TEXT")
+  mediaUrls      String[]  @default([])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  conversation   DmConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User            @relation("DmMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  readReceipts   DmReadReceipt[] @relation("LastReadMessage")
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("dm_messages")
+}
+
+model DmReadReceipt {
+  id                String    @id @default(uuid())
+  conversationId    String
+  userId            String
+  lastReadMessageId String?
+  readAt            DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  conversation      DmConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user              User           @relation("DmUserReadReceipt", fields: [userId], references: [id], onDelete: Cascade)
+  lastReadMessage   DmMessage?     @relation("LastReadMessage", fields: [lastReadMessageId], references: [id], onDelete: SetNull)
+
+  @@unique([conversationId, userId], name: "unique_conversation_user_receipt")
+  @@index([userId])
+  @@index([conversationId])
+  @@map("dm_read_receipts")
+}
+
+// ----------------------------------------------------
+// TRUST, SAFETY & POST LIFECYCLE MANAGEMENT (TASK-18)
+// ----------------------------------------------------
+
+model PostVersion {
+  id             String   @id @default(uuid())
+  postId         String   @map("post_id")
+  versionNumber  Int      @map("version_number")
+  content        String   @db.Text
+  mediaUrls      String[] @default([]) @map("media_urls")
+  contentWarning String?  @map("content_warning")
+  isSensitive    Boolean  @default(false) @map("is_sensitive")
+  hashtags       String[] @default([])
+  mentions       String[] @default([])
+  editorId       String   @map("editor_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  post           Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  editor         User     @relation("PostVersionEditor", fields: [editorId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, versionNumber])
+  @@index([postId, createdAt(sort: Desc)])
+  @@map("post_versions")
+}
+
+model UserMute {
+  id        String   @id @default(uuid())
+  muterId   String   @map("muter_id")
+  mutedId   String   @map("muted_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  muter     User     @relation("UserMutesGiven", fields: [muterId], references: [id], onDelete: Cascade)
+  muted     User     @relation("UserMutesReceived", fields: [mutedId], references: [id], onDelete: Cascade)
+
+  @@unique([muterId, mutedId], name: "unique_muter_muted")
+  @@index([muterId])
+  @@index([mutedId])
+  @@map("user_mutes")
+}
+
+enum MuteMatchType {
+  CONTAINS
+  EXACT_WORD
+}
+
+enum MuteContext {
+  ALL
+  HOME_TIMELINE
+  NOTIFICATIONS
+}
+
+model KeywordMute {
+  id          String        @id @default(uuid())
+  userId      String        @map("user_id")
+  keyword     String
+  matchType   MuteMatchType @default(CONTAINS) @map("match_type")
+  muteContext MuteContext   @default(ALL) @map("mute_context")
+  expiresAt   DateTime?     @map("expires_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  user        User          @relation("UserKeywordMutes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, keyword], name: "unique_user_keyword")
+  @@index([userId, expiresAt])
+  @@map("keyword_mutes")
+}
+
+// ----------------------------------------------------
+// GROUP REAL-TIME COMMUNICATIONS (TASK-20)
+// ----------------------------------------------------
+
+enum GroupMemberRole {
+  ADMIN
+  MEMBER
+}
+
+model GroupConversation {
+  id          String   @id @default(uuid())
+  title       String
+  avatarUrl   String?
+  creatorId   String   @map("creator_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  creator      User               @relation("GroupConversationCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members      GroupMember[]
+  messages     GroupMessage[]
+  readReceipts GroupReadReceipt[]
+
+  @@index([updatedAt(sort: Desc)])
+  @@map("group_conversations")
+}
+
+model GroupMember {
+  id             String          @id @default(uuid())
+  conversationId String          @map("conversation_id")
+  userId         String          @map("user_id")
+  role           GroupMemberRole @default(MEMBER)
+  joinedAt       DateTime        @default(now()) @map("joined_at")
+
+  conversation   GroupConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User              @relation("UserGroupMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId], name: "unique_group_conversation_user")
+  @@index([userId])
+  @@index([conversationId])
+  @@map("group_members")
+}
+
+model GroupMessage {
+  id             String    @id @default(uuid())
+  conversationId String    @map("conversation_id")
+  senderId       String    @map("sender_id")
+  content        String    @db.Text
+  messageType    String    @default("TEXT") @map("message_type")
+  mediaUrls      String[]  @default([]) @map("media_urls")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  conversation   GroupConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User               @relation("GroupSentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  readReceipts   GroupReadReceipt[] @relation("LastReadGroupMessage")
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("group_messages")
+}
+
+model GroupReadReceipt {
+  id                String    @id @default(uuid())
+  conversationId    String    @map("conversation_id")
+  userId            String    @map("user_id")
+  lastReadMessageId String?   @map("last_read_message_id")
+  readAt            DateTime  @default(now()) @map("read_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  conversation      GroupConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user              User              @relation("UserGroupReadReceipts", fields: [userId], references: [id], onDelete: Cascade)
+  lastReadMessage   GroupMessage?     @relation("LastReadGroupMessage", fields: [lastReadMessageId], references: [id], onDelete: SetNull)
+
+  @@unique([conversationId, userId], name: "unique_group_conversation_user_receipt")
+  @@index([userId])
+  @@index([conversationId])
+  @@map("group_read_receipts")
+}
+
+// ----------------------------------------------------
+// WEB PUSH NOTIFICATIONS (RFC 8030 / RFC 8292 VAPID)
+// ----------------------------------------------------
+
+model WebPushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String   @db.Text
+  auth      String   @db.Text
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation("UserWebPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("web_push_subscriptions")
+}
+
+// ----------------------------------------------------
+// TASK-21 AUTH HARDENING & PRIVATE ACCOUNTS SUBSYSTEM
+// ----------------------------------------------------
+
+enum FollowRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model FollowRequest {
+  id           String              @id @default(uuid())
+  requesterId  String              @map("requester_id")
+  targetUserId String              @map("target_user_id")
+  status       FollowRequestStatus @default(PENDING)
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+
+  requester    User                @relation("SentFollowRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  targetUser   User                @relation("ReceivedFollowRequests", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, targetUserId], name: "unique_follow_request")
+  @@index([targetUserId, status])
+  @@index([requesterId])
+  @@map("follow_requests")
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  tokenHash    String    @unique @map("token_hash")
+  expiresAt    DateTime  @map("expires_at")
+  isRevoked    Boolean   @default(false) @map("is_revoked")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user         User      @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRevoked])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model RevokedToken {
+  id             String    @id @default(uuid())
+  tokenSignature String    @unique @map("token_signature")
+  reason         String?
+  expiresAt      DateTime  @map("expires_at")
+  revokedAt      DateTime  @default(now()) @map("revoked_at")
+  userId         String?   @map("user_id")
+
+  user           User?     @relation("UserRevokedTokens", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenSignature])
+  @@index([expiresAt])
+  @@map("revoked_tokens")
+}
+
+
