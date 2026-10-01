@@ -147,27 +147,105 @@ export class SearchService {
         postWhere.OR = orConditions;
       }
 
-      const posts = await prisma.post.findMany({
-        where: postWhere,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-        include: {
-          author: {
-            select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true, pinnedPostId: true },
-          },
-          replyTo: {
-            select: { id: true, author: { select: { username: true, displayName: true } } },
-          },
-          quoteOf: {
+      // PKG-11: full-text search tiếng Việt (tsvector + unaccent + GIN).
+      // Nhánh ưu tiên khi query nhiều từ: dùng generated column search_vector
+      // (to_tsvector('simple', immutable_unaccent(content))) — khớp CÓ hoặc
+      // KHÔNG dấu; kết quả sort theo ts_rank rồi createdAt.
+      let ftsPostIds: string[] | null = null;
+      if (!isHashtagSearch && !isUserMentionSearch && trimmedQuery.includes(' ')) {
+        try {
+          const ftsRows = await prisma.$queryRawUnsafe<{ id: string }[]>(
+            `SELECT p.id
+               FROM "Post" p
+              WHERE p."search_vector" @@ plainto_tsquery('simple', immutable_unaccent($1))
+                AND p."isDeleted" = false
+                AND (p."authorId" = $2 OR p."authorId" IN (
+                      SELECT f."followingId" FROM "Follow" f WHERE f."followerId" = $2
+                    ) OR EXISTS (SELECT 1 FROM "User" a WHERE a.id = p."authorId" AND a."isPrivate" = false))
+                AND NOT EXISTS (
+                  SELECT 1 FROM "Block" b
+                   WHERE (b."blockerId" = $2 AND b."blockedId" = p."authorId")
+                      OR (b."blockerId" = p."authorId" AND b."blockedId" = $2)
+                )
+                AND NOT EXISTS (
+                  SELECT 1 FROM "user_mutes" m WHERE m."muter_id" = $2 AND m."muted_id" = p."authorId"
+                )
+              ORDER BY ts_rank(p."search_vector", plainto_tsquery('simple', immutable_unaccent($1))) DESC,
+                       p."createdAt" DESC
+              LIMIT $3 OFFSET $4`,
+            trimmedQuery,
+            currentUserId || '',
+            limit,
+            offset
+          );
+          ftsPostIds = ftsRows.map((r) => r.id);
+        } catch {
+          // search_vector chưa được migrate (env mới) — rơi về LIKE path bên dưới.
+          ftsPostIds = null;
+        }
+      }
+
+      let posts: any[];
+      if (ftsPostIds) {
+        // PKG-11: nhánh FTS — KHÔNG áp postWhere.OR (điều kiện LIKE keyword cũ
+        // sẽ loại các bài khớp ngữ nghĩa full-text); chỉ giữ isDeleted,
+        // excluded authors và privacy AND.
+        const ftsWhere: any = {
+          isDeleted: false,
+          ...(excludedUserIds.length > 0 ? { authorId: { notIn: excludedUserIds } } : {}),
+          AND: postWhere.AND,
+        };
+        if (ftsPostIds.length === 0) {
+          posts = [];
+        } else {
+          const likeRows = await prisma.post.findMany({
+            where: {
+              id: { in: ftsPostIds },
+              ...ftsWhere,
+            },
             include: {
               author: {
-                select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true, pinnedPostId: true, isPrivate: true },
+                select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true, pinnedPostId: true },
+              },
+              replyTo: {
+                select: { id: true, author: { select: { username: true, displayName: true } } },
+              },
+              quoteOf: {
+                include: {
+                  author: {
+                    select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true, pinnedPostId: true, isPrivate: true },
+                  },
+                },
+              },
+            },
+          });
+          // Giữ đúng thứ tự rank của FTS
+          const byId = new Map(likeRows.map((p) => [p.id, p]));
+          posts = ftsPostIds.map((id) => byId.get(id)).filter(Boolean);
+        }
+      } else {
+        posts = await prisma.post.findMany({
+          where: postWhere,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          include: {
+            author: {
+              select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true, pinnedPostId: true },
+            },
+            replyTo: {
+              select: { id: true, author: { select: { username: true, displayName: true } } },
+            },
+            quoteOf: {
+              include: {
+                author: {
+                  select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true, pinnedPostId: true, isPrivate: true },
+                },
               },
             },
           },
-        },
-      });
+        });
+      }
 
       // Safeguard: filter out any posts authored by blocked or muted users, and posts matching keyword mutes
       const validPosts = posts.filter(
