@@ -577,3 +577,45 @@ Chi tiết đặc tả kiến trúc toàn diện xem tại: [`docs/ACTIVITYPUB_A
 
 
 
+
+---
+
+## 12. AUTH HARDENING & PRIVATE ACCOUNTS (TASK-21)
+
+### 12.1. Dual-Token Model & Rotation
+- **Access Token:** JWT 15 phút (`{ userId, username, jti }`), gửi qua header `Authorization: Bearer`.
+- **Refresh Token:** opaque 40-byte random, lưu SHA-256 hash vào bảng `RefreshToken` (7 ngày), đặt trong **HttpOnly cookie** (`SameSite=Strict`, `Path=/api/v1/auth`).
+- **Rotation nguyên tử:** mỗi lần refresh tạo token mới + thu hồi token cũ trong **1 transaction**; tái sử dụng token đã thu hồi (replay) làm thu hồi cả *family* token.
+- **Token Denylist:** `TokenRevocationManager` — in-memory TTL set nạp từ bảng `RevokedToken`; token đã logout bị chặn O(1) tại mọi endpoint.
+
+### 12.2. Private Accounts FSM
+- Cờ `User.isPrivate`; `FollowUserService` rẽ nhánh tạo `FollowRequest` (PENDING/ACCEPTED/REJECTED) thay vì `Follow` trực tiếp.
+- Privacy gates: bài viết của tài khoản private bị khóa (`isLocked`) với người lạ chưa duyệt ở mọi đường đọc: profile feed, thread reply, trending hashtag, search, like/repost.
+- Duyệt/từ chối qua `FollowRequestController` (accept → fan-out inbox như follow thường).
+
+### 12.3. Identity Contract (SEC-02)
+- Identity **chỉ** lấy từ Bearer JWT trong `preHandler` hook; kênh `x-user-id` đã bị xóa hoàn toàn (backend, CORS, client).
+- SSE stream dùng **one-time ticket** (mục 13.1), không chấp nhận định danh tự khai báo.
+
+---
+
+## 13. HARDENING WEEK & HẠ TẦNG KỸ THUẬT (IMPROVEMENT_PLAN_V2 — GĐ 1/2)
+
+### 13.1. SSE One-Time Ticket (SEC-01)
+- `POST /api/v1/realtime/ticket` (JWT) → ticket `crypto.randomBytes(32)` base64url, TTL 30s, single-use.
+- `GET /api/v1/realtime/stream?ticket=` chỉ nhận ticket hợp lệ; consume ngay lập tức; sai/thiếu/hết hạn/replay → 401 **trước khi** hijack response.
+
+### 13.2. Rate Limiting (SEC-05)
+- `@fastify/rate-limit`: global 300 req/phút/IP.
+- Bucket nghiêm ngặt: `auth/register|login` 10/phút/IP, `auth/refresh` 30/phút/IP, `POST /posts` 20/phút/user (hook `preHandler`, key `currentUserId`), `media/upload` 20/giờ/IP.
+- 429 render qua error handler tập trung: `{ success:false, error:{ code:'RATE_LIMITED' } }`.
+- Env `RATE_LIMIT_DISABLED=1` chỉ dùng cho test preload.
+
+### 13.3. Secrets & VAPID (SEC-03/04)
+- `src/config/Secrets.ts`: `buildApp()` throw `MissingSecretError` khi thiếu `JWT_SECRET`/`COOKIE_SECRET`/`VAPID_*` — không còn fallback hardcode.
+- VAPID keypair (P-256) nạp từ ENV (PEM hoặc base64), ổn định giữa các restart; script sinh: `backend/scripts/generate-vapid-keys.mjs`.
+
+### 13.4. Hạ tầng kiểm thử & route (INF-01/02)
+- Test chạy **trực tiếp trên TypeScript** qua `tsx` (NODE_OPTIONS `--import tsx`), import `../src/**.ts` — không còn phụ thuộc `dist/` (chống stale-build).
+- Đăng ký route tập trung tại `src/routes/registerRoutes.ts` (`registerV1Routes` + `registerLegacyRootAliases` deprecated); `app.ts` chỉ còn bootstrap.
+- Nguồn số liệu test duy nhất: phụ lục `PLAN.md`.
