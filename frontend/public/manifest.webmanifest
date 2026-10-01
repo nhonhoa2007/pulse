@@ -1,0 +1,26 @@
+{
+  "name": "Pulse — The Real-Time Microblogging Engine",
+  "short_name": "Pulse",
+  "description": "Mạng xã hội thời gian thực kiểu Threads, federated qua ActivityPub.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fafafa",
+  "theme_color": "#385898",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
