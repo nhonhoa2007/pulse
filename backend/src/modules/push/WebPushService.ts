@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import net from 'node:net';
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { ssrfProtectionGuardService } from '../federation/SsrfProtectionGuardService.js';
+import { getVapidKeyPair, getVapidSubject } from '../../config/Secrets.js';
 import {
   RegisterWebPushSubscriptionInput,
   SendPushNotificationResult,
@@ -9,30 +10,47 @@ import {
 } from '../../contracts/ApiContracts.js';
 
 export class WebPushService {
-  private keyPair: crypto.KeyPairSyncResult<string, string>;
   private publicKeyBase64Url: string;
   private privateKeyObject: crypto.KeyObject;
+  private publicKeyObject: crypto.KeyObject;
   private subject: string;
 
   constructor() {
-    this.subject = process.env.VAPID_SUBJECT || 'mailto:admin@pulse.social';
+    this.subject = getVapidSubject();
 
-    // Initialize or load NIST P-256 (prime256v1) EC keypair for VAPID
-    const generated = crypto.generateKeyPairSync('ec', {
-      namedCurve: 'prime256v1',
-      publicKeyEncoding: { type: 'spki', format: 'pem' },
-      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-    });
+    // SEC-04: load the persisted VAPID P-256 keypair from the environment.
+    // Generating a fresh keypair per process would orphan every existing
+    // push subscription on restart. PEM or single-line base64 both accepted.
+    const { publicKey: publicKeyValue, privateKey: privateKeyValue } = getVapidKeyPair();
+    const publicKeyPem = this.decodeKeyPem(publicKeyValue);
+    const privateKeyPem = this.decodeKeyPem(privateKeyValue);
 
-    this.keyPair = generated;
-    this.privateKeyObject = crypto.createPrivateKey(generated.privateKey);
+    this.privateKeyObject = crypto.createPrivateKey(privateKeyPem);
+    this.publicKeyObject = crypto.createPublicKey(publicKeyPem);
 
     // Derive standard 65-byte uncompressed public key (0x04 || X || Y)
-    const jwk = crypto.createPublicKey(generated.publicKey).export({ format: 'jwk' });
+    const jwk = crypto.createPublicKey(publicKeyPem).export({ format: 'jwk' });
     const x = Buffer.from(jwk.x!, 'base64url');
     const y = Buffer.from(jwk.y!, 'base64url');
     const uncompressedPub = Buffer.concat([Buffer.from([0x04]), x, y]);
     this.publicKeyBase64Url = uncompressedPub.toString('base64url');
+  }
+
+  /**
+   * Accept either a raw PEM block or a single-line base64 encoding of a PEM block.
+   */
+  private decodeKeyPem(value: string): string {
+    const trimmed = value.trim();
+    if (trimmed.includes('-----BEGIN')) {
+      return trimmed;
+    }
+    const decoded = Buffer.from(trimmed, 'base64').toString('utf8');
+    if (!decoded.includes('-----BEGIN')) {
+      throw new Error(
+        'Invalid VAPID key encoding: expected PEM or single-line base64 of PEM (see scripts/generate-vapid-keys.mjs)'
+      );
+    }
+    return decoded;
   }
 
   /**
@@ -205,7 +223,7 @@ export class WebPushService {
         'SHA256',
         Buffer.from(unsignedData, 'utf8'),
         {
-          key: this.keyPair.publicKey,
+          key: this.publicKeyObject,
           dsaEncoding: 'ieee-p1363',
         },
         sigBuf
