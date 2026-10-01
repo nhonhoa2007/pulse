@@ -146,6 +146,18 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
     typingTimerRef.current = setTimeout(() => setTypingUser(null), 3000);
   };
 
+  const handleToggleReaction = async (messageId: string, emoji: string) => {
+    // Optimistic: cập nhật ngay, rollback bằng server event khi trả về
+    try {
+      const result = await api.toggleDmMessageReaction(messageId, emoji);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, reactions: result.reactions } : m))
+      );
+    } catch {
+      // lỗi im lặng — reactions giữ trạng thái cũ
+    }
+  };
+
   const handleSendMessage = async (content: string) => {
     setIsSending(true);
     try {
@@ -230,6 +242,15 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
                   ? { ...m, isDeleted: true, content: 'This message was deleted' }
                   : m
               )
+            );
+          }
+        }
+        // 2a. PKG-05: reaction updated
+        else if (event.type === 'dm.reaction.updated') {
+          const eventData = event.data;
+          if (eventData?.messageId && Array.isArray(eventData.reactions)) {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === eventData.messageId ? { ...m, reactions: eventData.reactions } : m))
             );
           }
         }
@@ -400,6 +421,8 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
                   isOwn={msg.senderId === currentUser.id}
                   isReadByOther={isMessageRead(msg, idx)}
                   onDelete={handleDeleteMessage}
+                  currentUserId={currentUser.id}
+                  onToggleReaction={handleToggleReaction}
                 />
               ))
             )}

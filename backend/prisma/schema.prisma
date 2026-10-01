@@ -75,7 +75,9 @@ model User {
   isAdmin       Boolean           @default(false) @map("is_admin")
   reportsFiled  Report[]          @relation("ReportReporter")
   reportsReviewed Report[]        @relation("ReportReviewer")
-  mediaAssets   MediaAsset[]      @relation("UserMediaAssets")
+  mediaAssets      MediaAsset[]      @relation("UserMediaAssets")
+  dmReactions      DmReaction[]      @relation("UserDmReactions")
+  groupDmReactions GroupDmReaction[] @relation("UserGroupDmReactions")
 
   @@index([username])
 }
@@ -429,6 +431,7 @@ model DmMessage {
 
   conversation   DmConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User            @relation("DmMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  reactions      DmReaction[]    @relation("DmMessageReactions")
   readReceipts   DmReadReceipt[] @relation("LastReadMessage")
 
   @@index([conversationId, createdAt(sort: Desc)])
@@ -577,6 +580,7 @@ model GroupMessage {
 
   conversation   GroupConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User               @relation("GroupSentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  reactions      GroupDmReaction[]  @relation("GroupMessageReactions")
   readReceipts   GroupReadReceipt[] @relation("LastReadGroupMessage")
 
   @@index([conversationId, createdAt(sort: Desc)])
@@ -716,7 +720,7 @@ enum UserAccountStatus {
 
 model Report {
   id            String           @id @default(uuid())
-  reporterId    String           @map("reporter_id")
+  reporterId    String?          @map("reporter_id")
   targetType    ReportTargetType @map("target_type")
   targetId      String           @map("target_id")
   reason        ReportReason
@@ -730,7 +734,7 @@ model Report {
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")
 
-  reporter    User  @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter    User? @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: SetNull)
   reviewedBy  User? @relation("ReportReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
 
   @@unique([reporterId, targetType, targetId], name: "unique_report_per_reporter")
@@ -755,4 +759,36 @@ model MediaAsset {
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@map("media_assets")
+}
+
+// ================= PKG-05: Message Reactions =================
+
+model DmReaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message DmMessage @relation("DmMessageReactions", fields: [messageId], references: [id], onDelete: Cascade)
+  user    User      @relation("UserDmReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji], name: "unique_dm_reaction")
+  @@index([messageId])
+  @@map("dm_reactions")
+}
+
+model GroupDmReaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message GroupMessage @relation("GroupMessageReactions", fields: [messageId], references: [id], onDelete: Cascade)
+  user    User         @relation("UserGroupDmReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji], name: "unique_group_dm_reaction")
+  @@index([messageId])
+  @@map("group_dm_reactions")
 }

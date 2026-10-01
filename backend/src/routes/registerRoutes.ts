@@ -145,6 +145,7 @@ export async function registerV1Routes(v1: FastifyInstance): Promise<void> {
   v1.put('/dm/conversations/:id/read', dmController.markAsRead.bind(dmController));
       v1.post('/dm/conversations/:id/typing', dmController.sendTyping.bind(dmController));
   v1.delete('/dm/messages/:id', dmController.deleteMessage.bind(dmController));
+      v1.post('/dm/messages/:id/reactions', dmController.toggleReaction.bind(dmController));
 
   // Group Direct Messaging (Group DMs) Endpoints (/api/v1/dm/groups)
   v1.post('/dm/groups', groupDmController.createGroup.bind(groupDmController));
@@ -156,6 +157,7 @@ export async function registerV1Routes(v1: FastifyInstance): Promise<void> {
   v1.post('/dm/groups/:id/messages', groupDmController.sendMessage.bind(groupDmController));
   v1.get('/dm/groups/:id/messages', groupDmController.getMessages.bind(groupDmController));
   v1.delete('/dm/groups/:id/messages/:messageId', groupDmController.deleteMessage.bind(groupDmController));
+      v1.post('/dm/groups/:id/messages/:messageId/reactions', groupDmController.toggleReaction.bind(groupDmController));
   v1.put('/dm/groups/:id/read', groupDmController.markAsRead.bind(groupDmController));
 
   // Web Push Notifications Endpoints (/api/v1/push)

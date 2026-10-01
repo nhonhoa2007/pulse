@@ -1,6 +1,7 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import {
   DmMessageDto,
+  DmReactionSummaryDto,
   DmMessageListResponse,
   DmReadReceiptDto,
   SendDmMessageInput,
@@ -194,6 +195,83 @@ export class DmMessageService {
    * 3. Soft-deleted content masking ("This message was deleted")
    * 4. Cursor-based pagination (before / after)
    */
+  /**
+   * PKG-05: aggregate reactions cho một list messageIds.
+   */
+  private async aggregateDmReactions(messageIds: string[]): Promise<Map<string, DmReactionSummaryDto[]>> {
+    const map = new Map<string, DmReactionSummaryDto[]>();
+    if (messageIds.length === 0) return map;
+    const rows = await prisma.dmReaction.findMany({
+      where: { messageId: { in: messageIds } },
+      orderBy: { createdAt: 'asc' },
+    });
+    for (const r of rows) {
+      const list = map.get(r.messageId) || [];
+      const existing = list.find((x) => x.emoji === r.emoji);
+      if (existing) {
+        existing.count += 1;
+        existing.userIds.push(r.userId);
+      } else {
+        list.push({ emoji: r.emoji, count: 1, userIds: [r.userId] });
+      }
+      map.set(r.messageId, list);
+    }
+    return map;
+  }
+
+  /**
+   * PKG-05: toggle reaction (thêm nếu chưa có, bỏ nếu đã có).
+   * Broadcast SSE dm.reaction.updated cho CẢ HAI participants.
+   */
+  public async toggleReaction(
+    userId: string,
+    messageId: string,
+    emoji: string
+  ): Promise<{ messageId: string; toggledOn: boolean; reactions: DmReactionSummaryDto[] }> {
+    if (!emoji || emoji.length > 8) {
+      const err: any = new Error('Emoji không hợp lệ');
+      err.code = 'INVALID_EMOJI';
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const msg = await prisma.dmMessage.findUnique({
+      where: { id: messageId },
+      select: { id: true, conversationId: true, deletedAt: true },
+    });
+    if (!msg || msg.deletedAt) {
+      throw new DmNotFoundError('Message not found');
+    }
+    const conv = await prisma.dmConversation.findUnique({
+      where: { id: msg.conversationId },
+      select: { participant1Id: true, participant2Id: true },
+    });
+    if (!conv || (conv.participant1Id !== userId && conv.participant2Id !== userId)) {
+      throw new DmForbiddenError('You are not a participant of this conversation');
+    }
+
+    const existing = await prisma.dmReaction.findUnique({
+      where: { unique_dm_reaction: { messageId, userId, emoji } },
+    });
+    let toggledOn: boolean;
+    if (existing) {
+      await prisma.dmReaction.delete({ where: { id: existing.id } });
+      toggledOn = false;
+    } else {
+      await prisma.dmReaction.create({ data: { messageId, userId, emoji } });
+      toggledOn = true;
+    }
+
+    const reactionMap = await this.aggregateDmReactions([messageId]);
+    const reactions = reactionMap.get(messageId) || [];
+
+    const event = { conversationId: msg.conversationId, messageId, reactions };
+    realtimeStreamController.sendToUser(conv.participant1Id, 'dm.reaction.updated', event);
+    realtimeStreamController.sendToUser(conv.participant2Id, 'dm.reaction.updated', event);
+
+    return { messageId, toggledOn, reactions };
+  }
+
   public async getMessages(
     currentUserId: string,
     conversationId: string,
@@ -256,6 +334,8 @@ export class DmMessageService {
     // Arrange returned batch in chronological order (oldest to newest)
     const sorted = direction === 'after' ? paged : [...paged].reverse();
 
+    const reactionMap = await this.aggregateDmReactions(sorted.map((m) => m.id));
+
     const messages: DmMessageDto[] = sorted.map((msg) => {
       const isDeleted = msg.deletedAt !== null;
       return {
@@ -269,6 +349,7 @@ export class DmMessageService {
         createdAt: msg.createdAt.toISOString(),
         updatedAt: msg.updatedAt.toISOString(),
         sender: msg.sender,
+        reactions: reactionMap.get(msg.id) || [],
       };
     });
 

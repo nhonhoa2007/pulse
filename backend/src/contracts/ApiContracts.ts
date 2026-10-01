@@ -338,6 +338,12 @@ export interface DmUserSummaryDto {
   avatarUrl: string | null;
 }
 
+export interface DmReactionSummaryDto {
+  emoji: string;
+  count: number;
+  userIds: string[];
+}
+
 export interface DmMessageDto {
   id: string;
   conversationId: string;
@@ -349,6 +355,7 @@ export interface DmMessageDto {
   createdAt: string;
   updatedAt: string;
   sender?: DmUserSummaryDto;
+  reactions?: DmReactionSummaryDto[];
 }
 
 export interface DmConversationDto {
@@ -445,6 +452,7 @@ export interface GroupMessageDto {
   createdAt: string;
   updatedAt: string;
   sender?: DmUserSummaryDto;
+  reactions?: DmReactionSummaryDto[];
 }
 
 export interface GroupConversationDto {

@@ -43,6 +43,43 @@ interface GetMessagesQuery {
 }
 
 export class GroupDmController {
+
+  /**
+   * PKG-05: POST /dm/groups/:id/messages/:messageId/reactions — toggle emoji.
+   */
+  public async toggleReaction(
+    req: FastifyRequest<{ Params: { id: string; messageId: string }; Body: { emoji?: string } }>,
+    reply: FastifyReply
+  ): Promise<unknown> {
+    const currentUserId = (req as unknown as { currentUserId?: string | null }).currentUserId;
+    if (!currentUserId) {
+      reply.status(401);
+      return {
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      };
+    }
+
+    try {
+      const { messageId } = req.params;
+      const emoji = req.body?.emoji || '';
+      const result = await groupDmMessageService.toggleReaction(currentUserId, messageId, emoji);
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (err: unknown) {
+      const error = err as { statusCode?: number; code?: string; message?: string };
+      reply.status(error.statusCode || 500);
+      return {
+        success: false,
+        error: {
+          code: error.code || 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'An unexpected error occurred',
+        },
+      };
+    }
+  }
   /**
    * POST /api/v1/dm/groups
    */

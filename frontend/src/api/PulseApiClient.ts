@@ -300,6 +300,34 @@ class PulseApiClient extends PulseApiCore {
     });
   }
 
+  // ================= PKG-05: MESSAGE REACTIONS =================
+
+  public async toggleDmMessageReaction(messageId: string, emoji: string): Promise<{
+    messageId: string;
+    toggledOn: boolean;
+    reactions: Array<{ emoji: string; count: number; userIds: string[] }>;
+  }> {
+    return this.request(`/dm/messages/${encodeURIComponent(messageId)}/reactions`, {
+      method: 'POST',
+      body: JSON.stringify({ emoji }),
+    });
+  }
+
+  public async toggleGroupMessageReaction(
+    groupId: string,
+    messageId: string,
+    emoji: string
+  ): Promise<{
+    messageId: string;
+    toggledOn: boolean;
+    reactions: Array<{ emoji: string; count: number; userIds: string[] }>;
+  }> {
+    return this.request(
+      `/dm/groups/${encodeURIComponent(groupId)}/messages/${encodeURIComponent(messageId)}/reactions`,
+      { method: 'POST', body: JSON.stringify({ emoji }) }
+    );
+  }
+
   // ================= PKG-14: CREATOR STATS =================
 
   public async getMyStats(): Promise<unknown> {
@@ -1271,6 +1299,24 @@ class PulseApiClient extends PulseApiCore {
           data: e.data,
           timestamp: new Date().toISOString(),
         });
+      }
+    });
+
+    eventSource.addEventListener('dm.reaction.updated', (e: MessageEvent) => {
+      try {
+        const data = e.data ? JSON.parse(e.data) : null;
+        onEvent({ type: 'dm.reaction.updated', data, timestamp: new Date().toISOString() });
+      } catch {
+        onEvent({ type: 'dm.reaction.updated', data: e.data, timestamp: new Date().toISOString() });
+      }
+    });
+
+    eventSource.addEventListener('dm.group.reaction.updated', (e: MessageEvent) => {
+      try {
+        const data = e.data ? JSON.parse(e.data) : null;
+        onEvent({ type: 'dm.group.reaction.updated', data, timestamp: new Date().toISOString() });
+      } catch {
+        onEvent({ type: 'dm.group.reaction.updated', data: e.data, timestamp: new Date().toISOString() });
       }
     });
 

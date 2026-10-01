@@ -1,6 +1,7 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import {
   GroupMessageDto,
+  DmReactionSummaryDto,
   GroupMessageListResponse,
   GroupReadReceiptDto,
   SendGroupMessageInput,
@@ -145,6 +146,90 @@ export class GroupDmMessageService {
    * Get messages from a group conversation with cursor-based pagination.
    * Enforces active membership IDOR check.
    */
+  private async aggregateGroupReactions(messageIds: string[]): Promise<Map<string, DmReactionSummaryDto[]>> {
+    const map = new Map<string, DmReactionSummaryDto[]>();
+    if (messageIds.length === 0) return map;
+    const rows = await prisma.groupDmReaction.findMany({
+      where: { messageId: { in: messageIds } },
+      orderBy: { createdAt: 'asc' },
+    });
+    for (const r of rows) {
+      const list = map.get(r.messageId) || [];
+      const existing = list.find((x) => x.emoji === r.emoji);
+      if (existing) {
+        existing.count += 1;
+        existing.userIds.push(r.userId);
+      } else {
+        list.push({ emoji: r.emoji, count: 1, userIds: [r.userId] });
+      }
+      map.set(r.messageId, list);
+    }
+    return map;
+  }
+
+  /**
+   * PKG-05: toggle reaction group message — yêu cầu active membership.
+   * Broadcast dm.group.reaction.updated cho toàn bộ members.
+   */
+  public async toggleReaction(
+    userId: string,
+    messageId: string,
+    emoji: string
+  ): Promise<{ messageId: string; toggledOn: boolean; reactions: DmReactionSummaryDto[] }> {
+    if (!emoji || emoji.length > 8) {
+      const err: any = new Error('Emoji không hợp lệ');
+      err.code = 'INVALID_EMOJI';
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const msg = await prisma.groupMessage.findUnique({
+      where: { id: messageId },
+      select: { id: true, conversationId: true, deletedAt: true },
+    });
+    if (!msg || msg.deletedAt) {
+      const e: any = new Error('Message not found');
+      e.statusCode = 404;
+      e.code = 'NOT_FOUND';
+      throw e;
+    }
+    const membership = await prisma.groupMember.findUnique({
+      where: { unique_group_conversation_user: { conversationId: msg.conversationId, userId } },
+    });
+    if (!membership) {
+      const e: any = new Error('Bạn không phải thành viên của nhóm này');
+      e.statusCode = 403;
+      e.code = 'FORBIDDEN';
+      throw e;
+    }
+
+    const existing = await prisma.groupDmReaction.findUnique({
+      where: { unique_group_dm_reaction: { messageId, userId, emoji } },
+    });
+    let toggledOn: boolean;
+    if (existing) {
+      await prisma.groupDmReaction.delete({ where: { id: existing.id } });
+      toggledOn = false;
+    } else {
+      await prisma.groupDmReaction.create({ data: { messageId, userId, emoji } });
+      toggledOn = true;
+    }
+
+    const reactionMap = await this.aggregateGroupReactions([messageId]);
+    const reactions = reactionMap.get(messageId) || [];
+
+    const members = await prisma.groupMember.findMany({
+      where: { conversationId: msg.conversationId },
+      select: { userId: true },
+    });
+    const event = { conversationId: msg.conversationId, messageId, reactions };
+    for (const m of members) {
+      realtimeStreamController.sendToUser(m.userId, 'dm.group.reaction.updated', event);
+    }
+
+    return { messageId, toggledOn, reactions };
+  }
+
   public async getMessages(
     currentUserId: string,
     conversationId: string,
@@ -217,6 +302,8 @@ export class GroupDmMessageService {
     // Arrange returned batch in chronological order (oldest to newest)
     const sorted = direction === 'after' ? paged : [...paged].reverse();
 
+    const reactionMap = await this.aggregateGroupReactions(sorted.map((m) => m.id));
+
     const messages: GroupMessageDto[] = sorted.map((msg) => {
       const isDeleted = msg.deletedAt !== null;
       return {
@@ -230,6 +317,7 @@ export class GroupDmMessageService {
         createdAt: msg.createdAt.toISOString(),
         updatedAt: msg.updatedAt.toISOString(),
         sender: msg.sender,
+        reactions: reactionMap.get(msg.id) || [],
       };
     });
 

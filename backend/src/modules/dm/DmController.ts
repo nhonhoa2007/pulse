@@ -170,6 +170,35 @@ export class DmController {
    * Update read receipt.
    */
   /**
+   * PKG-05: POST /dm/messages/:id/reactions — toggle emoji reaction.
+   */
+  public async toggleReaction(
+    req: FastifyRequest<{ Params: { id: string }; Body: { emoji?: string } }>,
+    reply: FastifyReply
+  ): Promise<ApiResponse<unknown>> {
+    const currentUserId = req.currentUserId;
+    if (!currentUserId) {
+      reply.status(401);
+      return {
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      };
+    }
+
+    try {
+      const { id } = req.params;
+      const emoji = req.body?.emoji || '';
+      const result = await dmMessageService.toggleReaction(currentUserId, id, emoji);
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (err: unknown) {
+      return this.handleError(err, reply);
+    }
+  }
+
+  /**
    * PKG-05: POST /dm/conversations/:id/typing — heartbeat đang soạn tin.
    * Broadcast SSE dm.typing cho đối phương, throttle 2s server-side.
    */

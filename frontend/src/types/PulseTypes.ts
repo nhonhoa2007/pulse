@@ -275,6 +275,12 @@ export interface DmUserSummaryDto {
   avatarUrl: string | null;
 }
 
+export interface DmReactionSummary {
+  emoji: string;
+  count: number;
+  userIds: string[];
+}
+
 export interface DmMessageDto {
   id: string;
   conversationId: string;
@@ -286,6 +292,7 @@ export interface DmMessageDto {
   createdAt: string;
   updatedAt: string;
   sender?: DmUserSummaryDto;
+  reactions?: DmReactionSummary[];
 }
 
 export interface DmConversationDto {
@@ -336,6 +343,7 @@ export interface DmMessageListResponse {
 export type DmRealtimeEventType =
   | 'dm.typing'
   | 'dm.message.new'
+  | 'dm.reaction.updated'
   | 'dm.message.deleted'
   | 'dm.read_receipt.updated';
 
@@ -383,6 +391,7 @@ export interface GroupMessageDto {
   createdAt: string;
   updatedAt: string;
   sender?: DmUserSummaryDto;
+  reactions?: DmReactionSummary[];
 }
 
 export interface GroupConversationDto {

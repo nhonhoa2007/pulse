@@ -1,21 +1,29 @@
 import React, { useState } from 'react';
 import { DmMessageDto } from '../../types/PulseTypes';
 import { formatRelativeTime } from '../../utils/formatters';
-import { Check, CheckCheck, Trash2, Loader2 } from 'lucide-react';
+import { Check, CheckCheck, Trash2, Loader2, Smile } from 'lucide-react';
 
 interface DmMessageBubbleProps {
   message: DmMessageDto;
   isOwn: boolean;
   isReadByOther?: boolean;
   onDelete?: (messageId: string) => Promise<void> | void;
+  /** PKG-05: reactions */
+  currentUserId?: string;
+  onToggleReaction?: (messageId: string, emoji: string) => Promise<void> | void;
 }
+
+const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
 
 export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
   message,
   isOwn,
   isReadByOther = false,
   onDelete,
+  currentUserId,
+  onToggleReaction,
 }) => {
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
@@ -125,6 +133,65 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
             </>
           )}
         </div>
+
+        {/* PKG-05: reaction chips + emoji picker */}
+        {!message.isDeleted && currentUserId && onToggleReaction && (
+          <div className={`flex flex-col gap-1 ${isOwn ? 'items-end' : 'items-start'}`}>
+            {showEmojiPicker && (
+              <div
+                data-testid="reaction-emoji-picker"
+                className="flex items-center gap-1 bg-paper border border-cloud rounded-full px-2 py-1 shadow-subtle animate-scale-up"
+              >
+                {QUICK_EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    data-testid={`reaction-emoji-${emoji}`}
+                    onClick={() => {
+                      setShowEmojiPicker(false);
+                      onToggleReaction(message.id, emoji);
+                    }}
+                    className="text-[16px] hover:scale-125 transition-transform"
+                    aria-label={`Thả cảm xúc ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {message.reactions && message.reactions.length > 0 && (
+              <div className="flex flex-wrap gap-1" data-testid="reaction-chips">
+                {message.reactions.map((r) => (
+                  <button
+                    key={r.emoji}
+                    type="button"
+                    onClick={() => onToggleReaction(message.id, r.emoji)}
+                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[12px] border transition-colors ${
+                      r.userIds.includes(currentUserId)
+                        ? 'bg-meta/10 border-meta text-ink'
+                        : 'bg-paper border-cloud text-graphite hover:bg-mist'
+                    }`}
+                    title={`${r.count} cảm xúc`}
+                  >
+                    <span>{r.emoji}</span>
+                    <span className="text-[11px] font-semibold">{r.count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              data-testid="reaction-toggle-btn"
+              onClick={() => setShowEmojiPicker((prev) => !prev)}
+              className="self-center p-1 text-ash hover:text-meta rounded-full transition-colors"
+              aria-label="Thả cảm xúc"
+            >
+              <Smile className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Timestamp & Read Receipt Checkmarks */}
