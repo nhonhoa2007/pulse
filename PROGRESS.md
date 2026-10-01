@@ -1,6 +1,6 @@
 # PROGRESS — TRẠNG THÁI THỰC THI IMPROVEMENT_PLAN_V2
 
-> **Cập nhật:** 2026-10-01 (lần 2 — kết thúc phiên thực thi GĐ 4) | **Branch:** `dev`
+> **Cập nhật:** 2026-10-02 (lần 3 — PKG-05 phần 2 + PKG-15 hoàn thành) | **Branch:** `dev`
 > **Tài liệu kế hoạch gốc:** `IMPROVEMENT_PLAN_V2.md` | **Số liệu test nguồn duy nhất:** phụ lục `PLAN.md`
 
 ---
@@ -9,7 +9,7 @@
 
 | Chỉ số | Giá trị |
 |---|---|
-| Backend tests | **456 test cases / 455 pass** trong full run — 1 flake đã có từ trước (`5e. Outbox Delivery retry`, standalone 40/40 pass) |
+| Backend tests | **459/459 PASS** |
 | Frontend tests | **203/203 PASS** |
 | tsc --noEmit | Sạch cả 2 package |
 | Prod bundle | Sạch 100% dữ liệu demo |
@@ -45,15 +45,14 @@
 - [x] **PKG-01** OpenGraph Link Preview: scraper SSRF-guarded strict + cache 24h + LinkPreviewCard (41395ba)
 - [x] **PKG-14** Creator Dashboard: GET /users/me/stats (totals/windows/topPosts) + StatsView /stats (442c2cd)
 - [x] **PKG-09** Media v2: sharp WebP/resize≤1600/EXIF strip, MediaAsset registry + altText, upload auth gate (f4e6cd9)
-- [x] **PKG-05** Typing Indicator: POST /dm/conversations/:id/typing + SSE dm.typing + UI bong bóng (47005bd)
+- [x] **PKG-05** Typing Indicator (47005bd) + **phần 2: Reactions** (7e8656a) — DmReaction/GroupDmReaction, toggle API + SSE updated events, chips/picker UI; ảnh trong DM dùng pipeline PKG-09 (upload đã sẵn, composer UI còn lại)
+- [x] **PKG-15** Moderation v2 (d0cd904): SpamDetectionService auto-flag (link flood/duplicate/rate ≥60 điểm), Report.reporterId nullable, ModerationCenterView /moderation (filter status + 4 actions), isAdmin trong UserDto
 
 ## 3. CÒN LẠI — chi tiết từng hạng mục + điều kiện kích hoạt
 
-### PKG-05 phần còn (reactions + ảnh chat) — P1
-- [ ] Bảng `DmReaction`/`GroupDmReaction` (messageId, userId, emoji), endpoint toggle + SSE `dm.reaction.updated`
-- [ ] UI reaction picker trên DmMessageBubble (optimistic)
-- [ ] Đính kèm ảnh trong DM (dùng pipeline PKG-09 đã có — formData vào composer)
-- **Điều kiện:** không có — thuần code, ước lượng ~1 ngày
+### PKG-05 phần 3 (ảnh trong DM) — P2
+- [ ] Composer DM: nút attach → api.uploadMedia → preview → gửi kèm mediaUrls (backend DmMessage.mediaUrls đã có sẵn)
+- **Điều kiện:** không có — thuần code, ~2-3 giờ
 
 ### PKG-06 — Production Auth — P2, **CHỜ QUYẾT ĐỊNH/INPUT**
 - [ ] OAuth2 Google/GitHub: **cần credentials thật** (client id/secret + redirect URIs) từ chủ nhân
@@ -66,11 +65,6 @@
 - [ ] Federate Update/Delete/media attachments (Image/Document)/remote Block
 - [ ] Suite `federation-e2e-gotosocial.test.mjs` chạy có điều kiện `FEDERATION_E2E=1`
 - **Điều kiện:** Docker khả dụng trên máy
-
-### PKG-15 — Moderation v2 — P2 (phần 1 đã có sẵn)
-- [ ] Heuristic spam-rate (tốc độ đăng, pattern) cập nhật autoScore khi tạo post
-- [ ] Admin queue UI (ModerationCenterView — API đã đủ, còn view + role management)
-- **Điều kiện:** không có — thuần code
 
 ### PKG-16 — Scale-out — P2, **CHỈ KHI CÓ NHU CẦU THẬT**
 - [ ] Redis pub/sub SSE + rate-limit store; BullMQ tách workers; STORAGE_DRIVER=s3
@@ -97,7 +91,7 @@
 
 ```bash
 cd /home/nhonhoa/pulse && git log --oneline -5 && git status
-cd backend && npm test          # kỳ vọng ~456 tests, 455 pass (1 flake outbox)
+cd backend && npm test          # kỳ vọng 459/459
 cd ../frontend && npm test      # kỳ vọng 203/203
-# Tiếp theo: PKG-05 phần 2 (reactions + ảnh chat) hoặc PKG-15 phần 2 (admin UI)
+# Tiếp theo: PKG-05 phần 3 (ảnh trong DM), PKG-06/13 chờ input/Docker
 ```

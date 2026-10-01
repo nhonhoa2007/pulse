@@ -3,7 +3,7 @@
 **Chỉ huy:** Tech Lead & System Architect
 **Nhân sự điều phối:** `backend-architect`, `frontend-specialist`, `qa-test-engineer`, `security-auditor`
 **Căn cứ:** Bản quét & đánh giá toàn project (2026-10-01) + `improve.md` (PKG-01 → PKG-07)
-**Trạng thái:** 🚀 GĐ 0-3 hoàn thành 100% + GĐ 4 hoàn thành 9/9 gói (2026-10-01) — tổng 659 test cases: 456 backend + 203 frontend. Còn lại: PKG-05 phần 2 (reactions/ảnh chat), PKG-06/13/15/16 (chi tiết điều kiện trong PROGRESS.md)
+**Trạng thái:** ✅ GĐ 0-4 hoàn thành + PKG-05.2/15.2 (2026-10-02) — 662 test cases: 459 backend + 203 frontend, 100% PASS. Còn lại: PKG-05 phần 3 (ảnh DM — thuần code), PKG-06 (chờ OAuth/SMTP input), PKG-13 (chờ Docker), PKG-16 (chờ nhu cầu scale) — chi tiết trong PROGRESS.md
 
 ---
 
@@ -165,7 +165,7 @@ Thứ tự khuyến nghị trong giai đoạn: **PKG-03 → PKG-01 → PKG-04 �
 | PKG-01 | OpenGraph Link Preview + Multi-image grid | improve.md 3.1 | ✅ 2026-10-01 (scraper strict-SSRF + cache 24h + LinkPreviewCard; multi-image grid có sẵn) |
 | PKG-04 | Report & Moderation Queue | improve.md 3.4 | ✅ 2026-10-01 (BE+FE: autoScore heuristic, admin queue/resolve, suspend gates, nút Báo cáo) |
 | PKG-09 | Media Pipeline v2 | **mới** | ✅ 2026-10-01 (sharp WebP/resize/EXIF strip, MediaAsset registry + altText, auth gate; drag-drop/paste còn lại) |
-| PKG-05 | DM Polish: typing + reactions + ảnh chat | improve.md 3.5 | ✅ typing 2026-10-01 (SSE dm.typing + UI); reactions + ảnh chat còn lại |
+| PKG-05 | DM Polish: typing + reactions + ảnh chat | improve.md 3.5 | ✅ typing + reactions 2026-10-02 (SSE dm.typing/dm.reaction.updated, chips/picker UI); ảnh trong DM còn lại |
 | PKG-06 | OAuth2 (Google/GitHub) + Password Reset + UserSession | improve.md 3.6 | cần `MailerService` (nodemailer + SMTP ENV); gộp "đăng xuất mọi thiết bị" vào UserSession |
 | PKG-10 | Account Lifecycle | **mới** | xóa tài khoản (transaction: soft-delete user, dọn inbox/follow/follow-request/token, ngắt SSE, ẩn nội dung `isDeleted`), export dữ liệu JSON (posts/follows/DMs) |
 | PKG-11 | Full-text Search tiếng Việt | **mới** | ✅ 2026-10-01 (search_vector generated + immutable_unaccent + GIN; FTS multi-word, match có/không dấu; benchmark chuyên sâu còn lại) |
