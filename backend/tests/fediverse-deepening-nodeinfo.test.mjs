@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
-import { fetchNodeInfoService } from '../dist/modules/federation/FetchNodeInfoService.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
+import { fetchNodeInfoService } from '../src/modules/federation/FetchNodeInfoService.ts';
 
 test('TASK-19: NodeInfo 2.1 Protocol, FEP-0151 Discovery & Backward Compatibility Suite', async (t) => {
   process.env.NODE_ENV = 'test';

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import jwt from 'jsonwebtoken';
-import { buildApp } from '../dist/app.js';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { tokenRevocationManager } from '../dist/modules/auth/TokenRevocationManager.js';
-import { authService } from '../dist/modules/auth/AuthService.js';
+import { buildApp } from '../src/app.ts';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { tokenRevocationManager } from '../src/modules/auth/TokenRevocationManager.ts';
+import { authService } from '../src/modules/auth/AuthService.ts';
 
 test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Auth Hardening & Private Accounts (TASK-21)', async (t) => {
   process.env.NODE_ENV = 'test';

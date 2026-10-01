@@ -2,9 +2,9 @@ import { authHeaders, fetchRealtimeTicket } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
-import { pollExpirationSchedulerService } from '../dist/modules/polls/PollExpirationSchedulerService.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
+import { pollExpirationSchedulerService } from '../src/modules/polls/PollExpirationSchedulerService.ts';
 
 test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration', async (t) => {
   process.env.NODE_ENV = 'test';

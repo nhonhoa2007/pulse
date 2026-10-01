@@ -6,9 +6,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildApp } from '../dist/app.js';
-import { MissingSecretError } from '../dist/config/Secrets.js';
-import { WebPushService } from '../dist/modules/push/WebPushService.js';
+import { buildApp } from '../src/app.ts';
+import { MissingSecretError } from '../src/config/Secrets.ts';
+import { WebPushService } from '../src/modules/push/WebPushService.ts';
 
 test('SEC-03: buildApp fails fast when JWT_SECRET is missing', async () => {
   const saved = process.env.JWT_SECRET;

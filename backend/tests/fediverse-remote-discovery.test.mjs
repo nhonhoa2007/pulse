@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
-import { activityPubKeyManagerService } from '../dist/modules/federation/ActivityPubKeyManagerService.js';
-import { resolveRemoteActorService } from '../dist/modules/federation/ResolveRemoteActorService.js';
-import { ssrfProtectionGuardService } from '../dist/modules/federation/SsrfProtectionGuardService.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
+import { activityPubKeyManagerService } from '../src/modules/federation/ActivityPubKeyManagerService.ts';
+import { resolveRemoteActorService } from '../src/modules/federation/ResolveRemoteActorService.ts';
+import { ssrfProtectionGuardService } from '../src/modules/federation/SsrfProtectionGuardService.ts';
 
 test('TASK-19: Federated Remote Discovery Suite (WebFinger, Actor Resolution, Cache & SSRF Defense)', async (t) => {
   process.env.NODE_ENV = 'test';

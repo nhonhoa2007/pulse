@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
-import { activityPubKeyManagerService } from '../dist/modules/federation/ActivityPubKeyManagerService.js';
-import { toggleLikeService } from '../dist/modules/posts/ToggleLikeService.js';
-import { repostService } from '../dist/modules/posts/RepostService.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
+import { activityPubKeyManagerService } from '../src/modules/federation/ActivityPubKeyManagerService.ts';
+import { toggleLikeService } from '../src/modules/posts/ToggleLikeService.ts';
+import { repostService } from '../src/modules/posts/RepostService.ts';
 
 test('TASK-19: Outbound & Inbound ActivityPub Like and Announce Federation Suite', async (t) => {
   process.env.NODE_ENV = 'test';

@@ -1,8 +1,8 @@
 import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
 
 test('Social Graph Block Invariants: 2-way unfollow, 2-way inbox wipe, and privacy lockdown', async (t) => {
   process.env.NODE_ENV = 'test';

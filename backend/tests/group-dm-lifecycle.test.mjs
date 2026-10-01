@@ -2,8 +2,8 @@ import { authHeaders, fetchRealtimeTicket } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
 
 test('TASK-20 Pillar 3: Group DM Lifecycle, Roles, Messaging, SSE & Read Receipts Suite', async (t) => {
   process.env.NODE_ENV = 'test';

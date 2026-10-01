@@ -2,9 +2,9 @@ import test, { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
-import { app } from '../dist/app.js';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { tokenRevocationManager } from '../dist/modules/auth/TokenRevocationManager.js';
+import { app } from '../src/app.ts';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { tokenRevocationManager } from '../src/modules/auth/TokenRevocationManager.ts';
 
 describe('TASK-21: Auth Hardening, HttpOnly Cookie Sessions, Token Rotation & Denylist Suite', () => {
   const timestamp = Date.now();

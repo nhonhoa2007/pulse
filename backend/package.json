@@ -10,7 +10,7 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:seed": "node prisma/seed.mjs",
-    "test": "node --import ./tests/setup-env.mjs --test --test-concurrency=1 tests/*.test.mjs"
+    "test": "NODE_OPTIONS=\"--import tsx --import ./tests/setup-env.mjs\" node --test --test-concurrency=1 tests/*.test.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^9.4.0",
@@ -32,5 +32,6 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.23.13",
     "typescript": "^5.6.3"
-  }
+  },
+  "test": "NODE_OPTIONS=\"--import tsx --import ./tests/setup-env.mjs\" node --test --test-concurrency=1 tests/*.test.mjs"
 }

@@ -1,7 +1,7 @@
 import test, { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { app } from '../dist/app.js';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
+import { app } from '../src/app.ts';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
 
 describe('TASK-21: Private Accounts & Follow Requests Finite State Machine (FSM) Suite', () => {
   const timestamp = Date.now();

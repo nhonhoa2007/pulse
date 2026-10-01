@@ -13,7 +13,7 @@ import crypto from 'node:crypto';
 
 process.env.RATE_LIMIT_DISABLED = '0';
 
-const { buildApp } = await import('../dist/app.js');
+const { buildApp } = await import('../src/app.ts');
 
 const app = await buildApp();
 

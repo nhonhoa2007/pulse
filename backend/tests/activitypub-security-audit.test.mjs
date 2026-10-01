@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import http from 'node:http';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
-import { ssrfProtectionGuardService } from '../dist/modules/federation/SsrfProtectionGuardService.js';
-import { activityPubKeyManagerService } from '../dist/modules/federation/ActivityPubKeyManagerService.js';
-import { httpSignatureVerifierService } from '../dist/modules/federation/HttpSignatureVerifierService.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
+import { ssrfProtectionGuardService } from '../src/modules/federation/SsrfProtectionGuardService.ts';
+import { activityPubKeyManagerService } from '../src/modules/federation/ActivityPubKeyManagerService.ts';
+import { httpSignatureVerifierService } from '../src/modules/federation/HttpSignatureVerifierService.ts';
 
 test('ActivityPub Security Penetration & Vulnerability Verification Suite', async (t) => {
   process.env.NODE_ENV = 'test';

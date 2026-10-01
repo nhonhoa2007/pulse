@@ -3,12 +3,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import crypto from 'node:crypto';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
-import { postImpressionsBufferService } from '../dist/modules/posts/PostImpressionsBufferService.js';
-import { webPushService } from '../dist/modules/push/WebPushService.js';
-import { groupDmConversationService } from '../dist/modules/dm/GroupDmConversationService.js';
-import { groupDmMessageService } from '../dist/modules/dm/GroupDmMessageService.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
+import { postImpressionsBufferService } from '../src/modules/posts/PostImpressionsBufferService.ts';
+import { webPushService } from '../src/modules/push/WebPushService.ts';
+import { groupDmConversationService } from '../src/modules/dm/GroupDmConversationService.ts';
+import { groupDmMessageService } from '../src/modules/dm/GroupDmMessageService.ts';
 
 test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Algorithmic Feeds & Group Real-Time Comms (TASK-20)', async (t) => {
   process.env.NODE_ENV = 'test';

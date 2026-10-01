@@ -3,15 +3,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import http from 'node:http';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
-import { ssrfProtectionGuardService } from '../dist/modules/federation/SsrfProtectionGuardService.js';
-import { activityPubKeyManagerService } from '../dist/modules/federation/ActivityPubKeyManagerService.js';
-import { httpSignatureSignerService } from '../dist/modules/federation/HttpSignatureSignerService.js';
-import { httpSignatureVerifierService } from '../dist/modules/federation/HttpSignatureVerifierService.js';
-import { activityDeliveryWorkerService } from '../dist/modules/federation/ActivityDeliveryWorkerService.js';
-import { resolveWebFingerQueryService } from '../dist/modules/federation/ResolveWebFingerQueryService.js';
-import { processInboundActivityService } from '../dist/modules/federation/ProcessInboundActivityService.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
+import { ssrfProtectionGuardService } from '../src/modules/federation/SsrfProtectionGuardService.ts';
+import { activityPubKeyManagerService } from '../src/modules/federation/ActivityPubKeyManagerService.ts';
+import { httpSignatureSignerService } from '../src/modules/federation/HttpSignatureSignerService.ts';
+import { httpSignatureVerifierService } from '../src/modules/federation/HttpSignatureVerifierService.ts';
+import { activityDeliveryWorkerService } from '../src/modules/federation/ActivityDeliveryWorkerService.ts';
+import { resolveWebFingerQueryService } from '../src/modules/federation/ResolveWebFingerQueryService.ts';
+import { processInboundActivityService } from '../src/modules/federation/ProcessInboundActivityService.ts';
 
 test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP Signatures, SSRF Guard, Outbox Retries, and E2E Flows', async (t) => {
   process.env.NODE_ENV = 'test';

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
 import { authHeaders, fetchRealtimeTicket } from './helpers/auth.mjs';
 
 test('Realtime SSE Stream: client connects, receives heartbeat and live pushed events', async (t) => {

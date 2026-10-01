@@ -1,8 +1,8 @@
 import { authHeaders } from './helpers/auth.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prisma } from '../dist/db/PrismaClientSingleton.js';
-import { buildApp } from '../dist/app.js';
+import { prisma } from '../src/db/PrismaClientSingleton.ts';
+import { buildApp } from '../src/app.ts';
 
 test('TASK-16: Reply Privacy Controls & Server-Side Validation Suite', async (t) => {
   process.env.NODE_ENV = 'test';
