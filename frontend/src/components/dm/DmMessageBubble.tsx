@@ -52,8 +52,8 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
         {isOwn && !message.isDeleted && onDelete && (
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center shrink-0">
             {showConfirmDelete ? (
-              <div className="flex items-center gap-1 bg-[#fafafa] border border-[#d5d5d5] rounded-full px-2 py-0.5 shadow-md animate-fade-in text-[11px]">
-                <span className="text-[#424242]">Xóa tin?</span>
+              <div className="flex items-center gap-1 bg-paper border border-cloud rounded-full px-2 py-0.5 shadow-md animate-fade-in text-[11px]">
+                <span className="text-graphite">Xóa tin?</span>
                 <button
                   type="button"
                   disabled={isDeleting}
@@ -65,7 +65,7 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowConfirmDelete(false)}
-                  className="text-[#969696] hover:text-[#000000] px-1"
+                  className="text-ash hover:text-ink px-1"
                 >
                   Hủy
                 </button>
@@ -74,7 +74,7 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
               <button
                 type="button"
                 onClick={() => setShowConfirmDelete(true)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[#969696] hover:text-red-600 hover:bg-[#efefef] transition-colors focus:outline-none"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-ash hover:text-red-600 hover:bg-mist transition-colors focus:outline-none"
                 title="Xóa tin nhắn"
                 aria-label="Xóa tin nhắn"
               >
@@ -88,10 +88,10 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
         <div
           className={`relative px-4 py-2.5 break-words select-text ${
             message.isDeleted
-              ? 'bg-[#efefef]/60 border border-dashed border-[#d5d5d5] text-[#969696] italic text-[14px] rounded-[18px]'
+              ? 'bg-mist/60 border border-dashed border-cloud text-ash italic text-[14px] rounded-[18px]'
               : isOwn
-              ? 'bg-[#000000] text-[#fafafa] rounded-[18px] rounded-br-[4px]'
-              : 'bg-[#efefef] text-[#000000] rounded-[18px] rounded-bl-[4px]'
+              ? 'bg-ink text-paper rounded-[18px] rounded-br-[4px]'
+              : 'bg-mist text-ink rounded-[18px] rounded-bl-[4px]'
           }`}
         >
           {/* Deleted message state */}
@@ -129,7 +129,7 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
 
       {/* Timestamp & Read Receipt Checkmarks */}
       <div
-        className={`flex items-center gap-1 mt-1 px-1 text-[11px] text-[#969696] select-none ${
+        className={`flex items-center gap-1 mt-1 px-1 text-[11px] text-ash select-none ${
           isOwn ? 'flex-row-reverse' : 'flex-row'
         }`}
         title={fullTime}
@@ -140,11 +140,11 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
         {isOwn && !message.isDeleted && (
           <span className="flex items-center ml-0.5">
             {isReadByOther ? (
-              <span className="flex items-center text-[#385898]" title="Đã xem (Read)">
+              <span className="flex items-center text-meta" title="Đã xem (Read)">
                 <CheckCheck className="w-3.5 h-3.5 stroke-[2.2]" />
               </span>
             ) : (
-              <span className="flex items-center text-[#969696]" title="Đã gửi (Sent)">
+              <span className="flex items-center text-ash" title="Đã gửi (Sent)">
                 <Check className="w-3.5 h-3.5 stroke-[2]" />
               </span>
             )}

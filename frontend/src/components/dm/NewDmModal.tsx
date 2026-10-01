@@ -99,21 +99,21 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
     >
       <div
         ref={modalRef}
-        className="w-full max-w-md bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-up"
+        className="w-full max-w-md bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-up"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#d5d5d5]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-cloud">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#efefef] flex items-center justify-center text-[#385898]">
+            <div className="w-8 h-8 rounded-full bg-mist flex items-center justify-center text-meta">
               <MessageSquare className="w-4 h-4 stroke-[2.2]" />
             </div>
-            <h2 id="new-dm-title" className="text-[17px] font-semibold text-[#000000]">
+            <h2 id="new-dm-title" className="text-[17px] font-semibold text-ink">
               Tin nhắn mới
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#969696] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng modal"
           >
             <X className="w-5 h-5" />
@@ -121,21 +121,21 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
         </div>
 
         {/* Search input bar */}
-        <div className="p-4 border-b border-[#d5d5d5] bg-[#fafafa]">
+        <div className="p-4 border-b border-cloud bg-paper">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#969696] absolute left-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-ash absolute left-3 pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm theo tên hoặc @username..."
-              className="w-full pl-9 pr-8 py-2 bg-[#efefef] text-[14px] text-[#000000] placeholder-[#969696] rounded-full border border-transparent focus:border-[#385898] focus:bg-[#fafafa] focus:outline-none transition-all"
+              className="w-full pl-9 pr-8 py-2 bg-mist text-[14px] text-ink placeholder-ash rounded-full border border-transparent focus:border-meta focus:bg-paper focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 text-[#969696] hover:text-[#000000]"
+                className="absolute right-3 text-ash hover:text-ink"
                 aria-label="Xóa tìm kiếm"
               >
                 <X className="w-3.5 h-3.5" />
@@ -153,11 +153,11 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
         )}
 
         {/* Users list */}
-        <div className="flex-1 overflow-y-auto p-2 divide-y divide-[#efefef]">
+        <div className="flex-1 overflow-y-auto p-2 divide-y divide-mist">
           {filteredUsers.length === 0 ? (
-            <div className="py-12 text-center text-[#969696]">
-              <Search className="w-8 h-8 mx-auto mb-2 stroke-[1.5] text-[#969696]/60" />
-              <p className="text-[14px] font-medium text-[#424242]">Không tìm thấy người dùng nào</p>
+            <div className="py-12 text-center text-ash">
+              <Search className="w-8 h-8 mx-auto mb-2 stroke-[1.5] text-ash/60" />
+              <p className="text-[14px] font-medium text-graphite">Không tìm thấy người dùng nào</p>
               <p className="text-[12px] mt-0.5">Thử tìm với từ khóa khác</p>
             </div>
           ) : (
@@ -172,8 +172,8 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
                   onClick={() => handleStartConversation(user)}
                   className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all ${
                     isTargetBlocked
-                      ? 'opacity-50 cursor-not-allowed bg-[#efefef]/40'
-                      : 'hover:bg-[#efefef] active:scale-[0.99] cursor-pointer'
+                      ? 'opacity-50 cursor-not-allowed bg-mist/40'
+                      : 'hover:bg-mist active:scale-[0.99] cursor-pointer'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -183,11 +183,11 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
                         `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
                       }
                       alt={user.displayName}
-                      className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#d5d5d5]"
+                      className="w-11 h-11 rounded-full object-cover shrink-0 border border-cloud"
                     />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[14px] font-semibold text-[#000000] truncate">
+                        <span className="text-[14px] font-semibold text-ink truncate">
                           {user.displayName}
                         </span>
                         {user.isCelebrity && (
@@ -199,11 +199,11 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
                           </span>
                         )}
                       </div>
-                      <span className="text-[12px] text-[#424242] block truncate">
+                      <span className="text-[12px] text-graphite block truncate">
                         @{user.username}
                       </span>
                       {user.bio && (
-                        <p className="text-[12px] text-[#969696] line-clamp-1 mt-0.5">
+                        <p className="text-[12px] text-ash line-clamp-1 mt-0.5">
                           {user.bio}
                         </p>
                       )}
@@ -212,9 +212,9 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
 
                   <div className="shrink-0 ml-3">
                     {isCurrentSelected ? (
-                      <Loader2 className="w-5 h-5 text-[#385898] animate-spin" />
+                      <Loader2 className="w-5 h-5 text-meta animate-spin" />
                     ) : (
-                      <div className="px-3 py-1.5 rounded-full bg-[#000000] hover:bg-[#424242] text-[#fafafa] text-[12px] font-semibold transition-colors">
+                      <div className="px-3 py-1.5 rounded-full bg-ink hover:bg-graphite text-paper text-[12px] font-semibold transition-colors">
                         Nhắn tin
                       </div>
                     )}
@@ -226,8 +226,8 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="px-5 py-3 border-t border-[#d5d5d5] bg-[#fafafa] text-center">
-          <p className="text-[12px] text-[#969696]">
+        <div className="px-5 py-3 border-t border-cloud bg-paper text-center">
+          <p className="text-[12px] text-ash">
             Chọn một người dùng để bắt đầu cuộc trò chuyện trực tiếp 1-1 an toàn.
           </p>
         </div>

@@ -79,20 +79,20 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
     >
       <div
         data-testid="version-history-modal"
-        className="w-full max-w-lg bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-2xl overflow-hidden animate-scale-up max-h-[85vh] flex flex-col"
+        className="w-full max-w-lg bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden animate-scale-up max-h-[85vh] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between h-[53px] px-4 border-b border-[#d5d5d5] bg-[#fafafa] shrink-0">
+        <div className="flex items-center justify-between h-[53px] px-4 border-b border-cloud bg-paper shrink-0">
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-[#000000]" />
-            <span className="text-[15px] font-semibold text-[#000000]">
+            <History className="w-5 h-5 text-ink" />
+            <span className="text-[15px] font-semibold text-ink">
               Lịch sử chỉnh sửa
             </span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 flex items-center justify-center text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -102,8 +102,8 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
         {/* Content list */}
         <div className="p-4 overflow-y-auto space-y-4 flex-1">
           {isLoading ? (
-            <div className="py-12 flex flex-col items-center justify-center text-[#71717a] gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#000000]" />
+            <div className="py-12 flex flex-col items-center justify-center text-ash gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-ink" />
               <span className="text-[13px]">Đang tải lịch sử phiên bản...</span>
             </div>
           ) : error ? (
@@ -122,7 +122,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
               </button>
             </div>
           ) : historicalVersions.length === 0 && !data?.current ? (
-            <div className="py-12 text-center text-[#71717a] text-[13px]">
+            <div className="py-12 text-center text-ash text-[13px]">
               Chưa có phiên bản chỉnh sửa nào được ghi lại.
             </div>
           ) : (
@@ -132,18 +132,18 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
                 <div
                   key={version.id}
                   data-testid={`version-item-${version.versionNumber}`}
-                  className="p-3.5 rounded-[12px] border border-[#d5d5d5] bg-white space-y-2 shadow-xs"
+                  className="p-3.5 rounded-[12px] border border-cloud bg-white space-y-2 shadow-xs"
                 >
                   <div className="flex items-center justify-between">
                     <span
                       data-testid={`version-badge-${version.versionNumber}`}
-                      className="px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-[#efefef] text-[#000000] border border-[#d5d5d5]"
+                      className="px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-mist text-ink border border-cloud"
                     >
                       Phiên bản {version.versionNumber}
                     </span>
                     <time
                       dateTime={version.createdAt}
-                      className="text-[12px] text-[#71717a]"
+                      className="text-[12px] text-ash"
                     >
                       {formatRelativeTime(version.createdAt)}
                     </time>
@@ -156,7 +156,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
                     </div>
                   )}
 
-                  <p className="text-[14px] leading-[1.4] text-[#000000] whitespace-pre-line break-words font-normal">
+                  <p className="text-[14px] leading-[1.4] text-ink whitespace-pre-line break-words font-normal">
                     {version.content}
                   </p>
                 </div>
@@ -166,19 +166,19 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
               {data?.current && (
                 <div
                   data-testid="current-version-item"
-                  className="p-3.5 rounded-[12px] border-2 border-[#000000]/30 bg-white space-y-2 shadow-xs"
+                  className="p-3.5 rounded-[12px] border-2 border-ink/30 bg-white space-y-2 shadow-xs"
                 >
                   <div className="flex items-center justify-between">
                     <span
                       data-testid="current-version-badge"
-                      className="px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-[#000000] text-[#fafafa]"
+                      className="px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-ink text-paper"
                     >
                       Phiên bản {data.current.versionNumber} (Hiện tại)
                     </span>
                     {data.current.editedAt && (
                       <time
                         dateTime={data.current.editedAt}
-                        className="text-[12px] text-[#71717a]"
+                        className="text-[12px] text-ash"
                       >
                         {formatRelativeTime(data.current.editedAt)}
                       </time>
@@ -192,7 +192,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
                     </div>
                   )}
 
-                  <p className="text-[14px] leading-[1.4] text-[#000000] whitespace-pre-line break-words font-normal">
+                  <p className="text-[14px] leading-[1.4] text-ink whitespace-pre-line break-words font-normal">
                     {data.current.content}
                   </p>
                 </div>
@@ -202,11 +202,11 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-[#d5d5d5] bg-[#fafafa] flex justify-end shrink-0">
+        <div className="px-4 py-3 border-t border-cloud bg-paper flex justify-end shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-[13px] font-semibold text-[#fafafa] bg-[#000000] hover:bg-[#000000]/85 rounded-full transition-all focus:outline-none"
+            className="px-4 py-1.5 text-[13px] font-semibold text-paper bg-ink hover:bg-ink/85 rounded-full transition-all focus:outline-none"
           >
             Đóng
           </button>

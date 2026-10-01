@@ -173,18 +173,18 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
       aria-modal="true"
       aria-labelledby="group-members-title"
     >
-      <div className="w-full max-w-md bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-up">
+      <div className="w-full max-w-md bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-up">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#d5d5d5]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-cloud">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#efefef] flex items-center justify-center text-[#000000]">
+            <div className="w-8 h-8 rounded-full bg-mist flex items-center justify-center text-ink">
               <Users className="w-4 h-4 stroke-[2.2]" />
             </div>
             <div>
-              <h2 id="group-members-title" className="text-[17px] font-semibold text-[#000000]">
+              <h2 id="group-members-title" className="text-[17px] font-semibold text-ink">
                 Thành viên nhóm
               </h2>
-              <p className="text-[12px] text-[#737373]">
+              <p className="text-[12px] text-ash">
                 {group.title} ({group.members.length} người)
               </p>
             </div>
@@ -192,7 +192,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#969696] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -201,13 +201,13 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
 
         {/* Sub-tab Navigation: List vs Add (if Admin) */}
         {isAdmin && (
-          <div className="flex border-b border-[#d5d5d5] bg-[#fafafa]">
+          <div className="flex border-b border-cloud bg-paper">
             <button
               onClick={() => setActiveSubTab('list')}
               className={`flex-1 py-2.5 text-center text-[13px] font-semibold transition-colors focus:outline-none ${
                 activeSubTab === 'list'
-                  ? 'text-[#000000] border-b-2 border-[#000000]'
-                  : 'text-[#969696] hover:text-[#000000]'
+                  ? 'text-ink border-b-2 border-ink'
+                  : 'text-ash hover:text-ink'
               }`}
             >
               Danh sách ({group.members.length})
@@ -216,8 +216,8 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
               onClick={() => setActiveSubTab('add')}
               className={`flex-1 py-2.5 text-center text-[13px] font-semibold transition-colors focus:outline-none flex items-center justify-center gap-1.5 ${
                 activeSubTab === 'add'
-                  ? 'text-[#000000] border-b-2 border-[#000000]'
-                  : 'text-[#969696] hover:text-[#000000]'
+                  ? 'text-ink border-b-2 border-ink'
+                  : 'text-ash hover:text-ink'
               }`}
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -239,22 +239,22 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
           <>
             {/* Search Filter in List */}
             {group.members.length > 5 && (
-              <div className="px-4 py-2 border-b border-[#d5d5d5]/50">
+              <div className="px-4 py-2 border-b border-cloud/50">
                 <div className="relative flex items-center">
-                  <Search className="w-3.5 h-3.5 text-[#969696] absolute left-3 pointer-events-none" />
+                  <Search className="w-3.5 h-3.5 text-ash absolute left-3 pointer-events-none" />
                   <input
                     type="text"
                     value={searchMemberQuery}
                     onChange={(e) => setSearchMemberQuery(e.target.value)}
                     placeholder="Tìm thành viên trong nhóm..."
-                    className="w-full pl-8 pr-3 py-1.5 bg-[#efefef] text-[13px] rounded-full border border-transparent focus:border-[#385898] focus:bg-[#fafafa] focus:outline-none"
+                    className="w-full pl-8 pr-3 py-1.5 bg-mist text-[13px] rounded-full border border-transparent focus:border-meta focus:bg-paper focus:outline-none"
                   />
                 </div>
               </div>
             )}
 
             {/* Scrollable Members List */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-1 divide-y divide-[#d5d5d5]/40">
+            <div className="flex-1 overflow-y-auto p-3 space-y-1 divide-y divide-cloud/40">
               {filteredMembers.map((member) => {
                 const isMemberAdmin = member.role === 'ADMIN' || member.userId === group.creatorId;
                 const isMe = member.userId === currentUser.id;
@@ -264,7 +264,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                 return (
                   <div
                     key={member.id || member.userId}
-                    className="flex items-center justify-between py-2.5 px-2 hover:bg-[#efefef]/50 rounded-xl transition-colors"
+                    className="flex items-center justify-between py-2.5 px-2 hover:bg-mist/50 rounded-xl transition-colors"
                     data-testid={`member-row-${member.userId}`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -274,20 +274,20 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                           `https://api.dicebear.com/7.x/bottts/svg?seed=${member.user.username}`
                         }
                         alt={member.user.displayName}
-                        className="w-10 h-10 rounded-full object-cover border border-[#d5d5d5]"
+                        className="w-10 h-10 rounded-full object-cover border border-cloud"
                       />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[14px] font-semibold text-[#000000] truncate">
+                          <span className="text-[14px] font-semibold text-ink truncate">
                             {member.user.displayName}
                           </span>
                           {isMe && (
-                            <span className="text-[11px] text-[#737373] bg-[#efefef] px-1.5 py-0.2 rounded-full">
+                            <span className="text-[11px] text-ash bg-mist px-1.5 py-0.2 rounded-full">
                               Bạn
                             </span>
                           )}
                         </div>
-                        <span className="text-[12px] text-[#969696] truncate block">
+                        <span className="text-[12px] text-ash truncate block">
                           @{member.user.username}
                         </span>
                       </div>
@@ -297,14 +297,14 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                       {/* Role Badge */}
                       {isMemberAdmin ? (
                         <span
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#000000] text-white"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-ink text-white"
                           title="Trưởng nhóm"
                         >
                           <Shield className="w-3 h-3" />
                           <span>Admin</span>
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-medium text-[#737373] bg-[#efefef] border border-[#d5d5d5]/50">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-medium text-ash bg-mist border border-cloud/50">
                           Thành viên
                         </span>
                       )}
@@ -315,7 +315,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                           type="button"
                           onClick={() => handleKickMember(member.userId, member.user.displayName)}
                           disabled={isLoadingAction}
-                          className="p-1.5 text-[#969696] hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          className="p-1.5 text-ash hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                           title={`Xóa ${member.user.displayName} khỏi nhóm`}
                           aria-label={`Xóa ${member.user.displayName} khỏi nhóm`}
                           data-testid={`kick-member-${member.userId}`}
@@ -334,7 +334,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
             </div>
 
             {/* Leave Group Action Footer */}
-            <div className="p-3 border-t border-[#d5d5d5] bg-[#fafafa] flex items-center justify-between">
+            <div className="p-3 border-t border-cloud bg-paper flex items-center justify-between">
               <button
                 type="button"
                 onClick={handleLeaveGroup}
@@ -353,7 +353,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-1.5 text-[13px] font-semibold text-[#424242] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors"
+                className="px-4 py-1.5 text-[13px] font-semibold text-graphite hover:text-ink rounded-full hover:bg-mist transition-colors"
               >
                 Đóng
               </button>
@@ -362,23 +362,23 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
         ) : (
           /* Tab 2: Add New Member View */
           <>
-            <div className="p-3 border-b border-[#d5d5d5]/50">
+            <div className="p-3 border-b border-cloud/50">
               <div className="relative flex items-center">
-                <Search className="w-3.5 h-3.5 text-[#969696] absolute left-3 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 text-ash absolute left-3 pointer-events-none" />
                 <input
                   type="text"
                   value={searchAddQuery}
                   onChange={(e) => setSearchAddQuery(e.target.value)}
                   placeholder="Tìm người dùng để thêm vào nhóm..."
-                  className="w-full pl-8 pr-3 py-1.5 bg-[#efefef] text-[13px] rounded-full border border-transparent focus:border-[#385898] focus:bg-[#fafafa] focus:outline-none"
+                  className="w-full pl-8 pr-3 py-1.5 bg-mist text-[13px] rounded-full border border-transparent focus:border-meta focus:bg-paper focus:outline-none"
                   data-testid="add-member-search-input"
                 />
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-1 divide-y divide-[#d5d5d5]/40">
+            <div className="flex-1 overflow-y-auto p-3 space-y-1 divide-y divide-cloud/40">
               {filteredUsersToAdd.length === 0 ? (
-                <div className="py-8 text-center text-[#969696] text-[13px]">
+                <div className="py-8 text-center text-ash text-[13px]">
                   Không tìm thấy người dùng khả dụng để thêm
                 </div>
               ) : (
@@ -387,7 +387,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                   return (
                     <div
                       key={user.id}
-                      className="flex items-center justify-between py-2 px-2 hover:bg-[#efefef]/50 rounded-xl transition-colors"
+                      className="flex items-center justify-between py-2 px-2 hover:bg-mist/50 rounded-xl transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <img
@@ -396,13 +396,13 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                             `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
                           }
                           alt={user.displayName}
-                          className="w-9 h-9 rounded-full object-cover border border-[#d5d5d5]"
+                          className="w-9 h-9 rounded-full object-cover border border-cloud"
                         />
                         <div className="min-w-0">
-                          <span className="text-[13.5px] font-semibold text-[#000000] truncate block">
+                          <span className="text-[13.5px] font-semibold text-ink truncate block">
                             {user.displayName}
                           </span>
-                          <span className="text-[11.5px] text-[#969696] truncate block">
+                          <span className="text-[11.5px] text-ash truncate block">
                             @{user.username}
                           </span>
                         </div>
@@ -412,7 +412,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                         type="button"
                         onClick={() => handleAddMember(user)}
                         disabled={isAdding}
-                        className="px-3 py-1 bg-[#000000] hover:bg-[#424242] text-white text-[12px] font-semibold rounded-full transition-all flex items-center gap-1.5"
+                        className="px-3 py-1 bg-ink hover:bg-graphite text-white text-[12px] font-semibold rounded-full transition-all flex items-center gap-1.5"
                         data-testid={`add-user-btn-${user.id}`}
                       >
                         {isAdding ? (
@@ -428,11 +428,11 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
               )}
             </div>
 
-            <div className="p-3 border-t border-[#d5d5d5] bg-[#fafafa] flex justify-end">
+            <div className="p-3 border-t border-cloud bg-paper flex justify-end">
               <button
                 type="button"
                 onClick={() => setActiveSubTab('list')}
-                className="px-4 py-1.5 text-[13px] font-semibold text-[#424242] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors"
+                className="px-4 py-1.5 text-[13px] font-semibold text-graphite hover:text-ink rounded-full hover:bg-mist transition-colors"
               >
                 Quay lại danh sách
               </button>

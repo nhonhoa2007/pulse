@@ -543,11 +543,11 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
   };
 
   return (
-    <div className="p-4 bg-[#fafafa] border-b border-[#d5d5d5] transition-all">
+    <div className="p-4 bg-paper border-b border-cloud transition-all">
       {replyToPost && (
-        <div className="mb-2 px-3 py-1.5 rounded-[8px] bg-[#efefef] text-[13px] text-[#424242] flex items-center gap-1.5">
+        <div className="mb-2 px-3 py-1.5 rounded-[8px] bg-mist text-[13px] text-graphite flex items-center gap-1.5">
           <span>Đang trả lời cho</span>
-          <span className="font-semibold text-[#000000]">
+          <span className="font-semibold text-ink">
             @{replyToPost.author.username}
           </span>
         </div>
@@ -557,16 +557,16 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
       {disabled && (
         <div
           data-testid="reply-restricted-banner"
-          className="mb-3 p-3.5 rounded-[12px] bg-[#efefef] border border-[#d5d5d5] text-[#000000] flex items-start gap-3"
+          className="mb-3 p-3.5 rounded-[12px] bg-mist border border-cloud text-ink flex items-start gap-3"
         >
-          <div className="w-8 h-8 rounded-full bg-[#fafafa] border border-[#d5d5d5] flex items-center justify-center shrink-0 text-[#424242]">
+          <div className="w-8 h-8 rounded-full bg-paper border border-cloud flex items-center justify-center shrink-0 text-graphite">
             <Lock className="w-4 h-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <span className="text-[13px] font-semibold text-[#000000] block mb-0.5">
+            <span className="text-[13px] font-semibold text-ink block mb-0.5">
               Cuộc trò chuyện đã bị giới hạn người trả lời
             </span>
-            <span className="text-[12px] text-[#424242] leading-relaxed">
+            <span className="text-[12px] text-graphite leading-relaxed">
               {disabledReason || 'Chỉ những người được tác giả cho phép mới có thể trả lời bài viết này.'}
             </span>
           </div>
@@ -587,7 +587,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
           <button
             type="button"
             onClick={() => setPermissionError(null)}
-            className="text-[#9b1c1c] hover:text-[#000000] p-0.5"
+            className="text-[#9b1c1c] hover:text-ink p-0.5"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -608,7 +608,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
         {/* Input Area */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1">
-            <span className="text-[15px] font-semibold text-[#000000]">
+            <span className="text-[15px] font-semibold text-ink">
               {currentUser.displayName}
             </span>
             {currentUser.isCelebrity && (
@@ -637,7 +637,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
               placeholder={disabled ? (disabledReason || 'Bạn không thể trả lời bài viết này') : placeholder}
               autoFocus={disabled ? false : autoFocus}
               rows={2}
-              className={`w-full bg-transparent text-[#000000] placeholder-[#969696] text-[15px] leading-[1.4] resize-none focus:outline-none focus:ring-0 ${
+              className={`w-full bg-transparent text-ink placeholder-ash text-[15px] leading-[1.4] resize-none focus:outline-none focus:ring-0 ${
                 disabled ? 'opacity-60 cursor-not-allowed' : ''
               }`}
             />
@@ -646,7 +646,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
             {autocomplete && suggestions.length > 0 && (
               <div
                 ref={dropdownRef}
-                className="absolute left-0 top-full mt-1 z-50 w-full max-w-sm bg-[#fafafa] border border-[#d5d5d5] rounded-[8px] shadow-md max-h-56 overflow-y-auto overflow-x-hidden animate-fade-in divide-y divide-[#efefef]"
+                className="absolute left-0 top-full mt-1 z-50 w-full max-w-sm bg-paper border border-cloud rounded-[8px] shadow-md max-h-56 overflow-y-auto overflow-x-hidden animate-fade-in divide-y divide-mist"
               >
                 {suggestions.map((item, idx) => {
                   const isHighlighted = idx === selectedIndex;
@@ -661,8 +661,8 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors ${
                           isHighlighted
-                            ? 'bg-[#efefef]'
-                            : 'bg-[#fafafa] hover:bg-[#efefef]'
+                            ? 'bg-mist'
+                            : 'bg-paper hover:bg-mist'
                         }`}
                       >
                         <img
@@ -675,14 +675,14 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1">
-                            <span className="text-[14px] font-semibold text-[#000000] truncate">
+                            <span className="text-[14px] font-semibold text-ink truncate">
                               {item.displayName}
                             </span>
                             {item.isCelebrity && (
                               <VerifiedBadge size={11} title="VIP" />
                             )}
                           </div>
-                          <span className="text-[12px] text-[#424242] block truncate">
+                          <span className="text-[12px] text-graphite block truncate">
                             @{item.username}
                           </span>
                         </div>
@@ -699,24 +699,24 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${
                           isHighlighted
-                            ? 'bg-[#efefef]'
-                            : 'bg-[#fafafa] hover:bg-[#efefef]'
+                            ? 'bg-mist'
+                            : 'bg-paper hover:bg-mist'
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-6 h-6 rounded-full bg-[#efefef] flex items-center justify-center text-[#385898] font-bold text-[12px] shrink-0">
+                          <span className="w-6 h-6 rounded-full bg-mist flex items-center justify-center text-meta font-bold text-[12px] shrink-0">
                             #
                           </span>
-                          <span className="text-[14px] font-semibold text-[#000000] truncate">
+                          <span className="text-[14px] font-semibold text-ink truncate">
                             #{item.tag}
                           </span>
                         </div>
                         {item.postsCount > 0 ? (
-                          <span className="text-[12px] text-[#424242] shrink-0 ml-2">
+                          <span className="text-[12px] text-graphite shrink-0 ml-2">
                             {item.postsCount} bài viết
                           </span>
                         ) : (
-                          <span className="text-[11px] text-[#969696] shrink-0 ml-2">
+                          <span className="text-[11px] text-ash shrink-0 ml-2">
                             Mới
                           </span>
                         )}
@@ -734,7 +734,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
               {mediaUrls.map((url, idx) => (
                 <div
                   key={idx}
-                  className="relative rounded-[8px] overflow-hidden border border-[#d5d5d5] w-24 h-24 bg-[#efefef]"
+                  className="relative rounded-[8px] overflow-hidden border border-cloud w-24 h-24 bg-mist"
                 >
                   <img
                     src={url}
@@ -747,7 +747,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveMedia(idx)}
-                    className="absolute top-1 right-1 p-1 bg-[#000000]/75 hover:bg-[#000000] text-white rounded-full transition-colors"
+                    className="absolute top-1 right-1 p-1 bg-ink/75 hover:bg-ink text-white rounded-full transition-colors"
                     title="Xóa ảnh"
                   >
                     <X className="w-3 h-3" />
@@ -755,9 +755,9 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 </div>
               ))}
               {isUploadingMedia && (
-                <div className="w-24 h-24 rounded-[8px] border border-dashed border-[#d5d5d5] bg-[#efefef]/60 flex flex-col items-center justify-center gap-1">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#000000]" />
-                  <span className="text-[11px] text-[#424242]">Đang tải...</span>
+                <div className="w-24 h-24 rounded-[8px] border border-dashed border-cloud bg-mist/60 flex flex-col items-center justify-center gap-1">
+                  <Loader2 className="w-5 h-5 animate-spin text-ink" />
+                  <span className="text-[11px] text-graphite">Đang tải...</span>
                 </div>
               )}
             </div>
@@ -765,13 +765,13 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
 
           {/* Media URL Input Box (optional manual link entry) */}
           {showMediaInput && (
-            <div className="flex items-center gap-2 my-2 p-2 bg-[#efefef] border border-[#d5d5d5] rounded-[8px]">
+            <div className="flex items-center gap-2 my-2 p-2 bg-mist border border-cloud rounded-[8px]">
               <input
                 type="url"
                 value={mediaUrlInput}
                 onChange={(e) => setMediaUrlInput(e.target.value)}
                 placeholder="Dán link ảnh (https://...)"
-                className="flex-1 bg-transparent text-[13px] text-[#000000] placeholder-[#969696] focus:outline-none"
+                className="flex-1 bg-transparent text-[13px] text-ink placeholder-ash focus:outline-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -782,14 +782,14 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
               <button
                 type="button"
                 onClick={handleAddMedia}
-                className="px-3 py-1 text-[13px] font-semibold bg-[#000000] text-[#fafafa] rounded-full transition-colors"
+                className="px-3 py-1 text-[13px] font-semibold bg-ink text-paper rounded-full transition-colors"
               >
                 Thêm
               </button>
               <button
                 type="button"
                 onClick={() => setShowMediaInput(false)}
-                className="p-1 text-[#969696] hover:text-[#000000]"
+                className="p-1 text-ash hover:text-ink"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -798,9 +798,9 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
 
           {/* Embedded Quote Preview */}
           {quoteOfPost && (
-            <div className="my-2 p-3 rounded-[8px] border border-[#d5d5d5] bg-[#fafafa] text-[13px]">
-              <div className="flex items-center gap-1.5 mb-1 text-[#424242]">
-                <span className="font-semibold text-[#000000]">
+            <div className="my-2 p-3 rounded-[8px] border border-cloud bg-paper text-[13px]">
+              <div className="flex items-center gap-1.5 mb-1 text-graphite">
+                <span className="font-semibold text-ink">
                   {quoteOfPost.author.displayName}
                 </span>
                 {quoteOfPost.author.isCelebrity && (
@@ -808,7 +808,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 )}
                 <span>@{quoteOfPost.author.username}</span>
               </div>
-              <p className="text-[14px] text-[#000000] line-clamp-2">
+              <p className="text-[14px] text-ink line-clamp-2">
                 {quoteOfPost.content}
               </p>
             </div>
@@ -816,13 +816,13 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
 
           {/* Hashtag suggestions (1000px pill, #d5d5d5 border) */}
           <div className="flex items-center gap-1.5 my-2 flex-wrap text-[12px]">
-            <span className="text-[#424242]">Gợi ý:</span>
+            <span className="text-graphite">Gợi ý:</span>
             {trendingTags.slice(0, 5).map((t) => (
               <button
                 key={t.tag}
                 type="button"
                 onClick={() => insertTag(t.tag)}
-                className="px-2.5 py-0.5 rounded-full border border-[#d5d5d5] hover:border-[#385898] text-[#424242] hover:text-[#385898] transition-colors cursor-pointer"
+                className="px-2.5 py-0.5 rounded-full border border-cloud hover:border-meta text-graphite hover:text-meta transition-colors cursor-pointer"
               >
                 #{t.tag}
               </button>
@@ -831,16 +831,16 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
 
           {/* Poll Builder Card */}
           {showPollBuilder && (
-            <div className="my-2.5 p-3.5 rounded-xl border border-[#385898]/30 bg-[#385898]/5 animate-fade-in">
+            <div className="my-2.5 p-3.5 rounded-xl border border-meta/30 bg-meta/5 animate-fade-in">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[13px] font-semibold text-[#385898] flex items-center gap-1.5">
+                <span className="text-[13px] font-semibold text-meta flex items-center gap-1.5">
                   <BarChart2 className="w-4 h-4" />
                   <span>Tạo cuộc bình chọn (2-4 lựa chọn)</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowPollBuilder(false)}
-                  className="text-[#969696] hover:text-[#000000] p-1 rounded-full hover:bg-black/5 transition-colors"
+                  className="text-ash hover:text-ink p-1 rounded-full hover:bg-black/5 transition-colors"
                   title="Xóa bình chọn"
                 >
                   <X className="w-4 h-4" />
@@ -853,7 +853,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 value={pollQuestion}
                 onChange={(e) => setPollQuestion(e.target.value)}
                 placeholder="Câu hỏi bình chọn (để trống sẽ dùng nội dung bài viết)..."
-                className="w-full mb-2.5 px-3 py-1.5 rounded-lg border border-[#d5d5d5] bg-[#ffffff] text-[13px] text-[#000000] placeholder-[#969696] focus:outline-none focus:border-[#385898]"
+                className="w-full mb-2.5 px-3 py-1.5 rounded-lg border border-cloud bg-card text-[13px] text-ink placeholder-ash focus:outline-none focus:border-meta"
               />
 
               {/* Poll Choices */}
@@ -870,7 +870,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                       }}
                       placeholder={`Lựa chọn ${idx + 1}`}
                       maxLength={80}
-                      className="flex-1 px-3 py-1.5 rounded-lg border border-[#d5d5d5] bg-[#ffffff] text-[13px] text-[#000000] placeholder-[#969696] focus:outline-none focus:border-[#385898]"
+                      className="flex-1 px-3 py-1.5 rounded-lg border border-cloud bg-card text-[13px] text-ink placeholder-ash focus:outline-none focus:border-meta"
                     />
                     {pollChoices.length > 2 && (
                       <button
@@ -878,7 +878,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                         onClick={() => {
                           setPollChoices(pollChoices.filter((_, i) => i !== idx));
                         }}
-                        className="p-1.5 text-[#969696] hover:text-[#dc2626] rounded-full hover:bg-black/5 transition-colors"
+                        className="p-1.5 text-ash hover:text-[#dc2626] rounded-full hover:bg-black/5 transition-colors"
                         title="Xóa lựa chọn"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -889,7 +889,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
               </div>
 
               {/* Add Choice & Duration Controls */}
-              <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#385898]/15 flex-wrap gap-2">
+              <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-meta/15 flex-wrap gap-2">
                 {pollChoices.length < 4 ? (
                   <button
                     type="button"
@@ -898,21 +898,21 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                         setPollChoices([...pollChoices, '']);
                       }
                     }}
-                    className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#385898] hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1 text-[12px] font-semibold text-meta hover:underline cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Thêm lựa chọn ({pollChoices.length}/4)</span>
                   </button>
                 ) : (
-                  <span className="text-[12px] text-[#969696]">Đã đạt tối đa 4 lựa chọn</span>
+                  <span className="text-[12px] text-ash">Đã đạt tối đa 4 lựa chọn</span>
                 )}
 
-                <div className="flex items-center gap-1.5 text-[12px] text-[#424242]">
+                <div className="flex items-center gap-1.5 text-[12px] text-graphite">
                   <span>Thời lượng:</span>
                   <select
                     value={pollDurationMinutes}
                     onChange={(e) => setPollDurationMinutes(Number(e.target.value))}
-                    className="px-2 py-1 rounded border border-[#d5d5d5] bg-[#ffffff] text-[12px] text-[#000000] focus:outline-none focus:border-[#385898]"
+                    className="px-2 py-1 rounded border border-cloud bg-card text-[12px] text-ink focus:outline-none focus:border-meta"
                   >
                     <option value={5}>5 phút</option>
                     <option value={15}>15 phút</option>
@@ -945,7 +945,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                     setContentWarningText('');
                     setIsSensitive(false);
                   }}
-                  className="text-[#969696] hover:text-[#000000] p-1 rounded-full hover:bg-black/5 transition-colors"
+                  className="text-ash hover:text-ink p-1 rounded-full hover:bg-black/5 transition-colors"
                   title="Hủy cảnh báo"
                 >
                   <X className="w-4 h-4" />
@@ -959,16 +959,16 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 onChange={(e) => setContentWarningText(e.target.value)}
                 placeholder="Nhập lý do cảnh báo (ví dụ: Tiết lộ cốt truyện Avatar, Nội dung nhạy cảm...)"
                 maxLength={100}
-                className="w-full px-3 py-1.5 rounded-lg border border-[#d5d5d5] bg-white text-[13px] text-[#000000] placeholder-[#969696] focus:outline-none focus:border-[#92400e]"
+                className="w-full px-3 py-1.5 rounded-lg border border-cloud bg-white text-[13px] text-ink placeholder-ash focus:outline-none focus:border-[#92400e]"
               />
 
-              <label className="flex items-center gap-2 text-[12px] text-[#424242] cursor-pointer pt-0.5">
+              <label className="flex items-center gap-2 text-[12px] text-graphite cursor-pointer pt-0.5">
                 <input
                   type="checkbox"
                   data-testid="composer-is-sensitive-checkbox"
                   checked={isSensitive}
                   onChange={(e) => setIsSensitive(e.target.checked)}
-                  className="w-3.5 h-3.5 accent-[#000000] rounded cursor-pointer"
+                  className="w-3.5 h-3.5 accent-ink rounded cursor-pointer"
                 />
                 <span>Đánh dấu toàn bộ bài viết / hình ảnh là nhạy cảm</span>
               </label>
@@ -987,7 +987,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
           )}
 
           {/* Bottom Toolbar & Action Bar */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#d5d5d5]/60 mt-2">
+          <div className="flex items-center justify-between pt-2 border-t border-cloud/60 mt-2">
             <div className="flex items-center gap-1.5">
               {/* Hidden File Input for Image Upload */}
               <input
@@ -1008,7 +1008,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                   fileInputRef.current?.click();
                 }}
                 disabled={mediaUrls.length >= 4 || isUploadingMedia || isSubmitting}
-                className="p-1.5 rounded-full text-[#969696] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none disabled:opacity-40 cursor-pointer"
+                className="p-1.5 rounded-full text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none disabled:opacity-40 cursor-pointer"
                 title={
                   mediaUrls.length >= 4
                     ? 'Đã đạt giới hạn 4 ảnh'
@@ -1016,7 +1016,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 }
               >
                 {isUploadingMedia ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-[#000000]" />
+                  <Loader2 className="w-5 h-5 animate-spin text-ink" />
                 ) : (
                   <Image className="w-5 h-5" />
                 )}
@@ -1025,7 +1025,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 type="button"
                 onClick={() => setShowMediaInput((prev) => !prev)}
                 disabled={mediaUrls.length >= 4 || isUploadingMedia || isSubmitting}
-                className="p-1.5 rounded-full text-[#969696] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none disabled:opacity-40 cursor-pointer"
+                className="p-1.5 rounded-full text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none disabled:opacity-40 cursor-pointer"
                 title="Dán đường dẫn ảnh URL"
               >
                 <LinkIcon className="w-4 h-4" />
@@ -1036,8 +1036,8 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 disabled={isUploadingMedia || isSubmitting}
                 className={`p-1.5 rounded-full transition-colors focus:outline-none disabled:opacity-40 cursor-pointer ${
                   showPollBuilder
-                    ? 'text-[#385898] bg-[#385898]/10'
-                    : 'text-[#969696] hover:text-[#000000] hover:bg-[#efefef]'
+                    ? 'text-meta bg-meta/10'
+                    : 'text-ash hover:text-ink hover:bg-mist'
                 }`}
                 title={showPollBuilder ? 'Hủy bình chọn' : 'Tạo cuộc bình chọn'}
               >
@@ -1051,7 +1051,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 className={`p-1.5 rounded-full transition-colors focus:outline-none disabled:opacity-40 cursor-pointer ${
                   showContentWarning
                     ? 'text-[#b45309] bg-[#fef3c7]'
-                    : 'text-[#969696] hover:text-[#000000] hover:bg-[#efefef]'
+                    : 'text-ash hover:text-ink hover:bg-mist'
                 }`}
                 title={
                   showContentWarning
@@ -1063,7 +1063,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
               </button>
 
               {mediaUrls.length > 0 && (
-                <span className="text-[12px] text-[#424242] ml-1">
+                <span className="text-[12px] text-graphite ml-1">
                   {mediaUrls.length}/4
                 </span>
               )}
@@ -1073,7 +1073,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
               {/* Character Counter (13px/400 Graphite #424242) */}
               <span
                 className={`text-[13px] tabular-nums font-normal ${
-                  isOverLimit ? 'text-[#000000] font-bold' : 'text-[#424242]'
+                  isOverLimit ? 'text-ink font-bold' : 'text-graphite'
                 }`}
               >
                 {remainingChars}
@@ -1086,12 +1086,12 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 disabled={!canSubmit}
                 className={`px-4 py-1.5 rounded-full text-[15px] font-semibold transition-all duration-150 ${
                   canSubmit
-                    ? 'bg-[#000000] hover:bg-[#000000]/85 text-[#fafafa] cursor-pointer active:scale-95'
-                    : 'bg-[#000000]/20 text-[#fafafa]/60 cursor-not-allowed'
+                    ? 'bg-ink hover:bg-ink/85 text-paper cursor-pointer active:scale-95'
+                    : 'bg-ink/20 text-paper/60 cursor-not-allowed'
                 }`}
               >
                 {isSubmitting ? (
-                  <div className="w-4 h-4 border-2 border-[#fafafa]/40 border-t-[#fafafa] rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-paper/40 border-t-paper rounded-full animate-spin" />
                 ) : (
                   <span>{replyToPost ? 'Trả lời' : 'Đăng'}</span>
                 )}

@@ -206,7 +206,7 @@ describe('TASK-19: Frontend Visual States & Remote Fediverse Discovery Test Suit
       assert.equal(state.domain, 'mastodon.social');
       assert.equal(state.isFollowing, false);
       assert.equal(state.followButtonLabel, 'Theo dõi');
-      assert.equal(state.followButtonClass.includes('bg-[#000000]'), true);
+      assert.equal(state.followButtonClass.includes('bg-ink'), true);
       assert.equal(state.hasFediverseBadge, true);
       assert.equal(state.followersCount, 420);
       assert.equal(state.followingCount, 115);
@@ -234,7 +234,7 @@ describe('TASK-19: Frontend Visual States & Remote Fediverse Discovery Test Suit
       const state = getFederatedCardVisualState(user, null);
       assert.equal(state.isFollowing, true);
       assert.equal(state.followButtonLabel, 'Đang theo dõi');
-      assert.equal(state.followButtonClass.includes('border-[#d5d5d5]'), true);
+      assert.equal(state.followButtonClass.includes('border-cloud'), true);
       assert.equal(state.hasAvatar, false);
       assert.equal(state.cleanBio, 'alert(1)Bob builds nodes');
     });

@@ -30,16 +30,16 @@ describe('TASK-20: Frontend Visual States & Logic Test Suite (Algorithmic Feeds,
     it('evaluates pill switcher visual classes in Threads Light Theme', () => {
       const getPillClasses = (isActive) => {
         return isActive
-          ? 'bg-[#000000] text-[#fafafa] shadow-sm'
-          : 'text-[#424242] hover:text-[#000000]';
+          ? 'bg-ink text-paper shadow-sm'
+          : 'text-graphite hover:text-ink';
       };
 
       const activeClasses = getPillClasses(true);
       const inactiveClasses = getPillClasses(false);
 
-      assert.match(activeClasses, /bg-\[#000000\]/);
-      assert.match(activeClasses, /text-\[#fafafa\]/);
-      assert.match(inactiveClasses, /text-\[#424242\]/);
+      assert.match(activeClasses, /bg-ink/);
+      assert.match(activeClasses, /text-paper/);
+      assert.match(inactiveClasses, /text-graphite/);
     });
 
     it('handles query parameters for cursor pagination on For You feed', () => {

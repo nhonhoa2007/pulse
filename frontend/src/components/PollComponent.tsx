@@ -218,7 +218,7 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
     <div
       role="region"
       aria-label={`Cuộc bình chọn: ${poll.question}`}
-      className={`w-full my-3 p-3.5 rounded-xl border border-[#d5d5d5] bg-[#ffffff] transition-all select-none ${
+      className={`w-full my-3 p-3.5 rounded-xl border border-cloud bg-card transition-all select-none ${
         props.className || ''
       }`}
     >
@@ -229,7 +229,7 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
 
       {/* Poll Question */}
       <div className="mb-3">
-        <h4 className="text-[15px] font-semibold text-[#000000] leading-snug break-words">
+        <h4 className="text-[15px] font-semibold text-ink leading-snug break-words">
           {poll.question}
         </h4>
       </div>
@@ -258,16 +258,16 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
                 aria-label={`Bình chọn cho: ${choice.text}`}
                 disabled={isSubmittingVote || isPollClosed}
                 onClick={() => handleVote(index)}
-                className={`relative min-h-[44px] h-[44px] w-full px-4 rounded-lg border border-[#385898]/40 bg-[#fafafa] hover:bg-[#385898]/10 active:scale-[0.99] text-[#385898] font-medium text-[14px] flex items-center justify-between transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#385898] disabled:opacity-60 disabled:cursor-not-allowed`}
+                className={`relative min-h-[44px] h-[44px] w-full px-4 rounded-lg border border-meta/40 bg-paper hover:bg-meta/10 active:scale-[0.99] text-meta font-medium text-[14px] flex items-center justify-between transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-meta disabled:opacity-60 disabled:cursor-not-allowed`}
               >
-                <span className="truncate pr-2 text-left text-[#000000] font-medium">
+                <span className="truncate pr-2 text-left text-ink font-medium">
                   {choice.text}
                 </span>
 
                 {isThisSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-[#385898] shrink-0" />
+                  <Loader2 className="w-4 h-4 animate-spin text-meta shrink-0" />
                 ) : (
-                  <div className="w-4 h-4 rounded-full border border-[#385898]/60 shrink-0 flex items-center justify-center group-hover:border-[#385898]" />
+                  <div className="w-4 h-4 rounded-full border border-meta/60 shrink-0 flex items-center justify-center group-hover:border-meta" />
                 )}
               </button>
             );
@@ -280,8 +280,8 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
               role="listitem"
               className={`relative min-h-[44px] h-[44px] w-full rounded-lg overflow-hidden border transition-colors flex items-center ${
                 isUserSelected
-                  ? 'border-[#385898] bg-[#f0f4f8]'
-                  : 'border-[#e2e8f0] bg-[#f8fafc]'
+                  ? 'border-meta bg-[#f0f4f8]'
+                  : 'border-cloud bg-[#f8fafc]'
               }`}
             >
               {/* Animated Progress Bar Fill (Smooth width transition) */}
@@ -295,10 +295,10 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
                 }`}
                 className={`absolute inset-y-0 left-0 transition-all duration-500 ease-out z-0 ${
                   isUserSelected
-                    ? 'bg-[#385898]/25'
+                    ? 'bg-meta/25'
                     : isHighest
                     ? 'bg-[#cbd5e1]'
-                    : 'bg-[#e2e8f0]'
+                    : 'bg-cloud'
                 }`}
                 style={{ width: `${percentage}%` }}
               />
@@ -322,7 +322,7 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
                   {isUserSelected && (
                     <span
                       title="Lựa chọn của bạn"
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[#385898] text-[#ffffff] shrink-0 ml-1"
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-meta text-card shrink-0 ml-1"
                     >
                       <Check className="w-3 h-3 stroke-[2.5]" />
                       <span>Đã chọn</span>
@@ -334,10 +334,10 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
                   <span
                     className={`font-bold tabular-nums text-[14px] ${
                       isUserSelected
-                        ? 'text-[#385898]'
+                        ? 'text-meta'
                         : isHighest
                         ? 'text-[#0f172a]'
-                        : 'text-[#475569]'
+                        : 'text-graphite'
                     }`}
                   >
                     {percentage}%
@@ -352,13 +352,13 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
       {/* Footer: Vote Count & Expiration Timer */}
       <div className="mt-3 flex items-center justify-between text-[12px] text-[#64748b] border-t border-[#f1f5f9] pt-2 px-0.5">
         <div className="flex items-center gap-1.5">
-          <span className="font-medium text-[#475569]">
+          <span className="font-medium text-graphite">
             {totalVotesCount} {totalVotesCount === 1 ? 'lượt bình chọn' : 'lượt bình chọn'}
           </span>
           {showResults && hasUserVoted && (
             <>
               <span>•</span>
-              <span className="text-[#385898] font-medium">Đã bình chọn</span>
+              <span className="text-meta font-medium">Đã bình chọn</span>
             </>
           )}
         </div>
@@ -370,7 +370,7 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
               <span>Poll closed</span>
             </span>
           ) : (
-            <span className="flex items-center gap-1 font-medium text-[#475569]">
+            <span className="flex items-center gap-1 font-medium text-graphite">
               <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
               <span>{timeInfo.formatted || 'Đang diễn ra'}</span>
             </span>

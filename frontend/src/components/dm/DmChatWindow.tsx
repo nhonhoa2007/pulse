@@ -247,14 +247,14 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#fafafa]">
+    <div className="flex flex-col h-full bg-paper">
       {/* Chat Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#d5d5d5] bg-[#fafafa]/95 backdrop-blur-sm sticky top-0 z-10">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-cloud bg-paper/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center gap-3 min-w-0">
           {onBack && (
             <button
               onClick={onBack}
-              className="md:hidden p-1.5 -ml-1 text-[#000000] hover:bg-[#efefef] rounded-full transition-colors"
+              className="md:hidden p-1.5 -ml-1 text-ink hover:bg-mist rounded-full transition-colors"
               title="Quay lại danh sách"
               aria-label="Quay lại"
             >
@@ -275,16 +275,16 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
                 `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser.username}`
               }
               alt={otherUser.displayName}
-              className="w-10 h-10 rounded-full object-cover border border-[#d5d5d5] group-hover:opacity-85 transition-opacity"
+              className="w-10 h-10 rounded-full object-cover border border-cloud group-hover:opacity-85 transition-opacity"
             />
             <div className="min-w-0">
               <div className="flex items-center gap-1">
-                <span className="text-[15px] font-semibold text-[#000000] group-hover:underline truncate">
+                <span className="text-[15px] font-semibold text-ink group-hover:underline truncate">
                   {otherUser.displayName}
                 </span>
                 <VerifiedBadge size={13} />
               </div>
-              <span className="text-[12px] text-[#969696] block truncate">
+              <span className="text-[12px] text-ash block truncate">
                 @{otherUser.username}
               </span>
             </div>
@@ -292,10 +292,10 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
         </div>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-1 text-[#969696]">
+        <div className="flex items-center gap-1 text-ash">
           <button
             onClick={() => loadInitialMessages()}
-            className="p-2 rounded-full hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="p-2 rounded-full hover:text-ink hover:bg-mist transition-colors focus:outline-none"
             title="Làm mới tin nhắn"
             aria-label="Làm mới"
           >
@@ -311,17 +311,17 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
       >
         {/* Loading Spinner */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-64 gap-2 text-[#969696]">
-            <Loader2 className="w-6 h-6 animate-spin text-[#385898]" />
+          <div className="flex flex-col items-center justify-center h-64 gap-2 text-ash">
+            <Loader2 className="w-6 h-6 animate-spin text-meta" />
             <span className="text-[13px]">Đang tải tin nhắn...</span>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-64 gap-2 text-center p-4">
             <AlertCircle className="w-8 h-8 text-red-500" />
-            <p className="text-[14px] font-medium text-[#000000]">{error}</p>
+            <p className="text-[14px] font-medium text-ink">{error}</p>
             <button
               onClick={() => loadInitialMessages()}
-              className="px-4 py-1.5 bg-[#000000] text-white text-[13px] font-semibold rounded-full hover:bg-[#424242] transition-colors"
+              className="px-4 py-1.5 bg-ink text-white text-[13px] font-semibold rounded-full hover:bg-graphite transition-colors"
             >
               Thử lại
             </button>
@@ -334,7 +334,7 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoadingMore}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#efefef] hover:bg-[#d5d5d5] text-[12px] font-semibold text-[#424242] transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-mist hover:bg-cloud text-[12px] font-semibold text-graphite transition-colors"
                 >
                   {isLoadingMore ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -348,25 +348,25 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
 
             {/* Empty messages placeholder */}
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center p-6 text-[#969696]">
+              <div className="flex flex-col items-center justify-center h-64 text-center p-6 text-ash">
                 <img
                   src={
                     otherUser.avatarUrl ||
                     `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser.username}`
                   }
                   alt={otherUser.displayName}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-[#d5d5d5] mb-3"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-cloud mb-3"
                 />
-                <h4 className="text-[16px] font-bold text-[#000000] mb-1">
+                <h4 className="text-[16px] font-bold text-ink mb-1">
                   {otherUser.displayName}
                 </h4>
-                <p className="text-[13px] text-[#424242] max-w-xs mb-4">
+                <p className="text-[13px] text-graphite max-w-xs mb-4">
                   Chưa có tin nhắn nào trong cuộc hội thoại này. Hãy gửi lời chào đầu tiên!
                 </p>
                 <button
                   type="button"
                   onClick={() => handleSendMessage('Xin chào! 👋')}
-                  className="px-4 py-1.5 rounded-full border border-[#d5d5d5] hover:bg-[#efefef] text-[13px] font-semibold text-[#000000] transition-colors"
+                  className="px-4 py-1.5 rounded-full border border-cloud hover:bg-mist text-[13px] font-semibold text-ink transition-colors"
                 >
                   Gửi "Xin chào! 👋"
                 </button>

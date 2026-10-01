@@ -115,18 +115,18 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
     >
       <div
         data-testid="edit-post-modal"
-        className="w-full max-w-xl bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-2xl overflow-hidden animate-scale-up"
+        className="w-full max-w-xl bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden animate-scale-up"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between h-[53px] px-4 border-b border-[#d5d5d5] bg-[#fafafa]">
-          <span className="text-[15px] font-semibold text-[#000000]">
+        <div className="flex items-center justify-between h-[53px] px-4 border-b border-cloud bg-paper">
+          <span className="text-[15px] font-semibold text-ink">
             Chỉnh sửa bài viết
           </span>
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="w-8 h-8 flex items-center justify-center text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 flex items-center justify-center text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -140,13 +140,13 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
             className={`flex items-center gap-2 p-2.5 rounded-[12px] border text-[13px] transition-colors ${
               isExpired
                 ? 'bg-[#fee2e2] border-[#fecaca] text-[#991b1b]'
-                : 'bg-[#efefef] border-[#d5d5d5] text-[#424242]'
+                : 'bg-mist border-cloud text-graphite'
             }`}
           >
             {isExpired ? (
               <AlertTriangle className="w-4 h-4 shrink-0 text-[#dc2626]" />
             ) : (
-              <Clock className="w-4 h-4 shrink-0 text-[#385898]" />
+              <Clock className="w-4 h-4 shrink-0 text-meta" />
             )}
             <span
               data-testid="edit-countdown-text"
@@ -155,7 +155,7 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
               {editWindow.formatted}
             </span>
             {!isExpired && (
-              <span className="text-[12px] text-[#71717a] font-mono tabular-nums shrink-0">
+              <span className="text-[12px] text-ash font-mono tabular-nums shrink-0">
                 {editWindow.shortFormatted}
               </span>
             )}
@@ -173,12 +173,12 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
               disabled={isExpired || isSubmitting}
               rows={4}
               placeholder="Chỉnh sửa nội dung bài viết..."
-              className={`w-full p-3 text-[15px] leading-[1.4] rounded-[12px] border bg-[#fafafa] text-[#000000] focus:outline-none focus:ring-1 focus:ring-[#000000] resize-none transition-colors ${
-                isExpired ? 'bg-[#efefef] text-[#71717a] cursor-not-allowed' : 'border-[#d5d5d5]'
+              className={`w-full p-3 text-[15px] leading-[1.4] rounded-[12px] border bg-paper text-ink focus:outline-none focus:ring-1 focus:ring-ink resize-none transition-colors ${
+                isExpired ? 'bg-mist text-ash cursor-not-allowed' : 'border-cloud'
               }`}
             />
 
-            <div className="flex items-center justify-between text-[12px] text-[#71717a] px-1 mt-1">
+            <div className="flex items-center justify-between text-[12px] text-ash px-1 mt-1">
               <span>Cửa sổ 15 phút lưu lại lịch sử chỉnh sửa</span>
               <span className={isOverLimit ? 'text-red-500 font-semibold' : ''}>
                 {remainingChars} ký tự còn lại
@@ -187,10 +187,10 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
           </div>
 
           {/* Content Warning Options */}
-          <div className="p-3 bg-[#efefef]/60 border border-[#d5d5d5] rounded-[12px] space-y-3">
+          <div className="p-3 bg-mist/60 border border-cloud rounded-[12px] space-y-3">
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-[13px] font-semibold text-[#000000] cursor-pointer">
-                <ShieldAlert className="w-4 h-4 text-[#71717a]" />
+              <label className="flex items-center gap-2 text-[13px] font-semibold text-ink cursor-pointer">
+                <ShieldAlert className="w-4 h-4 text-ash" />
                 <span>Cảnh báo nội dung (Content Warning)</span>
               </label>
               <input
@@ -199,7 +199,7 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
                 checked={hasContentWarning}
                 disabled={isExpired || isSubmitting}
                 onChange={(e) => setHasContentWarning(e.target.checked)}
-                className="w-4 h-4 accent-[#000000] rounded cursor-pointer"
+                className="w-4 h-4 accent-ink rounded cursor-pointer"
               />
             </div>
 
@@ -212,16 +212,16 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
                   disabled={isExpired || isSubmitting}
                   onChange={(e) => setContentWarning(e.target.value)}
                   placeholder="Lý do cảnh báo (ví dụ: Tiết lộ cốt truyện, Nhạy cảm...)"
-                  className="w-full px-3 py-2 text-[13px] bg-[#fafafa] border border-[#d5d5d5] rounded-[8px] text-[#000000] focus:outline-none focus:border-[#000000]"
+                  className="w-full px-3 py-2 text-[13px] bg-paper border border-cloud rounded-[8px] text-ink focus:outline-none focus:border-ink"
                 />
-                <label className="flex items-center gap-2 text-[12px] text-[#424242] cursor-pointer">
+                <label className="flex items-center gap-2 text-[12px] text-graphite cursor-pointer">
                   <input
                     type="checkbox"
                     data-testid="edit-is-sensitive-checkbox"
                     checked={isSensitive}
                     disabled={isExpired || isSubmitting}
                     onChange={(e) => setIsSensitive(e.target.checked)}
-                    className="w-3.5 h-3.5 accent-[#000000] rounded"
+                    className="w-3.5 h-3.5 accent-ink rounded"
                   />
                   <span>Đánh dấu toàn bộ bài viết / hình ảnh là nhạy cảm</span>
                 </label>
@@ -230,12 +230,12 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#d5d5d5]">
+          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-cloud">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-[14px] font-semibold text-[#424242] hover:text-[#000000] hover:bg-[#efefef] rounded-full transition-colors focus:outline-none"
+              className="px-4 py-2 text-[14px] font-semibold text-graphite hover:text-ink hover:bg-mist rounded-full transition-colors focus:outline-none"
             >
               Hủy
             </button>
@@ -245,8 +245,8 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
               disabled={!canSubmit}
               className={`flex items-center gap-1.5 px-5 py-2 text-[14px] font-semibold rounded-full transition-all focus:outline-none shadow-sm ${
                 canSubmit
-                  ? 'bg-[#000000] text-[#fafafa] hover:bg-[#000000]/85 cursor-pointer active:scale-95'
-                  : 'bg-[#d5d5d5] text-[#969696] cursor-not-allowed'
+                  ? 'bg-ink text-paper hover:bg-ink/85 cursor-pointer active:scale-95'
+                  : 'bg-cloud text-ash cursor-not-allowed'
               }`}
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}

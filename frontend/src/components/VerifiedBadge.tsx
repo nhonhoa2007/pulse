@@ -14,7 +14,7 @@ export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
   return (
     <span
       title={title}
-      className={`inline-flex items-center justify-center rounded-full bg-[#385898] text-white shrink-0 select-none ${className}`}
+      className={`inline-flex items-center justify-center rounded-full bg-meta text-white shrink-0 select-none ${className}`}
       style={{ width: size, height: size }}
     >
       <svg

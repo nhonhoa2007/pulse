@@ -102,8 +102,8 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       assert.strictEqual(info.isRequested, false);
 
       const classes = getFollowButtonClasses(info.state);
-      assert.match(classes, /bg-\[#000000\]/);
-      assert.match(classes, /text-\[#fafafa\]/);
+      assert.match(classes, /bg-ink/);
+      assert.match(classes, /text-paper/);
     });
 
     it('renders "Theo dõi" (REQUEST_FOLLOW) for private unfollowed account with informative ariaLabel', () => {
@@ -117,7 +117,7 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       assert.match(info.ariaLabel, /Yêu cầu theo dõi/);
 
       const classes = getFollowButtonClasses(info.state);
-      assert.match(classes, /bg-\[#000000\]/);
+      assert.match(classes, /bg-ink/);
     });
 
     it('renders "Đã yêu cầu" (REQUESTED) with clock icon and subtle outline styling when follow request is pending', () => {
@@ -132,7 +132,7 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
 
       const classes = getFollowButtonClasses(info.state);
       assert.match(classes, /border/);
-      assert.match(classes, /border-\[#d5d5d5\]/);
+      assert.match(classes, /border-cloud/);
     });
 
     it('switches label to "Hủy yêu cầu" when user hovers over "Đã yêu cầu" button', () => {
@@ -156,8 +156,8 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       assert.strictEqual(info.isRequested, false);
 
       const classes = getFollowButtonClasses(info.state);
-      assert.match(classes, /border-\[#d5d5d5\]/);
-      assert.match(classes, /text-\[#000000\]/);
+      assert.match(classes, /border-cloud/);
+      assert.match(classes, /text-ink/);
     });
 
     it('simulates optimistic transition when following a private account (switches to REQUESTED)', () => {
@@ -209,7 +209,7 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       return {
         role: 'switch',
         ariaChecked: Boolean(isPrivate),
-        bgClass: isPrivate ? 'bg-[#000000]' : 'bg-[#d5d5d5]',
+        bgClass: isPrivate ? 'bg-ink' : 'bg-cloud',
         knobTransform: isPrivate ? 'translate-x-5' : 'translate-x-0',
         disabled: isSaving,
         testId: 'edit-profile-private-toggle',
@@ -220,7 +220,7 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       const toggle = evaluateToggleVisualState(false);
       assert.strictEqual(toggle.role, 'switch');
       assert.strictEqual(toggle.ariaChecked, false);
-      assert.match(toggle.bgClass, /bg-\[#d5d5d5\]/);
+      assert.match(toggle.bgClass, /bg-cloud/);
       assert.strictEqual(toggle.knobTransform, 'translate-x-0');
       assert.strictEqual(toggle.disabled, false);
     });
@@ -228,7 +228,7 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
     it('evaluates toggle on state (isPrivate = true) with Threads Black background', () => {
       const toggle = evaluateToggleVisualState(true);
       assert.strictEqual(toggle.ariaChecked, true);
-      assert.match(toggle.bgClass, /bg-\[#000000\]/);
+      assert.match(toggle.bgClass, /bg-ink/);
       assert.strictEqual(toggle.knobTransform, 'translate-x-5');
       assert.strictEqual(toggle.disabled, false);
     });
@@ -307,14 +307,14 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       const details = getFollowRequestNotificationDetails('FOLLOW_REQUEST');
       assert.strictEqual(details.text, 'đã gửi yêu cầu theo dõi bạn');
       assert.strictEqual(details.isActionable, true);
-      assert.strictEqual(details.badgeColor, 'text-[#385898]');
+      assert.strictEqual(details.badgeColor, 'text-meta');
     });
 
     it('formats FOLLOW_ACCEPT notification verb details', () => {
       const details = getFollowRequestNotificationDetails('FOLLOW_ACCEPT');
       assert.strictEqual(details.text, 'đã chấp nhận yêu cầu theo dõi của bạn');
       assert.strictEqual(details.isActionable, false);
-      assert.strictEqual(details.badgeColor, 'text-[#385898]');
+      assert.strictEqual(details.badgeColor, 'text-meta');
     });
 
     it('simulates optimistic acceptance removing request and updating counter', () => {

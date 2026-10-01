@@ -4,13 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#000000',
-        paper: '#fafafa',
-        mist: '#efefef',
-        cloud: '#d5d5d5',
-        ash: '#969696',
-        graphite: '#424242',
-        meta: '#385898',
+        // PKG-02: semantic tokens backed by CSS variables — 3 theme
+        // (light / dark / black) chỉ đổi giá trị biến trong index.css.
+        // Định dạng "R G B" + <alpha-value> giữ cho các modifier /50, /60 hoạt động.
+        ink: 'rgb(var(--c-ink) / <alpha-value>)',
+        paper: 'rgb(var(--c-canvas) / <alpha-value>)',
+        card: 'rgb(var(--c-card) / <alpha-value>)',
+        mist: 'rgb(var(--c-mist) / <alpha-value>)',
+        cloud: 'rgb(var(--c-cloud) / <alpha-value>)',
+        ash: 'rgb(var(--c-ash) / <alpha-value>)',
+        graphite: 'rgb(var(--c-graphite) / <alpha-value>)',
+        meta: 'rgb(var(--c-meta) / <alpha-value>)',
       },
       fontFamily: {
         sans: [
@@ -34,7 +38,7 @@ export default {
         feedcolumn: '18px',
       },
       boxShadow: {
-        feed: '0 0 12px rgba(0, 0, 0, 0.04), 0 0 0 48px #fafafa',
+        feed: '0 0 12px rgba(0, 0, 0, 0.06), 0 0 0 48px rgb(var(--c-canvas))',
         subtle: '0 0 12px rgba(0, 0, 0, 0.04)',
       },
       maxWidth: {

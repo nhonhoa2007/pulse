@@ -300,16 +300,16 @@ export const DirectMessagingView: React.FC = () => {
   );
 
   return (
-    <div className="flex h-[calc(100vh-1rem)] md:h-[calc(100vh-2rem)] bg-[#fafafa] overflow-hidden">
+    <div className="flex h-[calc(100vh-1rem)] md:h-[calc(100vh-2rem)] bg-paper overflow-hidden">
       {/* LEFT COLUMN: Conversations List */}
       <aside
-        className={`w-full md:w-80 lg:w-[340px] flex flex-col border-r border-[#d5d5d5] bg-[#fafafa] shrink-0 ${
+        className={`w-full md:w-80 lg:w-[340px] flex flex-col border-r border-cloud bg-paper shrink-0 ${
           isChatActive ? 'hidden md:flex' : 'flex'
         }`}
       >
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-[#d5d5d5] flex items-center justify-between bg-[#fafafa]">
-          <h1 className="text-[20px] font-bold text-[#000000] tracking-tight">
+        <div className="p-4 border-b border-cloud flex items-center justify-between bg-paper">
+          <h1 className="text-[20px] font-bold text-ink tracking-tight">
             Tin nhắn
           </h1>
 
@@ -317,7 +317,7 @@ export const DirectMessagingView: React.FC = () => {
             {activeDmTab === 'direct' ? (
               <button
                 onClick={() => setIsNewDmModalOpen(true)}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-ink hover:bg-mist transition-colors focus:outline-none"
                 title="Soạn tin nhắn mới"
                 aria-label="Soạn tin nhắn mới"
                 data-testid="new-dm-btn"
@@ -327,7 +327,7 @@ export const DirectMessagingView: React.FC = () => {
             ) : (
               <button
                 onClick={() => setIsCreateGroupModalOpen(true)}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-ink hover:bg-mist transition-colors focus:outline-none"
                 title="Tạo nhóm mới"
                 aria-label="Tạo nhóm mới"
                 data-testid="create-group-modal-btn"
@@ -339,9 +339,9 @@ export const DirectMessagingView: React.FC = () => {
         </div>
 
         {/* Dual Tab Switcher: Cá nhân (Direct) vs Nhóm (Groups) */}
-        <div className="p-2 border-b border-[#d5d5d5]/60 bg-[#fafafa]">
+        <div className="p-2 border-b border-cloud/60 bg-paper">
           <div
-            className="flex p-1 bg-[#efefef] rounded-full border border-[#d5d5d5]/50"
+            className="flex p-1 bg-mist rounded-full border border-cloud/50"
             role="tablist"
             aria-label="Loại tin nhắn"
           >
@@ -351,8 +351,8 @@ export const DirectMessagingView: React.FC = () => {
               onClick={() => setActiveDmTab('direct')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[13px] font-semibold transition-all focus:outline-none ${
                 activeDmTab === 'direct'
-                  ? 'bg-[#000000] text-[#fafafa] shadow-sm'
-                  : 'text-[#424242] hover:text-[#000000]'
+                  ? 'bg-ink text-paper shadow-sm'
+                  : 'text-graphite hover:text-ink'
               }`}
               data-testid="dm-tab-direct"
             >
@@ -362,7 +362,7 @@ export const DirectMessagingView: React.FC = () => {
                   className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                     activeDmTab === 'direct'
                       ? 'bg-white text-black'
-                      : 'bg-[#385898] text-white'
+                      : 'bg-meta text-white'
                   }`}
                 >
                   {totalDirectUnread}
@@ -376,8 +376,8 @@ export const DirectMessagingView: React.FC = () => {
               onClick={() => setActiveDmTab('group')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[13px] font-semibold transition-all focus:outline-none ${
                 activeDmTab === 'group'
-                  ? 'bg-[#000000] text-[#fafafa] shadow-sm'
-                  : 'text-[#424242] hover:text-[#000000]'
+                  ? 'bg-ink text-paper shadow-sm'
+                  : 'text-graphite hover:text-ink'
               }`}
               data-testid="dm-tab-group"
             >
@@ -388,7 +388,7 @@ export const DirectMessagingView: React.FC = () => {
                   className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                     activeDmTab === 'group'
                       ? 'bg-white text-black'
-                      : 'bg-[#385898] text-white'
+                      : 'bg-meta text-white'
                   }`}
                 >
                   {totalGroupUnread}
@@ -399,9 +399,9 @@ export const DirectMessagingView: React.FC = () => {
         </div>
 
         {/* Search filter input */}
-        <div className="px-4 py-2.5 border-b border-[#d5d5d5] bg-[#fafafa]">
+        <div className="px-4 py-2.5 border-b border-cloud bg-paper">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#969696] absolute left-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-ash absolute left-3 pointer-events-none" />
             <input
               type="text"
               value={searchFilter}
@@ -411,12 +411,12 @@ export const DirectMessagingView: React.FC = () => {
                   ? 'Tìm kiếm cuộc trò chuyện cá nhân...'
                   : 'Tìm kiếm nhóm trò chuyện...'
               }
-              className="w-full pl-9 pr-8 py-1.5 bg-[#efefef] text-[13.5px] text-[#000000] placeholder-[#969696] rounded-full border border-transparent focus:border-[#385898] focus:bg-[#fafafa] focus:outline-none transition-all"
+              className="w-full pl-9 pr-8 py-1.5 bg-mist text-[13.5px] text-ink placeholder-ash rounded-full border border-transparent focus:border-meta focus:bg-paper focus:outline-none transition-all"
             />
             {searchFilter && (
               <button
                 onClick={() => setSearchFilter('')}
-                className="absolute right-3 text-[#969696] hover:text-[#000000]"
+                className="absolute right-3 text-ash hover:text-ink"
                 aria-label="Xóa bộ lọc"
               >
                 <X className="w-3.5 h-3.5" />
@@ -428,20 +428,20 @@ export const DirectMessagingView: React.FC = () => {
         {/* Conversations List Scrollable */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-48 gap-2 text-[#969696]">
-              <Loader2 className="w-6 h-6 animate-spin text-[#385898]" />
+            <div className="flex flex-col items-center justify-center h-48 gap-2 text-ash">
+              <Loader2 className="w-6 h-6 animate-spin text-meta" />
               <span className="text-[13px]">Đang tải danh sách...</span>
             </div>
           ) : error ? (
             <div className="p-4 text-center">
               <AlertCircle className="w-6 h-6 text-red-500 mx-auto mb-2" />
-              <p className="text-[13px] text-[#000000] mb-2">{error}</p>
+              <p className="text-[13px] text-ink mb-2">{error}</p>
               <button
                 onClick={() => {
                   loadConversations();
                   loadGroups();
                 }}
-                className="px-3 py-1 bg-[#000000] text-white text-[12px] rounded-full font-semibold"
+                className="px-3 py-1 bg-ink text-white text-[12px] rounded-full font-semibold"
               >
                 Thử lại
               </button>
@@ -449,12 +449,12 @@ export const DirectMessagingView: React.FC = () => {
           ) : activeDmTab === 'direct' ? (
             /* 1-1 DM List */
             filteredConversations.length === 0 ? (
-              <div className="py-16 px-4 text-center text-[#969696]">
-                <MessageSquare className="w-10 h-10 mx-auto mb-3 stroke-[1.5] text-[#969696]/60" />
-                <p className="text-[15px] font-semibold text-[#000000] mb-1">
+              <div className="py-16 px-4 text-center text-ash">
+                <MessageSquare className="w-10 h-10 mx-auto mb-3 stroke-[1.5] text-ash/60" />
+                <p className="text-[15px] font-semibold text-ink mb-1">
                   {searchFilter ? 'Không tìm thấy kết quả' : 'Chưa có tin nhắn nào'}
                 </p>
-                <p className="text-[13px] text-[#424242] mb-4">
+                <p className="text-[13px] text-graphite mb-4">
                   {searchFilter
                     ? 'Thử tìm với tên hoặc từ khóa khác'
                     : 'Bắt đầu cuộc trò chuyện với bạn bè hoặc người bạn theo dõi.'}
@@ -462,7 +462,7 @@ export const DirectMessagingView: React.FC = () => {
                 {!searchFilter && (
                   <button
                     onClick={() => setIsNewDmModalOpen(true)}
-                    className="px-4 py-2 bg-[#000000] hover:bg-[#424242] text-white text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
+                    className="px-4 py-2 bg-ink hover:bg-graphite text-white text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Bắt đầu cuộc trò chuyện</span>
@@ -483,12 +483,12 @@ export const DirectMessagingView: React.FC = () => {
           ) : (
             /* Group DM List */
             filteredGroups.length === 0 ? (
-              <div className="py-16 px-4 text-center text-[#969696]">
-                <Users className="w-10 h-10 mx-auto mb-3 stroke-[1.5] text-[#969696]/60" />
-                <p className="text-[15px] font-semibold text-[#000000] mb-1">
+              <div className="py-16 px-4 text-center text-ash">
+                <Users className="w-10 h-10 mx-auto mb-3 stroke-[1.5] text-ash/60" />
+                <p className="text-[15px] font-semibold text-ink mb-1">
                   {searchFilter ? 'Không tìm thấy nhóm phù hợp' : 'Chưa tham gia nhóm nào'}
                 </p>
-                <p className="text-[13px] text-[#424242] mb-4">
+                <p className="text-[13px] text-graphite mb-4">
                   {searchFilter
                     ? 'Thử tìm với tên nhóm khác'
                     : 'Tạo nhóm trò chuyện để kết nối nhiều thành viên cùng lúc.'}
@@ -496,7 +496,7 @@ export const DirectMessagingView: React.FC = () => {
                 {!searchFilter && (
                   <button
                     onClick={() => setIsCreateGroupModalOpen(true)}
-                    className="px-4 py-2 bg-[#000000] hover:bg-[#424242] text-white text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
+                    className="px-4 py-2 bg-ink hover:bg-graphite text-white text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
                     data-testid="empty-create-group-btn"
                   >
                     <Plus className="w-4 h-4" />
@@ -521,7 +521,7 @@ export const DirectMessagingView: React.FC = () => {
 
       {/* RIGHT COLUMN: Chat Window or Empty Placeholder */}
       <main
-        className={`flex-1 flex flex-col min-w-0 h-full bg-[#fafafa] ${
+        className={`flex-1 flex flex-col min-w-0 h-full bg-paper ${
           !isChatActive ? 'hidden md:flex' : 'flex'
         }`}
       >
@@ -543,27 +543,27 @@ export const DirectMessagingView: React.FC = () => {
           />
         ) : (
           /* Empty placeholder when no conversation is selected */
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#fafafa]">
-            <div className="w-16 h-16 rounded-full bg-[#efefef] flex items-center justify-center text-[#000000] mb-4 shadow-sm">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-paper">
+            <div className="w-16 h-16 rounded-full bg-mist flex items-center justify-center text-ink mb-4 shadow-sm">
               <MessageSquare className="w-8 h-8 stroke-[1.8]" />
             </div>
-            <h3 className="text-[18px] font-bold text-[#000000] mb-1">
+            <h3 className="text-[18px] font-bold text-ink mb-1">
               Tin nhắn & Nhóm trò chuyện
             </h3>
-            <p className="text-[14px] text-[#424242] max-w-sm mb-6 leading-relaxed">
+            <p className="text-[14px] text-graphite max-w-sm mb-6 leading-relaxed">
               Gửi tin nhắn riêng tư hoặc tạo nhóm trao đổi thời gian thực cùng bạn bè trên Pulse.
             </p>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsNewDmModalOpen(true)}
-                className="px-5 py-2.5 bg-[#000000] hover:bg-[#424242] text-white text-[14px] font-semibold rounded-full transition-all shadow-sm hover:scale-105 active:scale-95"
+                className="px-5 py-2.5 bg-ink hover:bg-graphite text-white text-[14px] font-semibold rounded-full transition-all shadow-sm hover:scale-105 active:scale-95"
               >
                 Soạn tin nhắn mới
               </button>
 
               <button
                 onClick={() => setIsCreateGroupModalOpen(true)}
-                className="px-5 py-2.5 bg-[#efefef] hover:bg-[#d5d5d5]/60 text-[#000000] text-[14px] font-semibold rounded-full transition-all border border-[#d5d5d5]"
+                className="px-5 py-2.5 bg-mist hover:bg-cloud/60 text-ink text-[14px] font-semibold rounded-full transition-all border border-cloud"
               >
                 Tạo nhóm mới
               </button>

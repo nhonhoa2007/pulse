@@ -287,14 +287,14 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#fafafa]" data-testid="group-chat-window">
+    <div className="flex flex-col h-full bg-paper" data-testid="group-chat-window">
       {/* Header */}
-      <header className="px-4 py-3 border-b border-[#d5d5d5] bg-[#fafafa]/95 backdrop-blur-md flex items-center justify-between z-10 shrink-0">
+      <header className="px-4 py-3 border-b border-cloud bg-paper/95 backdrop-blur-md flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           {onBack && (
             <button
               onClick={onBack}
-              className="p-1 -ml-1 text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors md:hidden focus:outline-none"
+              className="p-1 -ml-1 text-ash hover:text-ink rounded-full hover:bg-mist transition-colors md:hidden focus:outline-none"
               aria-label="Quay lại danh sách"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -307,10 +307,10 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
               <img
                 src={group.avatarUrl}
                 alt={group.title}
-                className="w-10 h-10 rounded-full object-cover border border-[#d5d5d5]"
+                className="w-10 h-10 rounded-full object-cover border border-cloud"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[#000000]">
+              <div className="w-10 h-10 rounded-full bg-mist border border-cloud flex items-center justify-center text-ink">
                 <Users className="w-5 h-5 stroke-[1.8]" />
               </div>
             )}
@@ -318,17 +318,17 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
 
           {/* Group Details */}
           <div className="min-w-0">
-            <h2 className="text-[15px] font-bold text-[#000000] truncate">
+            <h2 className="text-[15px] font-bold text-ink truncate">
               {group.title}
             </h2>
             <button
               type="button"
               onClick={() => setIsMembersModalOpen(true)}
-              className="text-[12px] text-[#737373] hover:text-[#000000] hover:underline flex items-center gap-1 text-left"
+              className="text-[12px] text-ash hover:text-ink hover:underline flex items-center gap-1 text-left"
             >
               <span>{group.members.length} thành viên</span>
               <span>•</span>
-              <span className="text-[#385898]">Quản lý nhóm</span>
+              <span className="text-meta">Quản lý nhóm</span>
             </button>
           </div>
         </div>
@@ -336,7 +336,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
         {/* Header Action: Open Members Modal */}
         <button
           onClick={() => setIsMembersModalOpen(true)}
-          className="p-2 text-[#424242] hover:text-[#000000] hover:bg-[#efefef] rounded-full transition-colors focus:outline-none"
+          className="p-2 text-graphite hover:text-ink hover:bg-mist rounded-full transition-colors focus:outline-none"
           title="Xem danh sách thành viên"
           aria-label="Xem thành viên"
           data-testid="group-members-btn"
@@ -348,7 +348,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
       {/* Messages Scroll Area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#fafafa]"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-paper"
       >
         {/* Load More Button */}
         {hasMore && (
@@ -356,7 +356,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
             <button
               onClick={handleLoadMore}
               disabled={isLoadingMore}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#efefef] hover:bg-[#d5d5d5]/60 text-[12px] font-semibold text-[#424242] rounded-full transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-mist hover:bg-cloud/60 text-[12px] font-semibold text-graphite rounded-full transition-colors disabled:opacity-50"
             >
               {isLoadingMore ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -369,30 +369,30 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
         )}
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-48 gap-2 text-[#969696]">
-            <Loader2 className="w-6 h-6 animate-spin text-[#385898]" />
+          <div className="flex flex-col items-center justify-center h-48 gap-2 text-ash">
+            <Loader2 className="w-6 h-6 animate-spin text-meta" />
             <span className="text-[13px]">Đang tải tin nhắn nhóm...</span>
           </div>
         ) : error ? (
           <div className="p-4 text-center">
             <AlertCircle className="w-6 h-6 text-red-500 mx-auto mb-2" />
-            <p className="text-[13px] text-[#000000] mb-2">{error}</p>
+            <p className="text-[13px] text-ink mb-2">{error}</p>
             <button
               onClick={loadInitialMessages}
-              className="px-3 py-1 bg-[#000000] text-white text-[12px] rounded-full font-semibold"
+              className="px-3 py-1 bg-ink text-white text-[12px] rounded-full font-semibold"
             >
               Thử lại
             </button>
           </div>
         ) : messages.length === 0 ? (
-          <div className="py-16 text-center text-[#969696]">
-            <div className="w-14 h-14 rounded-full bg-[#efefef] flex items-center justify-center mx-auto mb-3 text-[#000000]">
+          <div className="py-16 text-center text-ash">
+            <div className="w-14 h-14 rounded-full bg-mist flex items-center justify-center mx-auto mb-3 text-ink">
               <Users className="w-7 h-7 stroke-[1.8]" />
             </div>
-            <h3 className="text-[16px] font-bold text-[#000000] mb-1">
+            <h3 className="text-[16px] font-bold text-ink mb-1">
               {group.title}
             </h3>
-            <p className="text-[13px] text-[#737373] max-w-xs mx-auto">
+            <p className="text-[13px] text-ash max-w-xs mx-auto">
               Chưa có tin nhắn nào trong nhóm. Hãy bắt đầu cuộc trò chuyện đầu tiên!
             </p>
           </div>
@@ -415,7 +415,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
               >
                 {/* Sender Display Name for other members */}
                 {!isOwn && (
-                  <span className="text-[11px] font-semibold text-[#737373] ml-11 mb-1 truncate max-w-[240px]">
+                  <span className="text-[11px] font-semibold text-ash ml-11 mb-1 truncate max-w-[240px]">
                     {senderName}
                   </span>
                 )}
@@ -429,7 +429,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
                         `https://api.dicebear.com/7.x/bottts/svg?seed=${senderName}`
                       }
                       alt={senderName}
-                      className="w-8 h-8 rounded-full object-cover border border-[#d5d5d5] shrink-0"
+                      className="w-8 h-8 rounded-full object-cover border border-cloud shrink-0"
                     />
                   )}
 
@@ -438,7 +438,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
                     <button
                       type="button"
                       onClick={() => handleDeleteMessage(message.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-[#969696] hover:text-red-500 rounded-full transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 text-ash hover:text-red-500 rounded-full transition-all"
                       title="Xóa tin nhắn"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -449,10 +449,10 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
                   <div
                     className={`rounded-[18px] px-4 py-2.5 text-[14px] leading-relaxed transition-all select-text shadow-sm ${
                       message.isDeleted
-                        ? 'bg-[#efefef]/70 text-[#969696] italic border border-dashed border-[#d5d5d5]'
+                        ? 'bg-mist/70 text-ash italic border border-dashed border-cloud'
                         : isOwn
-                        ? 'bg-[#000000] text-[#fafafa] rounded-br-[4px]'
-                        : 'bg-[#efefef] text-[#000000] border border-[#d5d5d5]/50 rounded-bl-[4px]'
+                        ? 'bg-ink text-paper rounded-br-[4px]'
+                        : 'bg-mist text-ink border border-cloud/50 rounded-bl-[4px]'
                     }`}
                   >
                     {message.isDeleted ? (
@@ -484,7 +484,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
                 </div>
 
                 {/* Timestamp */}
-                <span className={`text-[10.5px] text-[#969696] mt-1 ${isOwn ? 'mr-1' : 'ml-11'}`}>
+                <span className={`text-[10.5px] text-ash mt-1 ${isOwn ? 'mr-1' : 'ml-11'}`}>
                   {formatRelativeTime(message.createdAt)}
                 </span>
               </div>
@@ -496,13 +496,13 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
 
       {/* Media previews before sending */}
       {mediaUrls.length > 0 && (
-        <div className="p-2 border-t border-[#d5d5d5] bg-[#fafafa] flex gap-2 overflow-x-auto">
+        <div className="p-2 border-t border-cloud bg-paper flex gap-2 overflow-x-auto">
           {mediaUrls.map((url, index) => (
             <div key={index} className="relative group shrink-0">
               <img
                 src={url}
                 alt="Đính kèm"
-                className="w-16 h-16 rounded-[10px] object-cover border border-[#d5d5d5]"
+                className="w-16 h-16 rounded-[10px] object-cover border border-cloud"
               />
               <button
                 type="button"
@@ -517,18 +517,18 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
       )}
 
       {/* Message Composer Footer */}
-      <footer className="p-3 border-t border-[#d5d5d5] bg-[#fafafa]">
+      <footer className="p-3 border-t border-cloud bg-paper">
         <form onSubmit={handleSendMessage} className="flex items-end gap-2">
           <button
             type="button"
             onClick={handleAddMedia}
-            className="p-2 text-[#737373] hover:text-[#000000] hover:bg-[#efefef] rounded-full transition-colors focus:outline-none"
+            className="p-2 text-ash hover:text-ink hover:bg-mist rounded-full transition-colors focus:outline-none"
             title="Đính kèm hình ảnh"
           >
             <ImageIcon className="w-5 h-5" />
           </button>
 
-          <div className="flex-1 bg-[#efefef] rounded-[18px] border border-transparent focus-within:border-[#385898] focus-within:bg-[#fafafa] transition-all px-3 py-1.5 flex items-center">
+          <div className="flex-1 bg-mist rounded-[18px] border border-transparent focus-within:border-meta focus-within:bg-paper transition-all px-3 py-1.5 flex items-center">
             <textarea
               ref={textareaRef}
               rows={1}
@@ -536,7 +536,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
               onChange={(e) => setInputContent(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Gửi tin nhắn trong nhóm..."
-              className="w-full bg-transparent text-[14px] text-[#000000] placeholder-[#969696] focus:outline-none resize-none max-h-32"
+              className="w-full bg-transparent text-[14px] text-ink placeholder-ash focus:outline-none resize-none max-h-32"
               data-testid="group-message-input"
             />
           </div>
@@ -546,13 +546,13 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
             disabled={(!inputContent.trim() && mediaUrls.length === 0) || isSending}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
               inputContent.trim() || mediaUrls.length > 0
-                ? 'bg-[#000000] hover:bg-[#424242] text-white'
-                : 'bg-[#efefef] text-[#969696] cursor-not-allowed'
+                ? 'bg-ink hover:bg-graphite text-white'
+                : 'bg-mist text-ash cursor-not-allowed'
             }`}
             data-testid="send-group-message-btn"
           >
             {isSending ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#fafafa]" />
+              <Loader2 className="w-4 h-4 animate-spin text-paper" />
             ) : (
               <Send className="w-4 h-4 stroke-[2]" />
             )}

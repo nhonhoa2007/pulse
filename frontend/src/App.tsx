@@ -48,7 +48,7 @@ export const AppContent: React.FC = () => {
   const isMessages = currentView === 'messages';
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-[#000000] flex justify-center selection:bg-[#385898]/15 selection:text-[#000000]">
+    <div className="min-h-screen bg-paper text-ink flex justify-center selection:bg-meta/15 selection:text-ink">
       {/* Three-column layout: ~80px left rail, centered feed container, right rail/gutter */}
       <div className="w-full max-w-[1240px] flex min-h-screen justify-between">
         {/* Navigation Sidebar (~80px Left Rail) */}
@@ -60,7 +60,7 @@ export const AppContent: React.FC = () => {
             isMessages ? 'max-w-[940px]' : 'max-w-[640px]'
           }`}
         >
-          <div className="w-full bg-[#fafafa] md:rounded-[18px] border-x md:border border-[#d5d5d5] shadow-[0_0_12px_rgba(0,0,0,0.04),0_0_0_48px_#fafafa] overflow-hidden min-h-screen md:min-h-[calc(100vh-2rem)]">
+          <div className="w-full bg-paper md:rounded-[18px] border-x md:border border-cloud shadow-[0_0_12px_rgba(0,0,0,0.04),0_0_0_48px_#fafafa] overflow-hidden min-h-screen md:min-h-[calc(100vh-2rem)]">
             <MainContentRouter />
           </div>
         </main>

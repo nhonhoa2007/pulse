@@ -153,21 +153,21 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
     >
       <div
         ref={modalRef}
-        className="w-full max-w-lg bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-scale-up"
+        className="w-full max-w-lg bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-scale-up"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#d5d5d5]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-cloud">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#efefef] flex items-center justify-center text-[#000000]">
+            <div className="w-8 h-8 rounded-full bg-mist flex items-center justify-center text-ink">
               <Users className="w-4 h-4 stroke-[2.2]" />
             </div>
-            <h2 id="create-group-title" className="text-[17px] font-semibold text-[#000000]">
+            <h2 id="create-group-title" className="text-[17px] font-semibold text-ink">
               Tạo nhóm trò chuyện
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#969696] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -176,12 +176,12 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleCreateGroup} className="flex flex-col flex-1 min-h-0">
-          <div className="p-5 space-y-4 border-b border-[#d5d5d5]/60">
+          <div className="p-5 space-y-4 border-b border-cloud/60">
             {/* Group Name Field */}
             <div>
               <label
                 htmlFor="group-name-input"
-                className="block text-[13px] font-semibold text-[#000000] mb-1.5"
+                className="block text-[13px] font-semibold text-ink mb-1.5"
               >
                 Tên nhóm <span className="text-red-500">*</span>
               </label>
@@ -196,10 +196,10 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                 }}
                 maxLength={100}
                 placeholder="Ví dụ: Team Dự Án, Hội Lập Trình Viên..."
-                className="w-full px-3.5 py-2.5 bg-[#efefef] text-[14px] text-[#000000] placeholder-[#969696] rounded-[12px] border border-transparent focus:border-[#385898] focus:bg-[#fafafa] focus:outline-none transition-all"
+                className="w-full px-3.5 py-2.5 bg-mist text-[14px] text-ink placeholder-ash rounded-[12px] border border-transparent focus:border-meta focus:bg-paper focus:outline-none transition-all"
                 data-testid="group-title-input"
               />
-              <div className="flex justify-between items-center mt-1 text-[11px] text-[#969696]">
+              <div className="flex justify-between items-center mt-1 text-[11px] text-ash">
                 <span>Tên nhóm sẽ hiển thị với tất cả thành viên</span>
                 <span>{groupTitle.length}/100</span>
               </div>
@@ -208,23 +208,23 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             {/* Selected Members Chips */}
             {selectedUsers.length > 0 && (
               <div>
-                <div className="flex items-center justify-between text-[12px] text-[#737373] mb-1.5">
-                  <span className="font-semibold text-[#000000]">
+                <div className="flex items-center justify-between text-[12px] text-ash mb-1.5">
+                  <span className="font-semibold text-ink">
                     Đã chọn ({selectedUsers.length})
                   </span>
                   <button
                     type="button"
                     onClick={() => setSelectedUserIds(new Set())}
-                    className="text-[#385898] hover:underline"
+                    className="text-meta hover:underline"
                   >
                     Bỏ chọn tất cả
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 bg-[#efefef]/40 rounded-[12px] border border-[#d5d5d5]/50">
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 bg-mist/40 rounded-[12px] border border-cloud/50">
                   {selectedUsers.map((user) => (
                     <div
                       key={user.id}
-                      className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 bg-[#fafafa] border border-[#d5d5d5] rounded-full text-[12px] shadow-sm animate-scale-up"
+                      className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 bg-paper border border-cloud rounded-full text-[12px] shadow-sm animate-scale-up"
                     >
                       <img
                         src={
@@ -234,13 +234,13 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                         alt={user.displayName}
                         className="w-4 h-4 rounded-full object-cover"
                       />
-                      <span className="font-semibold text-[#000000] truncate max-w-[110px]">
+                      <span className="font-semibold text-ink truncate max-w-[110px]">
                         {user.displayName}
                       </span>
                       <button
                         type="button"
                         onClick={(e) => removeSelectedUser(user.id, e)}
-                        className="p-0.5 text-[#969696] hover:text-[#000000] rounded-full"
+                        className="p-0.5 text-ash hover:text-ink rounded-full"
                         aria-label={`Xóa ${user.displayName}`}
                       >
                         <X className="w-3 h-3" />
@@ -253,24 +253,24 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
             {/* Member Search Bar */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#000000] mb-1.5">
+              <label className="block text-[13px] font-semibold text-ink mb-1.5">
                 Thêm thành viên từ danh sách theo dõi
               </label>
               <div className="relative flex items-center">
-                <Search className="w-4 h-4 text-[#969696] absolute left-3 pointer-events-none" />
+                <Search className="w-4 h-4 text-ash absolute left-3 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm người dùng theo tên hoặc @username..."
-                  className="w-full pl-9 pr-8 py-2 bg-[#efefef] text-[13.5px] text-[#000000] placeholder-[#969696] rounded-full border border-transparent focus:border-[#385898] focus:bg-[#fafafa] focus:outline-none transition-all"
+                  className="w-full pl-9 pr-8 py-2 bg-mist text-[13.5px] text-ink placeholder-ash rounded-full border border-transparent focus:border-meta focus:bg-paper focus:outline-none transition-all"
                   data-testid="member-search-input"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 text-[#969696] hover:text-[#000000]"
+                    className="absolute right-3 text-ash hover:text-ink"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -288,9 +288,9 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
           )}
 
           {/* Members List Scrollable */}
-          <div className="flex-1 overflow-y-auto px-4 py-2 divide-y divide-[#d5d5d5]/50">
+          <div className="flex-1 overflow-y-auto px-4 py-2 divide-y divide-cloud/50">
             {filteredUsers.length === 0 ? (
-              <div className="py-8 text-center text-[#969696] text-[13px]">
+              <div className="py-8 text-center text-ash text-[13px]">
                 Không tìm thấy người dùng phù hợp
               </div>
             ) : (
@@ -300,7 +300,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                   <div
                     key={user.id}
                     onClick={() => toggleUserSelection(user.id)}
-                    className="flex items-center justify-between py-2.5 px-2 hover:bg-[#efefef]/60 rounded-xl cursor-pointer transition-colors select-none"
+                    className="flex items-center justify-between py-2.5 px-2 hover:bg-mist/60 rounded-xl cursor-pointer transition-colors select-none"
                     data-testid={`user-row-${user.id}`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -310,18 +310,18 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                           `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
                         }
                         alt={user.displayName}
-                        className="w-10 h-10 rounded-full object-cover border border-[#d5d5d5]"
+                        className="w-10 h-10 rounded-full object-cover border border-cloud"
                       />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1">
-                          <span className="text-[14px] font-semibold text-[#000000] truncate">
+                          <span className="text-[14px] font-semibold text-ink truncate">
                             {user.displayName}
                           </span>
                           {user.isCelebrity && (
                             <VerifiedBadge size={13} title="Verified" />
                           )}
                         </div>
-                        <span className="text-[12px] text-[#969696] truncate block">
+                        <span className="text-[12px] text-ash truncate block">
                           @{user.username}
                         </span>
                       </div>
@@ -331,8 +331,8 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${
                         isSelected
-                          ? 'bg-[#000000] border-[#000000] text-white'
-                          : 'border-[#d5d5d5] bg-white'
+                          ? 'bg-ink border-ink text-white'
+                          : 'border-cloud bg-white'
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -344,8 +344,8 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
           </div>
 
           {/* Modal Footer Actions */}
-          <div className="p-4 border-t border-[#d5d5d5] flex items-center justify-between bg-[#fafafa]">
-            <span className="text-[12px] text-[#737373]">
+          <div className="p-4 border-t border-cloud flex items-center justify-between bg-paper">
+            <span className="text-[12px] text-ash">
               {selectedUserIds.size === 0
                 ? 'Hãy chọn ít nhất 1 thành viên'
                 : `Đã chọn ${selectedUserIds.size} thành viên`}
@@ -356,7 +356,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-[13px] font-semibold text-[#424242] hover:text-[#000000] hover:bg-[#efefef] rounded-full transition-colors"
+                className="px-4 py-2 text-[13px] font-semibold text-graphite hover:text-ink hover:bg-mist rounded-full transition-colors"
               >
                 Hủy
               </button>
@@ -366,8 +366,8 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                 disabled={!isFormValid || isSubmitting}
                 className={`px-5 py-2 text-[13px] font-semibold rounded-full flex items-center gap-2 transition-all ${
                   isFormValid && !isSubmitting
-                    ? 'bg-[#000000] hover:bg-[#424242] text-white shadow-sm'
-                    : 'bg-[#efefef] text-[#969696] cursor-not-allowed'
+                    ? 'bg-ink hover:bg-graphite text-white shadow-sm'
+                    : 'bg-mist text-ash cursor-not-allowed'
                 }`}
                 data-testid="create-group-submit-btn"
               >

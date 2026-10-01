@@ -148,21 +148,21 @@ export const ReplyPrivacySelector: React.FC<ReplyPrivacySelectorProps> = ({
         onClick={() => setIsOpen((prev) => !prev)}
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[13px] font-medium transition-all ${
           isOpen
-            ? 'bg-[#efefef] text-[#000000] ring-1 ring-[#d5d5d5]'
-            : 'text-[#385898] hover:bg-[#efefef] hover:text-[#000000]'
+            ? 'bg-mist text-ink ring-1 ring-cloud'
+            : 'text-meta hover:bg-mist hover:text-ink'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
-        <span className="shrink-0 text-[#385898]">
+        <span className="shrink-0 text-meta">
           {renderIcon(value, 'w-3.5 h-3.5')}
         </span>
         <span
           data-testid="selected-privacy-label"
-          className="truncate max-w-[200px] sm:max-w-none text-[#385898]"
+          className="truncate max-w-[200px] sm:max-w-none text-meta"
         >
           {currentOption.label} ({currentOption.englishLabel}) có thể trả lời
         </span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-[#385898] transition-transform duration-150 ${
+          className={`w-3.5 h-3.5 text-meta transition-transform duration-150 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -176,14 +176,14 @@ export const ReplyPrivacySelector: React.FC<ReplyPrivacySelectorProps> = ({
           role="menu"
           aria-orientation="vertical"
           aria-label="Tùy chọn ai có thể trả lời"
-          className="absolute left-0 bottom-full mb-2 z-50 w-80 sm:w-88 bg-[#fafafa] border border-[#d5d5d5] rounded-[16px] shadow-2xl p-3 animate-scale-up"
+          className="absolute left-0 bottom-full mb-2 z-50 w-80 sm:w-88 bg-paper border border-cloud rounded-[16px] shadow-2xl p-3 animate-scale-up"
         >
           {/* Header */}
-          <div className="px-2 pt-1 pb-2 border-b border-[#efefef] mb-1.5">
-            <h4 className="text-[14px] font-bold text-[#000000]">
+          <div className="px-2 pt-1 pb-2 border-b border-mist mb-1.5">
+            <h4 className="text-[14px] font-bold text-ink">
               Ai có thể trả lời?
             </h4>
-            <p className="text-[12px] text-[#424242] mt-0.5 leading-snug">
+            <p className="text-[12px] text-graphite mt-0.5 leading-snug">
               Chọn người có thể trả lời bài viết này. Bất kỳ ai được nhắc đến đều luôn có thể trả lời.
             </p>
           </div>
@@ -205,26 +205,26 @@ export const ReplyPrivacySelector: React.FC<ReplyPrivacySelectorProps> = ({
                   onMouseEnter={() => setHighlightedIndex(idx)}
                   className={`w-full flex items-center justify-between p-2.5 rounded-[12px] text-left transition-colors cursor-pointer ${
                     isHighlighted || isSelected
-                      ? 'bg-[#efefef]'
-                      : 'hover:bg-[#efefef]/60'
+                      ? 'bg-mist'
+                      : 'hover:bg-mist/60'
                   }`}
                 >
                   <div className="flex items-start gap-3 min-w-0 pr-2">
                     {/* Option Icon Circle */}
-                    <div className="w-8 h-8 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center shrink-0 text-[#000000] mt-0.5">
-                      {renderIcon(opt.value, 'w-4 h-4 text-[#000000]')}
+                    <div className="w-8 h-8 rounded-full bg-mist border border-cloud flex items-center justify-center shrink-0 text-ink mt-0.5">
+                      {renderIcon(opt.value, 'w-4 h-4 text-ink')}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[14px] font-semibold text-[#000000]">
+                        <span className="text-[14px] font-semibold text-ink">
                           {opt.label}
                         </span>
-                        <span className="text-[12px] text-[#424242]">
+                        <span className="text-[12px] text-graphite">
                           ({opt.englishLabel})
                         </span>
                       </div>
-                      <p className="text-[12px] text-[#424242] leading-tight mt-0.5">
+                      <p className="text-[12px] text-graphite leading-tight mt-0.5">
                         {opt.description}
                       </p>
                     </div>
@@ -234,7 +234,7 @@ export const ReplyPrivacySelector: React.FC<ReplyPrivacySelectorProps> = ({
                   {isSelected && (
                     <div
                       data-testid="privacy-option-selected"
-                      className="shrink-0 text-[#000000] pl-1"
+                      className="shrink-0 text-ink pl-1"
                     >
                       <Check className="w-4 h-4 stroke-[2.5]" />
                     </div>

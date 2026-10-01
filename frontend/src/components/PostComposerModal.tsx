@@ -28,16 +28,16 @@ export const PostComposerModal: React.FC = () => {
         }
       }}
     >
-      <div className="w-full max-w-xl bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-2xl overflow-hidden animate-scale-up">
+      <div className="w-full max-w-xl bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden animate-scale-up">
         {/* Modal Header (~53px tall, Paper White, centered title 15px/600 #000000) */}
-        <div className="flex items-center justify-between h-[53px] px-4 border-b border-[#d5d5d5] bg-[#fafafa]">
+        <div className="flex items-center justify-between h-[53px] px-4 border-b border-cloud bg-paper">
           <div className="w-8" />
-          <span className="text-[15px] font-semibold text-[#000000]">
+          <span className="text-[15px] font-semibold text-ink">
             Bài viết mới
           </span>
           <button
             onClick={() => setIsComposerOpen(false)}
-            className="w-8 h-8 flex items-center justify-center text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 flex items-center justify-center text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />

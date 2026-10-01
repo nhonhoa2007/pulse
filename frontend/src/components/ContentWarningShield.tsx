@@ -40,7 +40,7 @@ export const ContentWarningShield: React.FC<ContentWarningShieldProps> = ({
     <div
       data-testid="content-warning-shield"
       data-state={isRevealed ? 'revealed' : 'collapsed'}
-      className={`relative my-2 rounded-[12px] overflow-hidden border border-[#d5d5d5] bg-[#fafafa] transition-all ${className}`}
+      className={`relative my-2 rounded-[12px] overflow-hidden border border-cloud bg-paper transition-all ${className}`}
       onClick={(e) => {
         // Prevent accidental card navigation when clicking shield banner
         if (!isRevealed) {
@@ -51,13 +51,13 @@ export const ContentWarningShield: React.FC<ContentWarningShieldProps> = ({
       {/* Protective Shield Banner */}
       <div
         data-testid="shield-banner"
-        className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-[#efefef] border-b border-[#d5d5d5]/60 select-none"
+        className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-mist border-b border-cloud/60 select-none"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <EyeOff className="w-4 h-4 text-[#71717a] shrink-0" aria-hidden="true" />
+          <EyeOff className="w-4 h-4 text-ash shrink-0" aria-hidden="true" />
           <span
             data-testid="shield-warning-label"
-            className="text-[13px] font-semibold text-[#424242] truncate"
+            className="text-[13px] font-semibold text-graphite truncate"
           >
             {warningLabel}
           </span>
@@ -67,7 +67,7 @@ export const ContentWarningShield: React.FC<ContentWarningShieldProps> = ({
           type="button"
           data-testid="shield-toggle-button"
           onClick={handleToggle}
-          className="shrink-0 text-[13px] font-semibold text-[#000000] hover:text-[#385898] bg-[#fafafa] hover:bg-white px-3 py-1 rounded-full border border-[#d5d5d5] transition-all focus:outline-none shadow-xs cursor-pointer"
+          className="shrink-0 text-[13px] font-semibold text-ink hover:text-meta bg-paper hover:bg-white px-3 py-1 rounded-full border border-cloud transition-all focus:outline-none shadow-xs cursor-pointer"
         >
           {isRevealed ? 'Ẩn bài viết' : 'Xem bài viết'}
         </button>

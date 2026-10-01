@@ -125,8 +125,8 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
     <div
       onClick={handleCardClick}
       data-testid="federated-user-card"
-      className={`p-4 bg-[#fafafa] hover:bg-[#efefef]/40 transition-colors cursor-pointer ${
-        hideBorder ? '' : 'border-b border-[#d5d5d5]'
+      className={`p-4 bg-paper hover:bg-mist/40 transition-colors cursor-pointer ${
+        hideBorder ? '' : 'border-b border-cloud'
       } ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -137,12 +137,12 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
               src={rawAvatar}
               alt={displayName}
               onError={() => setImgError(true)}
-              className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#d5d5d5]"
+              className="w-10 h-10 rounded-full object-cover shrink-0 border border-cloud"
               data-testid="federated-avatar-img"
             />
           ) : (
             <div
-              className="w-10 h-10 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[#385898] shrink-0"
+              className="w-10 h-10 rounded-full bg-mist border border-cloud flex items-center justify-center text-meta shrink-0"
               data-testid="federated-avatar-fallback"
               title={displayName}
             >
@@ -153,23 +153,23 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
           <div className="min-w-0 flex-1">
             {/* Display name (15px/600) + Fediverse Badge */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[15px] font-semibold text-[#000000] hover:underline truncate">
+              <span className="text-[15px] font-semibold text-ink hover:underline truncate">
                 {displayName}
               </span>
 
               {/* Fediverse decentralized network badge */}
               <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#efefef] text-[#424242] border border-[#d5d5d5] select-none"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-mist text-graphite border border-cloud select-none"
                 data-testid="fediverse-badge"
                 title="Tài khoản liên hợp Fediverse"
               >
-                <Globe className="w-3 h-3 text-[#385898]" />
+                <Globe className="w-3 h-3 text-meta" />
                 <span>Fediverse</span>
               </span>
             </div>
 
             {/* Fediverse Handle dạng @user@domain (Graphite #737373, 13px) */}
-            <div className="flex items-center gap-1 text-[13px] font-normal text-[#737373] mt-0.5">
+            <div className="flex items-center gap-1 text-[13px] font-normal text-ash mt-0.5">
               <span className="truncate" data-testid="federated-handle">
                 {fediverseHandle}
               </span>
@@ -178,7 +178,7 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
             {/* Bio của người dùng từ xa (an toàn XSS, sạch sẽ) */}
             {cleanBio && (
               <p
-                className="text-[14px] text-[#000000] mt-1.5 line-clamp-2 leading-[1.4] break-words"
+                className="text-[14px] text-ink mt-1.5 line-clamp-2 leading-[1.4] break-words"
                 data-testid="federated-bio"
               >
                 {cleanBio}
@@ -186,9 +186,9 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
             )}
 
             {/* Số lượng follower và following & domain tag */}
-            <div className="flex items-center gap-3 text-[13px] text-[#737373] mt-1.5 font-normal flex-wrap">
+            <div className="flex items-center gap-3 text-[13px] text-ash mt-1.5 font-normal flex-wrap">
               <span>
-                <strong className="font-semibold text-[#000000]">
+                <strong className="font-semibold text-ink">
                   {formatCount(followersCount) || '0'}
                 </strong>{' '}
                 người theo dõi
@@ -196,7 +196,7 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
               {followingCount > 0 && (
                 <span>
                   •{' '}
-                  <strong className="font-semibold text-[#000000]">
+                  <strong className="font-semibold text-ink">
                     {formatCount(followingCount)}
                   </strong>{' '}
                   đang theo dõi
@@ -204,7 +204,7 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
               )}
               {domain && (
                 <span>
-                  • trên <span className="font-medium text-[#385898]">{domain}</span>
+                  • trên <span className="font-medium text-meta">{domain}</span>
                 </span>
               )}
             </div>
@@ -216,7 +216,7 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1 text-[12px] text-[#385898] hover:underline mt-1 truncate"
+                className="inline-flex items-center gap-1 text-[12px] text-meta hover:underline mt-1 truncate"
                 title="Xem hồ sơ gốc trên Fediverse"
               >
                 <ExternalLink className="w-3 h-3 shrink-0" />
@@ -235,8 +235,8 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
             data-testid="federated-follow-btn"
             className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all shrink-0 cursor-pointer ${
               isFollowing
-                ? 'border border-[#d5d5d5] bg-[#fafafa] text-[#000000] hover:bg-[#efefef] hover:border-[#969696]'
-                : 'bg-[#000000] hover:bg-[#000000]/85 text-[#fafafa] border border-transparent'
+                ? 'border border-cloud bg-paper text-ink hover:bg-mist hover:border-ash'
+                : 'bg-ink hover:bg-ink/85 text-paper border border-transparent'
             } disabled:opacity-60 flex items-center justify-center min-w-[90px]`}
           >
             {isLoading ? (

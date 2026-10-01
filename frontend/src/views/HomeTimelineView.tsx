@@ -95,17 +95,17 @@ export const HomeTimelineView: React.FC = () => {
   };
 
   return (
-    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-[#fafafa]">
+    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-paper">
       {/* Top Header Bar (~53px tall, background Paper White #fafafa, centered section title in 15px/600 #000000) */}
-      <header className="sticky top-0 z-20 bg-[#fafafa]/95 backdrop-blur-md border-b border-[#d5d5d5]/60">
+      <header className="sticky top-0 z-20 bg-paper/95 backdrop-blur-md border-b border-cloud/60">
         <div className="flex items-center justify-between h-[53px] px-4">
           <div className="w-8">
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-[#969696] hidden sm:inline">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-ash hidden sm:inline">
               Pulse
             </span>
           </div>
 
-          <h1 className="text-[15px] font-semibold text-[#000000] text-center">
+          <h1 className="text-[15px] font-semibold text-ink text-center">
             Trang chủ
           </h1>
 
@@ -113,11 +113,11 @@ export const HomeTimelineView: React.FC = () => {
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="p-1.5 text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors focus:outline-none"
+              className="p-1.5 text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
               title="Tải lại bảng tin"
             >
               <RefreshCw
-                className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#000000]' : ''}`}
+                className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-ink' : ''}`}
               />
             </button>
           </div>
@@ -125,11 +125,11 @@ export const HomeTimelineView: React.FC = () => {
 
         {/* Dual Pill Switcher: Dành cho bạn vs Đang theo dõi (Threads Light Theme) */}
         <div
-          className="py-2.5 px-4 flex items-center justify-center border-t border-[#d5d5d5]/50 bg-[#fafafa]"
+          className="py-2.5 px-4 flex items-center justify-center border-t border-cloud/50 bg-paper"
           data-testid="feed-tab-switcher"
         >
           <div
-            className="inline-flex p-1 bg-[#efefef] rounded-full border border-[#d5d5d5]/60 max-w-sm w-full sm:w-auto"
+            className="inline-flex p-1 bg-mist rounded-full border border-cloud/60 max-w-sm w-full sm:w-auto"
             role="tablist"
             aria-label="Bảng tin"
           >
@@ -141,8 +141,8 @@ export const HomeTimelineView: React.FC = () => {
               onClick={() => setActiveTab('forYou')}
               className={`flex-1 sm:flex-none px-6 py-1.5 rounded-full text-[14px] font-semibold transition-all duration-200 focus:outline-none select-none ${
                 activeTab === 'forYou'
-                  ? 'bg-[#000000] text-[#fafafa] shadow-sm'
-                  : 'text-[#424242] hover:text-[#000000]'
+                  ? 'bg-ink text-paper shadow-sm'
+                  : 'text-graphite hover:text-ink'
               }`}
             >
               Dành cho bạn
@@ -156,8 +156,8 @@ export const HomeTimelineView: React.FC = () => {
               onClick={() => setActiveTab('following')}
               className={`flex-1 sm:flex-none px-6 py-1.5 rounded-full text-[14px] font-semibold transition-all duration-200 focus:outline-none select-none ${
                 activeTab === 'following'
-                  ? 'bg-[#000000] text-[#fafafa] shadow-sm'
-                  : 'text-[#424242] hover:text-[#000000]'
+                  ? 'bg-ink text-paper shadow-sm'
+                  : 'text-graphite hover:text-ink'
               }`}
             >
               Đang theo dõi
@@ -178,48 +178,48 @@ export const HomeTimelineView: React.FC = () => {
 
       {/* Content Feed Section */}
       {isLoading ? (
-        <div className="divide-y divide-[#d5d5d5]">
+        <div className="divide-y divide-cloud">
           {[1, 2, 3, 4].map((n) => (
-            <div key={n} className="p-4 flex gap-3 animate-pulse bg-[#fafafa]">
-              <div className="w-10 h-10 rounded-full bg-[#efefef] shrink-0" />
+            <div key={n} className="p-4 flex gap-3 animate-pulse bg-paper">
+              <div className="w-10 h-10 rounded-full bg-mist shrink-0" />
               <div className="flex-1 space-y-3">
-                <div className="h-4 bg-[#efefef] rounded w-1/3" />
-                <div className="h-3 bg-[#efefef] rounded w-3/4" />
-                <div className="h-3 bg-[#efefef] rounded w-1/2" />
+                <div className="h-4 bg-mist rounded w-1/3" />
+                <div className="h-3 bg-mist rounded w-3/4" />
+                <div className="h-3 bg-mist rounded w-1/2" />
               </div>
             </div>
           ))}
         </div>
       ) : error && posts.length === 0 ? (
         <div className="py-16 px-4 text-center">
-          <AlertCircle className="w-8 h-8 text-[#424242] mx-auto mb-2" />
-          <p className="text-[#000000] font-semibold text-[15px] mb-1">
+          <AlertCircle className="w-8 h-8 text-graphite mx-auto mb-2" />
+          <p className="text-ink font-semibold text-[15px] mb-1">
             Không thể tải bài viết
           </p>
-          <p className="text-[#424242] text-[13px] mb-4">{error}</p>
+          <p className="text-graphite text-[13px] mb-4">{error}</p>
           <button
             onClick={() => fetchFeed()}
-            className="px-4 py-2 bg-[#000000] text-[#fafafa] rounded-full text-[13px] font-semibold hover:bg-[#000000]/85 transition-colors"
+            className="px-4 py-2 bg-ink text-paper rounded-full text-[13px] font-semibold hover:bg-ink/85 transition-colors"
           >
             Thử lại
           </button>
         </div>
       ) : posts.length === 0 ? (
         <div className="py-16 px-4 text-center">
-          <div className="w-12 h-12 rounded-full bg-[#efefef] flex items-center justify-center mx-auto mb-3 text-[#969696]">
+          <div className="w-12 h-12 rounded-full bg-mist flex items-center justify-center mx-auto mb-3 text-ash">
             <Inbox className="w-6 h-6" />
           </div>
-          <p className="text-[#000000] font-semibold text-[15px] mb-1">
+          <p className="text-ink font-semibold text-[15px] mb-1">
             Chưa có bài viết nào
           </p>
-          <p className="text-[#424242] text-[13px] max-w-xs mx-auto mb-4">
+          <p className="text-graphite text-[13px] max-w-xs mx-auto mb-4">
             {activeTab === 'following'
               ? 'Hãy theo dõi thêm người dùng hoặc chuyển sang tab "Dành cho bạn" để khám phá thêm nội dung.'
               : 'Hãy là người đầu tiên đăng bài trên Pulse!'}
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[#d5d5d5]">
+        <div className="divide-y divide-cloud">
           {posts.map((post) => (
             <PostFeedItem
               key={post.id}

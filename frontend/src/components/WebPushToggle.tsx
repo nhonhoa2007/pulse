@@ -84,8 +84,8 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
 
   if (!isSupported) {
     return compact ? null : (
-      <div className={`p-3 bg-[#efefef]/50 rounded-[14px] text-[12px] text-[#969696] flex items-center gap-2 ${className}`}>
-        <AlertCircle className="w-4 h-4 text-[#969696] shrink-0" />
+      <div className={`p-3 bg-mist/50 rounded-[14px] text-[12px] text-ash flex items-center gap-2 ${className}`}>
+        <AlertCircle className="w-4 h-4 text-ash shrink-0" />
         <span>Trình duyệt hiện tại không hỗ trợ thông báo đẩy Web Push.</span>
       </div>
     );
@@ -97,17 +97,17 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
         type="button"
         onClick={handleToggle}
         disabled={isLoading}
-        className={`flex items-center justify-between w-full px-3 py-2 text-[13px] font-medium text-[#000000] hover:bg-[#efefef] rounded-xl transition-colors text-left focus:outline-none ${className}`}
+        className={`flex items-center justify-between w-full px-3 py-2 text-[13px] font-medium text-ink hover:bg-mist rounded-xl transition-colors text-left focus:outline-none ${className}`}
         title={isSubscribed ? 'Tắt thông báo đẩy' : 'Bật thông báo đẩy'}
         data-testid="web-push-compact-toggle"
       >
         <div className="flex items-center gap-2.5">
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin text-[#385898]" />
+            <Loader2 className="w-4 h-4 animate-spin text-meta" />
           ) : isSubscribed ? (
-            <BellRing className="w-4 h-4 text-[#385898]" />
+            <BellRing className="w-4 h-4 text-meta" />
           ) : (
-            <Bell className="w-4 h-4 text-[#424242]" />
+            <Bell className="w-4 h-4 text-graphite" />
           )}
           <span>Thông báo đẩy</span>
         </div>
@@ -116,8 +116,8 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
           <span
             className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
               isSubscribed
-                ? 'bg-[#385898]/10 text-[#385898]'
-                : 'bg-[#efefef] text-[#969696]'
+                ? 'bg-meta/10 text-meta'
+                : 'bg-mist text-ash'
             }`}
           >
             {isSubscribed ? 'BẬT' : 'TẮT'}
@@ -129,19 +129,19 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
 
   return (
     <div
-      className={`p-4 bg-[#efefef]/40 border border-[#d5d5d5] rounded-[16px] transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${className}`}
+      className={`p-4 bg-mist/40 border border-cloud rounded-[16px] transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${className}`}
       data-testid="web-push-prompt-card"
     >
       <div className="flex items-start gap-3">
         <div
           className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
             isSubscribed
-              ? 'bg-[#385898]/10 text-[#385898]'
-              : 'bg-[#efefef] text-[#424242]'
+              ? 'bg-meta/10 text-meta'
+              : 'bg-mist text-graphite'
           }`}
         >
           {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-[#385898]" />
+            <Loader2 className="w-5 h-5 animate-spin text-meta" />
           ) : isSubscribed ? (
             <BellRing className="w-5 h-5 stroke-[2]" />
           ) : (
@@ -151,7 +151,7 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
 
         <div>
           <div className="flex items-center gap-2">
-            <h4 className="text-[14px] font-semibold text-[#000000]">
+            <h4 className="text-[14px] font-semibold text-ink">
               Thông báo đẩy trên trình duyệt
             </h4>
             {permission === 'denied' && (
@@ -160,7 +160,7 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
               </span>
             )}
           </div>
-          <p className="text-[12.5px] text-[#424242] mt-0.5 max-w-md leading-relaxed">
+          <p className="text-[12.5px] text-graphite mt-0.5 max-w-md leading-relaxed">
             Nhận thông báo tức thì về tương tác bài viết, tin nhắn và người theo dõi mới ngay cả khi không mở tab Pulse.
           </p>
         </div>
@@ -174,7 +174,7 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
           onClick={handleToggle}
           disabled={isLoading || permission === 'denied'}
           className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-            isSubscribed ? 'bg-[#000000]' : 'bg-[#d5d5d5]'
+            isSubscribed ? 'bg-ink' : 'bg-cloud'
           } ${isLoading || permission === 'denied' ? 'opacity-50 cursor-not-allowed' : ''}`}
           title={isSubscribed ? 'Tắt thông báo đẩy' : 'Bật thông báo đẩy'}
           data-testid="web-push-switch"

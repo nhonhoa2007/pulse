@@ -5,8 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pulse - The Real-Time Microblogging Engine</title>
+    <script>
+      // PKG-02: chống FOUC — áp theme trước khi React hydrate.
+      (function () {
+        try {
+          var mode = localStorage.getItem('pulse_theme');
+          var dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+          else if (mode === 'black') document.documentElement.classList.add('black');
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-[#fafafa] text-[#000000] min-h-screen antialiased selection:bg-[#385898]/15 selection:text-[#000000]">
+  <body class="bg-paper text-ink min-h-screen antialiased selection:bg-meta/15 selection:text-ink">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -3,14 +3,24 @@
 @tailwind utilities;
 
 :root {
-  /* Colors */
-  --color-ink-black: #000000;
-  --color-paper-white: #fafafa;
-  --color-mist-gray: #efefef;
-  --color-cloud-gray: #d5d5d5;
-  --color-ash-gray: #969696;
-  --color-graphite: #424242;
-  --color-meta-blue: #385898;
+  /* Colors — PKG-02: palette token hoá qua CSS variables (định dạng R G B cho alpha-value) */
+  --c-ink: 0 0 0;
+  --c-canvas: 250 250 250;
+  --c-mist: 239 239 239;
+  --c-cloud: 213 213 213;
+  --c-ash: 150 150 150;
+  --c-graphite: 66 66 66;
+  --c-meta: 56 88 152;
+  --c-card: 255 255 255;
+
+  /* Biến cũ (giữ để tương thích nội bộ css) */
+  --color-ink-black: rgb(var(--c-ink));
+  --color-paper-white: rgb(var(--c-canvas));
+  --color-mist-gray: rgb(var(--c-mist));
+  --color-cloud-gray: rgb(var(--c-cloud));
+  --color-ash-gray: rgb(var(--c-ash));
+  --color-graphite: rgb(var(--c-graphite));
+  --color-meta-blue: rgb(var(--c-meta));
 
   /* Typography — Font Families */
   --font-system-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -62,23 +72,52 @@
   --shadow-md-2: rgba(0, 0, 0, 0.04) 0px 0px 12px 0px;
 
   /* Surfaces */
-  --surface-page-canvas: #fafafa;
-  --surface-backdrop-tint: #efefef;
-  --surface-feed-column: #fafafa;
-  --surface-post-surface: #fafafa;
+  --surface-page-canvas: rgb(var(--c-canvas));
+  --surface-backdrop-tint: rgb(var(--c-mist));
+  --surface-feed-column: rgb(var(--c-canvas));
+  --surface-post-surface: rgb(var(--c-canvas));
+}
+
+/* PKG-02 — Dark theme (#181818 family, chuẩn Threads Dark) */
+html.dark {
+  --c-ink: 247 247 247;
+  --c-canvas: 24 24 24;
+  --c-mist: 38 38 38;
+  --c-cloud: 58 58 58;
+  --c-ash: 115 115 115;
+  --c-graphite: 168 168 168;
+  --c-meta: 109 138 205;
+  --c-card: 32 32 32;
+}
+
+/* PKG-02 — OLED Black theme (#000000 tuyệt đối) */
+html.black {
+  --c-ink: 247 247 247;
+  --c-canvas: 0 0 0;
+  --c-mist: 22 22 22;
+  --c-cloud: 48 48 48;
+  --c-ash: 110 110 110;
+  --c-graphite: 168 168 168;
+  --c-meta: 109 138 205;
+  --c-card: 12 12 12;
 }
 
 @layer base {
   * {
-    border-color: #d5d5d5;
+    border-color: rgb(var(--c-cloud));
   }
   body {
-    background-color: #fafafa;
-    color: #000000;
+    background-color: rgb(var(--c-canvas));
+    color: rgb(var(--c-ink));
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-y: scroll;
+    color-scheme: light;
+  }
+  html.dark body,
+  html.black body {
+    color-scheme: dark;
   }
 }
 
@@ -93,12 +132,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d5d5d5;
+  background: rgb(var(--c-cloud));
   border-radius: 1000px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #969696;
+  background: rgb(var(--c-ash));
 }
 
 /* Custom Keyframe Animations */

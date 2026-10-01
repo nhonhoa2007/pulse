@@ -63,7 +63,7 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
 
   if (isBlocked) {
     return (
-      <div className="p-4 bg-[#efefef]/60 border-t border-[#d5d5d5] flex items-center justify-center gap-2 text-[13px] text-[#424242]">
+      <div className="p-4 bg-mist/60 border-t border-cloud flex items-center justify-center gap-2 text-[13px] text-graphite">
         <Ban className="w-4 h-4 text-red-500 shrink-0" />
         <span>Bạn không thể gửi tin nhắn vì cuộc trò chuyện này đã bị chặn.</span>
       </div>
@@ -74,13 +74,13 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
   const canSend = content.trim().length > 0 && !isSending && !isOverLimit;
 
   return (
-    <div className="p-3 bg-[#fafafa] border-t border-[#d5d5d5]">
+    <div className="p-3 bg-paper border-t border-cloud">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSend();
         }}
-        className="flex items-end gap-2 bg-[#efefef] rounded-[20px] p-1.5 pl-3 border border-transparent focus-within:border-[#385898]/40 focus-within:bg-[#fafafa] transition-all shadow-inner"
+        className="flex items-end gap-2 bg-mist rounded-[20px] p-1.5 pl-3 border border-transparent focus-within:border-meta/40 focus-within:bg-paper transition-all shadow-inner"
       >
         <textarea
           ref={textareaRef}
@@ -91,14 +91,14 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
           disabled={isSending}
           rows={1}
           maxLength={5000}
-          className="flex-1 bg-transparent text-[14.5px] text-[#000000] placeholder-[#969696] resize-none focus:outline-none py-1.5 max-h-[140px] leading-relaxed select-text"
+          className="flex-1 bg-transparent text-[14.5px] text-ink placeholder-ash resize-none focus:outline-none py-1.5 max-h-[140px] leading-relaxed select-text"
         />
 
         {/* Character warning if near limit */}
         {content.length > 4500 && (
           <span
             className={`text-[11px] font-medium px-1 mb-2 ${
-              isOverLimit ? 'text-red-500 font-bold' : 'text-[#969696]'
+              isOverLimit ? 'text-red-500 font-bold' : 'text-ash'
             }`}
           >
             {5000 - content.length}
@@ -110,8 +110,8 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
           disabled={!canSend}
           className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${
             canSend
-              ? 'bg-[#000000] text-[#fafafa] hover:scale-105 active:scale-95 shadow-sm cursor-pointer'
-              : 'bg-[#d5d5d5] text-[#969696] cursor-not-allowed opacity-60'
+              ? 'bg-ink text-paper hover:scale-105 active:scale-95 shadow-sm cursor-pointer'
+              : 'bg-cloud text-ash cursor-not-allowed opacity-60'
           }`}
           title="Gửi tin nhắn (Enter)"
           aria-label="Gửi tin nhắn"

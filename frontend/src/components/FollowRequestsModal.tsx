@@ -143,16 +143,16 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
       aria-modal="true"
       aria-labelledby="follow-requests-title"
     >
-      <div className="w-full max-w-lg bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-[0_0_24px_rgba(0,0,0,0.12)] overflow-hidden animate-scale-up flex flex-col max-h-[85vh]">
+      <div className="w-full max-w-lg bg-paper border border-cloud rounded-[18px] shadow-[0_0_24px_rgba(0,0,0,0.12)] overflow-hidden animate-scale-up flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between h-[53px] px-4 border-b border-[#d5d5d5] bg-[#fafafa] shrink-0">
+        <div className="flex items-center justify-between h-[53px] px-4 border-b border-cloud bg-paper shrink-0">
           <div className="w-8" />
-          <h2 id="follow-requests-title" className="text-[15px] font-semibold text-[#000000]">
+          <h2 id="follow-requests-title" className="text-[15px] font-semibold text-ink">
             Yêu cầu theo dõi
           </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 flex items-center justify-center text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -160,23 +160,23 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
         </div>
 
         {/* List Content */}
-        <div className="flex-1 overflow-y-auto divide-y divide-[#d5d5d5]">
+        <div className="flex-1 overflow-y-auto divide-y divide-cloud">
           {isLoading ? (
-            <div className="py-16 text-center text-[#969696]">
-              <Loader2 className="w-6 h-6 border-2 border-transparent text-[#000000] animate-spin mx-auto mb-2" />
+            <div className="py-16 text-center text-ash">
+              <Loader2 className="w-6 h-6 border-2 border-transparent text-ink animate-spin mx-auto mb-2" />
               <p className="text-[13px]">Đang tải yêu cầu theo dõi...</p>
             </div>
           ) : error ? (
-            <div className="py-16 text-center text-[#424242] px-6">
+            <div className="py-16 text-center text-graphite px-6">
               <p className="text-[13px]">{error}</p>
             </div>
           ) : requests.length === 0 ? (
             <div className="py-16 text-center px-6" data-testid="follow-requests-empty-state">
-              <Users className="w-10 h-10 mx-auto mb-3 text-[#969696]" />
-              <h3 className="text-[15px] font-semibold text-[#000000] mb-1">
+              <Users className="w-10 h-10 mx-auto mb-3 text-ash" />
+              <h3 className="text-[15px] font-semibold text-ink mb-1">
                 Không có yêu cầu theo dõi nào
               </h3>
-              <p className="text-[13px] text-[#424242] max-w-xs mx-auto">
+              <p className="text-[13px] text-graphite max-w-xs mx-auto">
                 Khi người khác gửi yêu cầu theo dõi tài khoản riêng tư của bạn, yêu cầu sẽ xuất hiện ở đây.
               </p>
             </div>
@@ -184,7 +184,7 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
             requests.map((req) => (
               <div
                 key={req.id}
-                className="p-4 flex items-center justify-between gap-3 bg-[#fafafa] hover:bg-[#efefef]/30 transition-colors"
+                className="p-4 flex items-center justify-between gap-3 bg-paper hover:bg-mist/30 transition-colors"
                 data-testid={`follow-request-item-${req.id}`}
               >
                 {/* Requester Profile Info */}
@@ -195,13 +195,13 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
                       `https://api.dicebear.com/7.x/bottts/svg?seed=${req.requester.username}`
                     }
                     alt={req.requester.displayName}
-                    className="w-10 h-10 rounded-full object-cover border border-[#d5d5d5] bg-[#efefef] shrink-0"
+                    className="w-10 h-10 rounded-full object-cover border border-cloud bg-mist shrink-0"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="text-[14px] font-semibold text-[#000000] truncate">
+                    <div className="text-[14px] font-semibold text-ink truncate">
                       {req.requester.displayName}
                     </div>
-                    <div className="text-[12px] text-[#424242] truncate">
+                    <div className="text-[12px] text-graphite truncate">
                       @{req.requester.username} • {formatRelativeTime(req.createdAt)}
                     </div>
                   </div>
@@ -214,7 +214,7 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
                     disabled={processingIds[req.id]}
                     data-testid="accept-follow-request-btn"
                     data-request-id={req.id}
-                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#000000] text-[#fafafa] text-[12px] font-semibold hover:bg-[#000000]/85 transition-colors disabled:opacity-50 focus:outline-none"
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-ink text-paper text-[12px] font-semibold hover:bg-ink/85 transition-colors disabled:opacity-50 focus:outline-none"
                   >
                     {processingIds[req.id] ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -228,7 +228,7 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
                     disabled={processingIds[req.id]}
                     data-testid="reject-follow-request-btn"
                     data-request-id={req.id}
-                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#efefef] border border-[#d5d5d5] hover:bg-[#d5d5d5] text-[#000000] text-[12px] font-semibold transition-colors disabled:opacity-50 focus:outline-none"
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-mist border border-cloud hover:bg-cloud text-ink text-[12px] font-semibold transition-colors disabled:opacity-50 focus:outline-none"
                   >
                     {processingIds[req.id] ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />

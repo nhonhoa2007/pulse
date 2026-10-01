@@ -184,8 +184,8 @@ export function getFederatedCardVisualState(
 
   const followButtonLabel = isFollowing ? 'Đang theo dõi' : 'Theo dõi';
   const followButtonClass = isFollowing
-    ? 'border border-[#d5d5d5] bg-[#fafafa] text-[#000000] hover:bg-[#efefef] hover:border-[#969696]'
-    : 'bg-[#000000] hover:bg-[#000000]/85 text-[#fafafa] border border-transparent';
+    ? 'border border-cloud bg-paper text-ink hover:bg-mist hover:border-ash'
+    : 'bg-ink hover:bg-ink/85 text-paper border border-transparent';
 
   return {
     displayName,

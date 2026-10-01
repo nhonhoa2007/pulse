@@ -140,17 +140,17 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
         }
       }}
     >
-      <div className="w-full max-w-xl bg-[#fafafa] border border-[#d5d5d5] rounded-[18px] shadow-2xl overflow-hidden animate-scale-up">
+      <div className="w-full max-w-xl bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden animate-scale-up">
         {/* Modal Header (~53px tall, Paper White, centered title 15px/600 #000000) */}
-        <div className="flex items-center justify-between h-[53px] px-4 border-b border-[#d5d5d5] bg-[#fafafa]">
+        <div className="flex items-center justify-between h-[53px] px-4 border-b border-cloud bg-paper">
           <div className="w-8" />
-          <span className="text-[15px] font-semibold text-[#000000]">
+          <span className="text-[15px] font-semibold text-ink">
             Trích dẫn bài viết
           </span>
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="w-8 h-8 flex items-center justify-center text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors focus:outline-none"
+            className="w-8 h-8 flex items-center justify-center text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -173,13 +173,13 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
             <div className="flex-1 min-w-0">
               {/* User identification */}
               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-[15px] font-semibold text-[#000000]">
+                <span className="text-[15px] font-semibold text-ink">
                   {currentUser.displayName}
                 </span>
                 {currentUser.isCelebrity && (
                   <VerifiedBadge size={12} title="Celebrity VIP" />
                 )}
-                <span className="text-[13px] text-[#424242]">
+                <span className="text-[13px] text-graphite">
                   @{currentUser.username}
                 </span>
               </div>
@@ -191,7 +191,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                 placeholder="Thêm suy nghĩ của bạn..."
                 autoFocus
                 rows={3}
-                className="w-full bg-transparent text-[#000000] placeholder-[#969696] text-[15px] leading-[1.4] resize-none focus:outline-none focus:ring-0"
+                className="w-full bg-transparent text-ink placeholder-ash text-[15px] leading-[1.4] resize-none focus:outline-none focus:ring-0"
               />
 
               {/* Image Previews if any attached to the quote */}
@@ -200,7 +200,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                   {mediaUrls.map((url, idx) => (
                     <div
                       key={idx}
-                      className="relative rounded-[8px] overflow-hidden border border-[#d5d5d5] w-24 h-24 bg-[#efefef]"
+                      className="relative rounded-[8px] overflow-hidden border border-cloud w-24 h-24 bg-mist"
                     >
                       <img
                         src={url}
@@ -210,7 +210,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveMedia(idx)}
-                        className="absolute top-1 right-1 p-1 bg-[#000000]/75 hover:bg-[#000000] text-white rounded-full transition-colors"
+                        className="absolute top-1 right-1 p-1 bg-ink/75 hover:bg-ink text-white rounded-full transition-colors"
                         title="Xóa ảnh"
                       >
                         <X className="w-3 h-3" />
@@ -221,7 +221,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
               )}
 
               {/* Embedded Quoted Post Preview Card (1px #d5d5d5 border, 8px radius, padding 12px) */}
-              <div className="mt-2 mb-3 p-3 rounded-[8px] border border-[#d5d5d5] bg-[#fafafa] text-[13px]">
+              <div className="mt-2 mb-3 p-3 rounded-[8px] border border-cloud bg-paper text-[13px]">
                 <div className="flex items-center gap-2 mb-1.5">
                   <img
                     src={
@@ -232,23 +232,23 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                     className="w-5 h-5 rounded-full object-cover shrink-0"
                   />
                   <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                    <span className="font-semibold text-[#000000] text-[13px]">
+                    <span className="font-semibold text-ink text-[13px]">
                       {post.author.displayName}
                     </span>
                     {post.author.isCelebrity && (
                       <VerifiedBadge size={11} title="VIP" />
                     )}
-                    <span className="text-[#424242] text-[12px]">
+                    <span className="text-graphite text-[12px]">
                       @{post.author.username}
                     </span>
-                    <span className="text-[#969696] text-[12px]">•</span>
-                    <span className="text-[#424242] text-[12px]">
+                    <span className="text-ash text-[12px]">•</span>
+                    <span className="text-graphite text-[12px]">
                       {formatRelativeTime(post.createdAt)}
                     </span>
                   </div>
                 </div>
 
-                <p className="text-[14px] leading-[1.4] text-[#000000] line-clamp-3 mb-1.5 font-normal">
+                <p className="text-[14px] leading-[1.4] text-ink line-clamp-3 mb-1.5 font-normal">
                   {post.content}
                 </p>
 
@@ -259,11 +259,11 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                         key={mIdx}
                         src={mUrl}
                         alt="Quoted media"
-                        className="w-16 h-16 object-cover rounded-[6px] border border-[#d5d5d5] bg-[#efefef]"
+                        className="w-16 h-16 object-cover rounded-[6px] border border-cloud bg-mist"
                       />
                     ))}
                     {post.mediaUrls.length > 3 && (
-                      <div className="w-16 h-16 rounded-[6px] bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[12px] font-semibold text-[#424242]">
+                      <div className="w-16 h-16 rounded-[6px] bg-mist border border-cloud flex items-center justify-center text-[12px] font-semibold text-graphite">
                         +{post.mediaUrls.length - 3}
                       </div>
                     )}
@@ -281,7 +281,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
               </div>
 
               {/* Bottom Actions Row */}
-              <div className="flex items-center justify-between pt-2 border-t border-[#d5d5d5]/60 mt-2">
+              <div className="flex items-center justify-between pt-2 border-t border-cloud/60 mt-2">
                 <div className="flex items-center gap-2">
                   <input
                     ref={fileInputRef}
@@ -301,7 +301,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                       fileInputRef.current?.click();
                     }}
                     disabled={mediaUrls.length >= 4 || isUploading || isSubmitting}
-                    className="p-1.5 rounded-full text-[#969696] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none disabled:opacity-40"
+                    className="p-1.5 rounded-full text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none disabled:opacity-40"
                     title={
                       mediaUrls.length >= 4
                         ? 'Đã đạt giới hạn 4 ảnh'
@@ -309,13 +309,13 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                     }
                   >
                     {isUploading ? (
-                      <Loader2 className="w-5 h-5 animate-spin text-[#000000]" />
+                      <Loader2 className="w-5 h-5 animate-spin text-ink" />
                     ) : (
                       <ImageIcon className="w-5 h-5" />
                     )}
                   </button>
                   {mediaUrls.length > 0 && (
-                    <span className="text-[12px] text-[#424242]">
+                    <span className="text-[12px] text-graphite">
                       {mediaUrls.length}/4 ảnh
                     </span>
                   )}
@@ -325,7 +325,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                   {/* Character Counter (13px/400 Graphite #424242) */}
                   <span
                     className={`text-[13px] tabular-nums font-normal ${
-                      isOverLimit ? 'text-[#000000] font-bold' : 'text-[#424242]'
+                      isOverLimit ? 'text-ink font-bold' : 'text-graphite'
                     }`}
                   >
                     {remainingChars}
@@ -338,13 +338,13 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                     disabled={isOverLimit || isSubmitting || isUploading}
                     className={`px-5 py-2 rounded-full text-[15px] font-semibold transition-all duration-150 ${
                       !isOverLimit && !isSubmitting && !isUploading
-                        ? 'bg-[#000000] hover:bg-[#000000]/85 text-[#fafafa] cursor-pointer active:scale-95'
-                        : 'bg-[#000000]/20 text-[#fafafa]/60 cursor-not-allowed'
+                        ? 'bg-ink hover:bg-ink/85 text-paper cursor-pointer active:scale-95'
+                        : 'bg-ink/20 text-paper/60 cursor-not-allowed'
                     }`}
                   >
                     {isSubmitting ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-[#fafafa]/40 border-t-[#fafafa] rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-paper/40 border-t-paper rounded-full animate-spin" />
                         <span>Đang đăng...</span>
                       </div>
                     ) : (

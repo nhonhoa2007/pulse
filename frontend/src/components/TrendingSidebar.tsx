@@ -32,16 +32,16 @@ export const TrendingSidebar: React.FC = () => {
   return (
     <aside className="hidden lg:flex flex-col gap-5 w-72 xl:w-80 p-4 sticky top-0 h-screen overflow-y-auto select-none">
       {/* Architecture Highlights Card (border 1px #d5d5d5, radius 8px or 12px) */}
-      <div className="p-4 bg-[#fafafa] border border-[#d5d5d5] rounded-[12px]">
+      <div className="p-4 bg-paper border border-cloud rounded-[12px]">
         <div className="flex items-center justify-between mb-2.5">
-          <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#424242]">
+          <h3 className="text-[12px] font-semibold uppercase tracking-wider text-graphite">
             Kiến trúc hệ thống
           </h3>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#efefef] text-[#424242] font-medium">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-mist text-graphite font-medium">
             Pulse Engine
           </span>
         </div>
-        <p className="text-[12px] text-[#424242] mb-3 leading-normal">
+        <p className="text-[12px] text-graphite mb-3 leading-normal">
           Tối ưu hóa Write Amplification và tính nhất quán với 4 Invariants.
         </p>
 
@@ -51,16 +51,16 @@ export const TrendingSidebar: React.FC = () => {
             return (
               <div
                 key={idx}
-                className="flex items-start gap-2.5 p-2.5 rounded-[8px] bg-[#fafafa] border border-[#d5d5d5] hover:bg-[#efefef]/60 transition-colors"
+                className="flex items-start gap-2.5 p-2.5 rounded-[8px] bg-paper border border-cloud hover:bg-mist/60 transition-colors"
               >
-                <div className="p-1 rounded-full text-[#385898] shrink-0 mt-0.5">
+                <div className="p-1 rounded-full text-meta shrink-0 mt-0.5">
                   <Icon className="w-3.5 h-3.5 stroke-[2]" />
                 </div>
                 <div>
-                  <span className="text-[13px] font-semibold text-[#000000] block">
+                  <span className="text-[13px] font-semibold text-ink block">
                     {inv.title}
                   </span>
-                  <span className="text-[12px] text-[#424242] leading-snug block">
+                  <span className="text-[12px] text-graphite leading-snug block">
                     {inv.desc}
                   </span>
                 </div>
@@ -71,8 +71,8 @@ export const TrendingSidebar: React.FC = () => {
       </div>
 
       {/* Role / Perspective Switcher */}
-      <div className="p-4 bg-[#fafafa] border border-[#d5d5d5] rounded-[12px]">
-        <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#424242] mb-3">
+      <div className="p-4 bg-paper border border-cloud rounded-[12px]">
+        <h3 className="text-[12px] font-semibold uppercase tracking-wider text-graphite mb-3">
           Tài khoản kiểm thử
         </h3>
 
@@ -84,8 +84,8 @@ export const TrendingSidebar: React.FC = () => {
                 key={user.id}
                 className={`flex items-center justify-between p-2 rounded-[8px] border transition-colors ${
                   isActive
-                    ? 'border-[#000000] bg-[#efefef]/50'
-                    : 'border-[#d5d5d5] bg-[#fafafa] hover:bg-[#efefef]/40'
+                    ? 'border-ink bg-mist/50'
+                    : 'border-cloud bg-paper hover:bg-mist/40'
                 }`}
               >
                 <div
@@ -102,27 +102,27 @@ export const TrendingSidebar: React.FC = () => {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1">
-                      <span className="text-[13px] font-semibold text-[#000000] truncate">
+                      <span className="text-[13px] font-semibold text-ink truncate">
                         {user.displayName}
                       </span>
                       {user.isCelebrity && (
                         <VerifiedBadge size={11} title="Celebrity VIP" />
                       )}
                     </div>
-                    <span className="text-[11px] text-[#424242] block truncate">
+                    <span className="text-[11px] text-graphite block truncate">
                       @{user.username}
                     </span>
                   </div>
                 </div>
 
                 {isActive ? (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#000000] text-[#fafafa]">
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-ink text-paper">
                     Đang chọn
                   </span>
                 ) : (
                   <button
                     onClick={() => switchUser(user)}
-                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full border border-[#d5d5d5] hover:border-[#000000] hover:bg-[#efefef] text-[#000000] transition-colors"
+                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full border border-cloud hover:border-ink hover:bg-mist text-ink transition-colors"
                   >
                     Đổi sang
                   </button>
@@ -134,7 +134,7 @@ export const TrendingSidebar: React.FC = () => {
       </div>
 
       {/* Footer Info */}
-      <footer className="px-2 text-[12px] text-[#969696] space-y-1">
+      <footer className="px-2 text-[12px] text-ash space-y-1">
         <div>Pulse Microblogging Engine © 2026</div>
         <div>Newspaper column on frosted glass</div>
       </footer>

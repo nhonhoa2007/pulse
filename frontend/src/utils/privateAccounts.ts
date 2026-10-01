@@ -34,13 +34,13 @@ export function getPrivateAccountShieldInfo(
 export function getFollowButtonClasses(state: FollowButtonState): string {
   switch (state) {
     case 'FOLLOWING':
-      return 'border border-[#d5d5d5] hover:border-[#000000] text-[#000000] hover:bg-[#efefef]';
+      return 'border border-cloud hover:border-ink text-ink hover:bg-mist';
     case 'REQUESTED':
-      return 'border border-[#d5d5d5] hover:border-[#000000] text-[#424242] hover:text-[#000000] hover:bg-[#efefef]';
+      return 'border border-cloud hover:border-ink text-graphite hover:text-ink hover:bg-mist';
     case 'REQUEST_FOLLOW':
     case 'FOLLOW':
     default:
-      return 'bg-[#000000] hover:bg-[#000000]/85 text-[#fafafa]';
+      return 'bg-ink hover:bg-ink/85 text-paper';
   }
 }
 
@@ -56,19 +56,19 @@ export function getFollowRequestNotificationDetails(verb: NotificationDto['verb'
     case 'FOLLOW_REQUEST':
       return {
         text: 'đã gửi yêu cầu theo dõi bạn',
-        badgeColor: 'text-[#385898]',
+        badgeColor: 'text-meta',
         isActionable: true,
       };
     case 'FOLLOW_ACCEPT':
       return {
         text: 'đã chấp nhận yêu cầu theo dõi của bạn',
-        badgeColor: 'text-[#385898]',
+        badgeColor: 'text-meta',
         isActionable: false,
       };
     default:
       return {
         text: 'đã tương tác với bạn',
-        badgeColor: 'text-[#424242]',
+        badgeColor: 'text-graphite',
         isActionable: false,
       };
   }

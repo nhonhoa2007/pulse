@@ -348,7 +348,7 @@ export const ExploreView: React.FC = () => {
       <div
         key={user.id}
         onClick={() => navigateTo('profile', { username: user.username })}
-        className="p-4 border-b border-[#d5d5d5] bg-[#fafafa] hover:bg-[#efefef]/40 transition-colors cursor-pointer"
+        className="p-4 border-b border-cloud bg-paper hover:bg-mist/40 transition-colors cursor-pointer"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -365,7 +365,7 @@ export const ExploreView: React.FC = () => {
             <div className="min-w-0 flex-1">
               {/* Display name (15px/600) + Badge */}
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[15px] font-semibold text-[#000000] hover:underline truncate">
+                <span className="text-[15px] font-semibold text-ink hover:underline truncate">
                   {user.displayName}
                 </span>
                 {user.isCelebrity && (
@@ -374,19 +374,19 @@ export const ExploreView: React.FC = () => {
               </div>
 
               {/* @username (13px/400 Graphite) */}
-              <span className="text-[13px] font-normal text-[#424242] block truncate">
+              <span className="text-[13px] font-normal text-graphite block truncate">
                 @{user.username}
               </span>
 
               {/* Bio */}
               {user.bio && (
-                <p className="text-[14px] text-[#000000] mt-1.5 line-clamp-2 leading-[1.4] break-words">
+                <p className="text-[14px] text-ink mt-1.5 line-clamp-2 leading-[1.4] break-words">
                   {user.bio}
                 </p>
               )}
 
               {/* followersCount */}
-              <div className="text-[13px] text-[#424242] mt-1.5 font-normal">
+              <div className="text-[13px] text-graphite mt-1.5 font-normal">
                 {formatCount(user.followersCount) || '0'} người theo dõi
               </div>
             </div>
@@ -400,8 +400,8 @@ export const ExploreView: React.FC = () => {
               disabled={isLoading}
               className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all shrink-0 cursor-pointer ${
                 isFollowing
-                  ? 'border border-[#d5d5d5] bg-[#fafafa] text-[#000000] hover:bg-[#efefef] hover:border-[#969696]'
-                  : 'bg-[#000000] hover:bg-[#000000]/85 text-[#fafafa] border border-transparent'
+                  ? 'border border-cloud bg-paper text-ink hover:bg-mist hover:border-ash'
+                  : 'bg-ink hover:bg-ink/85 text-paper border border-transparent'
               } disabled:opacity-60`}
             >
               {isLoading ? (
@@ -419,19 +419,19 @@ export const ExploreView: React.FC = () => {
   };
 
   return (
-    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-[#fafafa]">
+    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-paper">
       {/* Live Search Header (~53px, Paper White, sticky top-0) */}
-      <header className="sticky top-0 z-20 bg-[#fafafa]/95 backdrop-blur-md border-b border-[#d5d5d5] px-4 py-2.5">
+      <header className="sticky top-0 z-20 bg-paper/95 backdrop-blur-md border-b border-cloud px-4 py-2.5">
         <div className="relative flex items-center w-full">
           {/* Search icon in Ash Gray #969696 */}
-          <Search className="w-4 h-4 text-[#969696] absolute left-3.5 pointer-events-none" />
+          <Search className="w-4 h-4 text-ash absolute left-3.5 pointer-events-none" />
           <input
             ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm kiếm hoặc nhập @user@domain để khám phá Fediverse..."
-            className="w-full bg-[#efefef] border border-[#d5d5d5] rounded-full pl-10 pr-9 py-2 text-[15px] text-[#000000] placeholder-[#969696] focus:outline-none focus:bg-[#fafafa] focus:border-[#000000] transition-colors"
+            className="w-full bg-mist border border-cloud rounded-full pl-10 pr-9 py-2 text-[15px] text-ink placeholder-ash focus:outline-none focus:bg-paper focus:border-ink transition-colors"
           />
           {searchQuery && (
             <button
@@ -445,7 +445,7 @@ export const ExploreView: React.FC = () => {
                 setResolvedHandle(null);
                 searchInputRef.current?.focus();
               }}
-              className="absolute right-3 p-1 text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#d5d5d5]/50 transition-colors"
+              className="absolute right-3 p-1 text-ash hover:text-ink rounded-full hover:bg-cloud/50 transition-colors"
               title="Xóa tìm kiếm"
             >
               <X className="w-3.5 h-3.5" />
@@ -457,26 +457,26 @@ export const ExploreView: React.FC = () => {
       {/* Fediverse Remote Discovery Suggestion Banner (shown when input matches @user@domain pattern) */}
       {fediverseTarget && (
         <div
-          className="p-3.5 mx-4 my-3 rounded-xl border border-[#d5d5d5] bg-[#fafafa] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+          className="p-3.5 mx-4 my-3 rounded-xl border border-cloud bg-paper shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
           data-testid="fediverse-discovery-banner"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[#385898] shrink-0">
+            <div className="w-9 h-9 rounded-full bg-mist border border-cloud flex items-center justify-center text-meta shrink-0">
               <Globe className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[12px] font-semibold uppercase tracking-wider text-[#424242]">
+                <span className="text-[12px] font-semibold uppercase tracking-wider text-graphite">
                   Fediverse Remote Discovery
                 </span>
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#385898]/10 text-[#385898] border border-[#385898]/20">
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-meta/10 text-meta border border-meta/20">
                   Mạng liên hợp
                 </span>
               </div>
-              <p className="text-[14px] text-[#000000] mt-0.5 truncate">
+              <p className="text-[14px] text-ink mt-0.5 truncate">
                 Khám phá tài khoản từ xa trên Fediverse:{' '}
                 <strong
-                  className="font-semibold text-[#385898]"
+                  className="font-semibold text-meta"
                   data-testid="fediverse-suggest-handle"
                 >
                   {fediverseTarget.normalizedHandle}
@@ -488,7 +488,7 @@ export const ExploreView: React.FC = () => {
             type="button"
             onClick={() => handleResolveRemote(fediverseTarget.normalizedHandle)}
             disabled={isResolvingRemote}
-            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-[#000000] hover:bg-[#000000]/85 text-[#fafafa] border border-transparent disabled:opacity-60 transition-all shrink-0 flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-ink hover:bg-ink/85 text-paper border border-transparent disabled:opacity-60 transition-all shrink-0 flex items-center gap-1.5 cursor-pointer"
             data-testid="fediverse-discover-btn"
           >
             {isResolvingRemote ? (
@@ -508,14 +508,14 @@ export const ExploreView: React.FC = () => {
 
       {/* Trending Section (only when search query is empty) */}
       {!hasSearchText && (
-        <div className="p-4 border-b border-[#d5d5d5] bg-[#fafafa]">
+        <div className="p-4 border-b border-cloud bg-paper">
           <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-[#424242]">
-              <TrendingUp className="w-3.5 h-3.5 text-[#385898]" />
+            <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-graphite">
+              <TrendingUp className="w-3.5 h-3.5 text-meta" />
               <span>Chủ đề thịnh hành</span>
             </div>
             {isTrendingLoading && (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#969696]" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-ash" />
             )}
           </div>
 
@@ -534,22 +534,22 @@ export const ExploreView: React.FC = () => {
                   }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[#000000] bg-[#000000] text-[#fafafa]'
-                      : 'border-[#d5d5d5] bg-[#fafafa] text-[#000000] hover:bg-[#efefef] hover:border-[#969696]'
+                      ? 'border-ink bg-ink text-paper'
+                      : 'border-cloud bg-paper text-ink hover:bg-mist hover:border-ash'
                   }`}
                 >
                   <span
                     className={
                       isSelected
-                        ? 'text-[#fafafa] font-semibold'
-                        : 'text-[#385898] font-semibold'
+                        ? 'text-paper font-semibold'
+                        : 'text-meta font-semibold'
                     }
                   >
                     #{item.tag}
                   </span>
                   <span
                     className={`text-[11px] ${
-                      isSelected ? 'text-[#fafafa]/80' : 'text-[#424242]'
+                      isSelected ? 'text-paper/80' : 'text-graphite'
                     }`}
                   >
                     {item.postsCount} bài viết
@@ -563,7 +563,7 @@ export const ExploreView: React.FC = () => {
 
       {/* Result Tabs (when searching): "Tất cả" (All), "Bài viết" (Posts), "Người dùng" (Users) */}
       {hasSearchText && (
-        <div className="flex border-b border-[#d5d5d5] bg-[#fafafa] sticky top-[53px] z-10">
+        <div className="flex border-b border-cloud bg-paper sticky top-[53px] z-10">
           {[
             { key: 'all', label: 'Tất cả' },
             { key: 'posts', label: 'Bài viết' },
@@ -576,12 +576,12 @@ export const ExploreView: React.FC = () => {
                 type="button"
                 onClick={() => setActiveTab(tab.key as 'all' | 'posts' | 'users')}
                 className={`flex-1 py-3 text-[14px] font-semibold transition-colors relative text-center cursor-pointer ${
-                  isActive ? 'text-[#000000]' : 'text-[#969696] hover:text-[#000000]'
+                  isActive ? 'text-ink' : 'text-ash hover:text-ink'
                 }`}
               >
                 <span>{tab.label}</span>
                 {isActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#000000]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-ink" />
                 )}
               </button>
             );
@@ -592,17 +592,17 @@ export const ExploreView: React.FC = () => {
       {/* Remote Resolution Loading Indicator (when resolving fediverse actor) */}
       {isResolvingRemote && (
         <div
-          className="p-8 text-center flex flex-col items-center justify-center gap-3 bg-[#fafafa] border-b border-[#d5d5d5]"
+          className="p-8 text-center flex flex-col items-center justify-center gap-3 bg-paper border-b border-cloud"
           data-testid="fediverse-loading-skeleton"
         >
-          <div className="w-12 h-12 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[#385898] animate-pulse">
+          <div className="w-12 h-12 rounded-full bg-mist border border-cloud flex items-center justify-center text-meta animate-pulse">
             <Globe className="w-6 h-6 animate-spin" style={{ animationDuration: '3s' }} />
           </div>
           <div>
-            <p className="text-[15px] font-semibold text-[#000000]">
+            <p className="text-[15px] font-semibold text-ink">
               Đang tìm kiếm tài khoản từ xa trên Fediverse...
             </p>
-            <p className="text-[13px] text-[#737373] mt-0.5">
+            <p className="text-[13px] text-ash mt-0.5">
               Đang kết nối WebFinger và phân giải hồ sơ ActivityPub từ máy chủ từ xa
             </p>
           </div>
@@ -612,17 +612,17 @@ export const ExploreView: React.FC = () => {
       {/* Remote Resolution Friendly Error Notice (if server unreachable or handle not found) */}
       {federatedError && !isResolvingRemote && (
         <div
-          className="p-4 mx-4 my-3 rounded-xl border border-[#d5d5d5] bg-[#fafafa] flex items-start gap-3 shadow-sm"
+          className="p-4 mx-4 my-3 rounded-xl border border-cloud bg-paper flex items-start gap-3 shadow-sm"
           data-testid="fediverse-error-state"
         >
-          <div className="w-9 h-9 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[#424242] shrink-0 mt-0.5">
-            <Globe className="w-5 h-5 text-[#737373]" />
+          <div className="w-9 h-9 rounded-full bg-mist border border-cloud flex items-center justify-center text-graphite shrink-0 mt-0.5">
+            <Globe className="w-5 h-5 text-ash" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-semibold text-[#000000]">
+            <p className="text-[14px] font-semibold text-ink">
               Không thể phân giải tài khoản từ xa
             </p>
-            <p className="text-[13px] text-[#737373] mt-0.5 leading-relaxed">
+            <p className="text-[13px] text-ash mt-0.5 leading-relaxed">
               {federatedError}
             </p>
           </div>
@@ -631,7 +631,7 @@ export const ExploreView: React.FC = () => {
               type="button"
               onClick={() => handleResolveRemote(fediverseTarget.normalizedHandle)}
               disabled={isResolvingRemote}
-              className="px-3 py-1.5 text-[12px] font-semibold text-[#000000] border border-[#d5d5d5] rounded-full hover:bg-[#efefef] transition-colors shrink-0 disabled:opacity-60 cursor-pointer"
+              className="px-3 py-1.5 text-[12px] font-semibold text-ink border border-cloud rounded-full hover:bg-mist transition-colors shrink-0 disabled:opacity-60 cursor-pointer"
               data-testid="fediverse-retry-btn"
             >
               Thử lại
@@ -645,8 +645,8 @@ export const ExploreView: React.FC = () => {
         <div>
           {isSearching && !federatedUser ? (
             <div className="p-12 text-center flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#000000]" />
-              <span className="text-[13px] text-[#969696]">Đang tìm kiếm...</span>
+              <Loader2 className="w-6 h-6 animate-spin text-ink" />
+              <span className="text-[13px] text-ash">Đang tìm kiếm...</span>
             </div>
           ) : (
             <div>
@@ -656,15 +656,15 @@ export const ExploreView: React.FC = () => {
                   {/* Dedicated Remote Federated Account Section */}
                   {(federatedUser || federatedActor) && (
                     <div
-                      className="border-b border-[#d5d5d5] bg-[#fafafa]"
+                      className="border-b border-cloud bg-paper"
                       data-testid="fediverse-search-section"
                     >
-                      <div className="flex items-center justify-between px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-[#424242]">
+                      <div className="flex items-center justify-between px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-graphite">
                         <div className="flex items-center gap-1.5">
-                          <Globe className="w-3.5 h-3.5 text-[#385898]" />
+                          <Globe className="w-3.5 h-3.5 text-meta" />
                           <span>Tài khoản từ xa trên Fediverse</span>
                         </div>
-                        <span className="text-[11px] font-medium text-[#737373] normal-case">
+                        <span className="text-[11px] font-medium text-ash normal-case">
                           Khám phá liên hợp
                         </span>
                       </div>
@@ -678,8 +678,8 @@ export const ExploreView: React.FC = () => {
 
                   {/* Matching Users Preview if any */}
                   {nonFederatedUserResults.length > 0 && (
-                    <div className="border-b border-[#d5d5d5] bg-[#fafafa]">
-                      <div className="flex items-center justify-between px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-[#424242]">
+                    <div className="border-b border-cloud bg-paper">
+                      <div className="flex items-center justify-between px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-graphite">
                         <div className="flex items-center gap-1.5">
                           <Users className="w-3.5 h-3.5" />
                           <span>Người dùng ({nonFederatedUserResults.length})</span>
@@ -688,13 +688,13 @@ export const ExploreView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setActiveTab('users')}
-                            className="text-[12px] font-medium text-[#385898] hover:underline flex items-center gap-1 normal-case"
+                            className="text-[12px] font-medium text-meta hover:underline flex items-center gap-1 normal-case"
                           >
                             Xem tất cả <ArrowRight className="w-3 h-3" />
                           </button>
                         )}
                       </div>
-                      <div className="divide-y divide-[#d5d5d5]/60">
+                      <div className="divide-y divide-cloud/60">
                         {nonFederatedUserResults.slice(0, 3).map(renderUserCard)}
                       </div>
                     </div>
@@ -704,7 +704,7 @@ export const ExploreView: React.FC = () => {
                   {postResults.length > 0 && (
                     <div>
                       {(nonFederatedUserResults.length > 0 || federatedUser) && (
-                        <div className="px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-[#424242] border-b border-[#d5d5d5]">
+                        <div className="px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-graphite border-b border-cloud">
                           Bài viết ({postResults.length})
                         </div>
                       )}
@@ -728,13 +728,13 @@ export const ExploreView: React.FC = () => {
                     !isResolvingRemote &&
                     !federatedError && (
                       <div className="p-12 text-center flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-[#efefef] flex items-center justify-center text-[#969696] mb-3">
+                        <div className="w-12 h-12 rounded-full bg-mist flex items-center justify-center text-ash mb-3">
                           <Search className="w-6 h-6" />
                         </div>
-                        <p className="text-[15px] font-semibold text-[#000000] mb-1">
+                        <p className="text-[15px] font-semibold text-ink mb-1">
                           Không tìm thấy kết quả cho "{debouncedQuery}"
                         </p>
-                        <p className="text-[13px] text-[#969696] max-w-sm">
+                        <p className="text-[13px] text-ash max-w-sm">
                           Hãy thử tìm kiếm với từ khóa khác, tìm theo hashtag #{debouncedQuery.replace(/^[@#]/, '')} hoặc nhập @user@domain để khám phá Fediverse.
                         </p>
                       </div>
@@ -755,13 +755,13 @@ export const ExploreView: React.FC = () => {
                     ))
                   ) : (
                     <div className="p-12 text-center flex flex-col items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-[#efefef] flex items-center justify-center text-[#969696] mb-3">
+                      <div className="w-12 h-12 rounded-full bg-mist flex items-center justify-center text-ash mb-3">
                         <Search className="w-6 h-6" />
                       </div>
-                      <p className="text-[15px] font-semibold text-[#000000] mb-1">
+                      <p className="text-[15px] font-semibold text-ink mb-1">
                         Không tìm thấy bài viết nào cho "{debouncedQuery}"
                       </p>
-                      <p className="text-[13px] text-[#969696]">
+                      <p className="text-[13px] text-ash">
                         Hãy thử tìm kiếm với các từ khóa hoặc chủ đề khác.
                       </p>
                     </div>
@@ -775,11 +775,11 @@ export const ExploreView: React.FC = () => {
                   {/* Remote Federated Account at the top of Users tab */}
                   {(federatedUser || federatedActor) && (
                     <div
-                      className="border-b border-[#d5d5d5] bg-[#fafafa]"
+                      className="border-b border-cloud bg-paper"
                       data-testid="fediverse-user-tab-item"
                     >
-                      <div className="px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-[#424242] flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-[#385898]" />
+                      <div className="px-4 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wider text-graphite flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-meta" />
                         <span>Tài khoản Fediverse từ xa</span>
                       </div>
                       <FederatedUserCard
@@ -795,13 +795,13 @@ export const ExploreView: React.FC = () => {
                     nonFederatedUserResults.map(renderUserCard)
                   ) : !federatedUser && !federatedActor && !isResolvingRemote && !federatedError ? (
                     <div className="p-12 text-center flex flex-col items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-[#efefef] flex items-center justify-center text-[#969696] mb-3">
+                      <div className="w-12 h-12 rounded-full bg-mist flex items-center justify-center text-ash mb-3">
                         <Users className="w-6 h-6" />
                       </div>
-                      <p className="text-[15px] font-semibold text-[#000000] mb-1">
+                      <p className="text-[15px] font-semibold text-ink mb-1">
                         Không tìm thấy người dùng nào cho "{debouncedQuery}"
                       </p>
-                      <p className="text-[13px] text-[#969696]">
+                      <p className="text-[13px] text-ash">
                         Hãy kiểm tra lại tên tài khoản hoặc nhập @user@domain để khám phá máy chủ liên hợp.
                       </p>
                     </div>
@@ -814,17 +814,17 @@ export const ExploreView: React.FC = () => {
       ) : (
         /* Empty State when no query is typed: "Khám phá các chủ đề thịnh hành hôm nay" */
         <div>
-          <div className="px-4 py-3 bg-[#fafafa] border-b border-[#d5d5d5] text-[12px] font-semibold uppercase tracking-wider text-[#424242]">
+          <div className="px-4 py-3 bg-paper border-b border-cloud text-[12px] font-semibold uppercase tracking-wider text-graphite">
             Khám phá các chủ đề thịnh hành hôm nay
           </div>
 
           {isExploreLoading ? (
             <div className="p-12 text-center flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#000000]" />
-              <span className="text-[13px] text-[#969696]">Đang tải nội dung khám phá...</span>
+              <Loader2 className="w-6 h-6 animate-spin text-ink" />
+              <span className="text-[13px] text-ash">Đang tải nội dung khám phá...</span>
             </div>
           ) : explorePosts.length === 0 ? (
-            <div className="p-12 text-center text-[#969696] text-[13px]">
+            <div className="p-12 text-center text-ash text-[13px]">
               Chưa có bài viết khám phá nào hôm nay. Hãy bắt đầu theo dõi chủ đề bạn thích!
             </div>
           ) : (

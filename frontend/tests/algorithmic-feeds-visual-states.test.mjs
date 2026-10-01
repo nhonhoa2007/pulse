@@ -101,24 +101,24 @@ describe('TASK-20: Frontend Algorithmic Feeds & Group Real-Time Comms Visual Sta
     const getTabVisualClasses = (isActive) => {
       return {
         tabClass: isActive
-          ? 'bg-[#000000] text-[#fafafa] shadow-sm'
-          : 'text-[#424242] hover:text-[#000000]',
+          ? 'bg-ink text-paper shadow-sm'
+          : 'text-graphite hover:text-ink',
         ariaSelected: isActive,
       };
     };
 
     it('evaluates active state classes for "Dành cho bạn" tab matching Threads Light Theme', () => {
       const activeForYou = getTabVisualClasses(true);
-      assert.match(activeForYou.tabClass, /bg-\[#000000\]/);
-      assert.match(activeForYou.tabClass, /text-\[#fafafa\]/);
+      assert.match(activeForYou.tabClass, /bg-ink/);
+      assert.match(activeForYou.tabClass, /text-paper/);
       assert.match(activeForYou.tabClass, /shadow-sm/);
       assert.strictEqual(activeForYou.ariaSelected, true);
     });
 
     it('evaluates inactive state classes for "Đang theo dõi" tab', () => {
       const inactiveFollowing = getTabVisualClasses(false);
-      assert.match(inactiveFollowing.tabClass, /text-\[#424242\]/);
-      assert.match(inactiveFollowing.tabClass, /hover:text-\[#000000\]/);
+      assert.match(inactiveFollowing.tabClass, /text-graphite/);
+      assert.match(inactiveFollowing.tabClass, /hover:text-ink/);
       assert.strictEqual(inactiveFollowing.ariaSelected, false);
     });
 
@@ -204,7 +204,7 @@ describe('TASK-20: Frontend Algorithmic Feeds & Group Real-Time Comms Visual Sta
         isFormValid,
         canSubmit: isFormValid && !isSubmitting,
         submitButtonClass: isFormValid && !isSubmitting
-          ? 'bg-[#000000] text-[#fafafa] hover:bg-[#262626] cursor-pointer'
+          ? 'bg-ink text-paper hover:bg-[#262626] cursor-pointer'
           : 'bg-[#e5e5e5] text-[#a3a3a3] cursor-not-allowed',
         validationError,
       };
@@ -256,7 +256,7 @@ describe('TASK-20: Frontend Algorithmic Feeds & Group Real-Time Comms Visual Sta
 
       assert.strictEqual(state.isFormValid, true);
       assert.strictEqual(state.canSubmit, true);
-      assert.match(state.submitButtonClass, /bg-\[#000000\]/);
+      assert.match(state.submitButtonClass, /bg-ink/);
       assert.strictEqual(state.validationError, null);
     });
 
@@ -282,8 +282,8 @@ describe('TASK-20: Frontend Algorithmic Feeds & Group Real-Time Comms Visual Sta
       return {
         isOwn,
         bubbleClass: isOwn
-          ? 'bg-[#000000] text-[#ffffff] rounded-2xl rounded-tr-sm ml-auto'
-          : 'bg-[#f0f0f0] text-[#000000] rounded-2xl rounded-tl-sm mr-auto',
+          ? 'bg-ink text-card rounded-2xl rounded-tr-sm ml-auto'
+          : 'bg-[#f0f0f0] text-ink rounded-2xl rounded-tl-sm mr-auto',
         senderLabel: isOwn ? null : message.sender?.displayName || 'Thành viên',
         renderedContent: isDeleted ? 'Tin nhắn đã bị xóa' : message.content,
         isContentMasked: isDeleted,
@@ -302,7 +302,7 @@ describe('TASK-20: Frontend Algorithmic Feeds & Group Real-Time Comms Visual Sta
 
       const bubble = evaluateMessageBubbleVisualState(msg, 'user-alice');
       assert.strictEqual(bubble.isOwn, true);
-      assert.match(bubble.bubbleClass, /bg-\[#000000\]/);
+      assert.match(bubble.bubbleClass, /bg-ink/);
       assert.match(bubble.bubbleClass, /ml-auto/);
       assert.strictEqual(bubble.senderLabel, null);
       assert.strictEqual(bubble.renderedContent, 'Hi everyone, ready for deployment?');
@@ -359,7 +359,7 @@ describe('TASK-20: Frontend Algorithmic Feeds & Group Real-Time Comms Visual Sta
         canLeave: isTargetSelf,
         badgeLabel: targetMember.role === 'ADMIN' ? 'Quản trị viên' : 'Thành viên',
         badgeClass: targetMember.role === 'ADMIN'
-          ? 'bg-[#000000] text-[#fafafa]'
+          ? 'bg-ink text-paper'
           : 'bg-[#f0f0f0] text-[#525252]',
       };
     };
@@ -389,7 +389,7 @@ describe('TASK-20: Frontend Algorithmic Feeds & Group Real-Time Comms Visual Sta
       assert.strictEqual(actions.canKick, false, 'Admin cannot kick themselves');
       assert.strictEqual(actions.canLeave, true);
       assert.strictEqual(actions.badgeLabel, 'Quản trị viên');
-      assert.match(actions.badgeClass, /bg-\[#000000\]/);
+      assert.match(actions.badgeClass, /bg-ink/);
     });
 
     it('hides Kick button completely when current user is a regular Member', () => {

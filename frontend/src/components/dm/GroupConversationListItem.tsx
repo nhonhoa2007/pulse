@@ -22,7 +22,7 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
   const renderLastMessagePreview = () => {
     if (!lastMessage) {
       return (
-        <span className="text-[#969696] italic text-[13px]">
+        <span className="text-ash italic text-[13px]">
           Chưa có tin nhắn nào trong nhóm
         </span>
       );
@@ -30,7 +30,7 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
 
     if (lastMessage.isDeleted) {
       return (
-        <span className="text-[#969696] italic text-[13px]">
+        <span className="text-ash italic text-[13px]">
           {isLastMessageFromMe ? 'Bạn: ' : ''}Tin nhắn đã bị xóa
         </span>
       );
@@ -47,10 +47,10 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
     return (
       <span
         className={`text-[13px] truncate ${
-          unreadCount > 0 ? 'text-[#000000] font-semibold' : 'text-[#424242]'
+          unreadCount > 0 ? 'text-ink font-semibold' : 'text-graphite'
         }`}
       >
-        <span className="text-[#737373]">{senderName}: </span>
+        <span className="text-ash">{senderName}: </span>
         {content}
       </span>
     );
@@ -64,8 +64,8 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
       onClick={onClick}
       className={`w-full flex items-center gap-3 p-3 text-left transition-all rounded-[14px] focus:outline-none select-none ${
         isSelected
-          ? 'bg-[#efefef] text-[#000000] shadow-sm'
-          : 'hover:bg-[#efefef]/60 text-[#000000]'
+          ? 'bg-mist text-ink shadow-sm'
+          : 'hover:bg-mist/60 text-ink'
       }`}
       aria-selected={isSelected}
       data-testid="group-conversation-item"
@@ -77,20 +77,20 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
           <img
             src={avatarUrl}
             alt={title}
-            className="w-12 h-12 rounded-full object-cover border border-[#d5d5d5] bg-[#fafafa]"
+            className="w-12 h-12 rounded-full object-cover border border-cloud bg-paper"
             onError={(e) => {
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
         ) : (
-          <div className="w-12 h-12 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[#424242]">
+          <div className="w-12 h-12 rounded-full bg-mist border border-cloud flex items-center justify-center text-graphite">
             <Users className="w-6 h-6 stroke-[1.8]" />
           </div>
         )}
 
         {unreadCount > 0 && (
           <span
-            className="absolute top-0 right-0 w-3 h-3 rounded-full bg-[#385898] border-2 border-[#fafafa]"
+            className="absolute top-0 right-0 w-3 h-3 rounded-full bg-meta border-2 border-paper"
             title={`${unreadCount} tin nhắn chưa đọc`}
           />
         )}
@@ -102,17 +102,17 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
           <div className="flex items-center gap-1.5 min-w-0">
             <span
               className={`text-[14px] truncate ${
-                unreadCount > 0 ? 'font-bold text-[#000000]' : 'font-semibold text-[#000000]'
+                unreadCount > 0 ? 'font-bold text-ink' : 'font-semibold text-ink'
               }`}
             >
               {title}
             </span>
-            <span className="text-[11px] text-[#737373] shrink-0 px-1.5 py-0.2 bg-[#efefef] rounded-full border border-[#d5d5d5]/60">
+            <span className="text-[11px] text-ash shrink-0 px-1.5 py-0.2 bg-mist rounded-full border border-cloud/60">
               {memberCount} thành viên
             </span>
           </div>
 
-          <span className="text-[11px] text-[#969696] shrink-0 font-normal">
+          <span className="text-[11px] text-ash shrink-0 font-normal">
             {formatRelativeTime(updatedAt)}
           </span>
         </div>
@@ -121,7 +121,7 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
           <div className="flex-1 min-w-0 truncate">{renderLastMessagePreview()}</div>
 
           {unreadCount > 0 && (
-            <span className="shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-[#385898] text-white text-[11px] font-bold flex items-center justify-center">
+            <span className="shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-meta text-white text-[11px] font-bold flex items-center justify-center">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}

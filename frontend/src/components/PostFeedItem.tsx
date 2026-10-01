@@ -293,7 +293,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
 
     if (count === 1) {
       return (
-        <div className="mb-2.5 overflow-hidden rounded-[8px] border border-[#d5d5d5] bg-[#efefef]">
+        <div className="mb-2.5 overflow-hidden rounded-[8px] border border-cloud bg-mist">
           <img
             src={urls[0]}
             alt="Post media"
@@ -316,7 +316,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
           {urls.slice(0, 2).map((url, idx) => (
             <div
               key={idx}
-              className="overflow-hidden rounded-[8px] border border-[#d5d5d5] aspect-[4/3] bg-[#efefef]"
+              className="overflow-hidden rounded-[8px] border border-cloud aspect-[4/3] bg-mist"
             >
               <img
                 src={url}
@@ -340,7 +340,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
       return (
         <div className="grid grid-cols-2 gap-2 mb-2.5 h-[320px]">
           {/* Left 1 big image */}
-          <div className="overflow-hidden rounded-[8px] border border-[#d5d5d5] h-full bg-[#efefef]">
+          <div className="overflow-hidden rounded-[8px] border border-cloud h-full bg-mist">
             <img
               src={urls[0]}
               alt="Post media 1"
@@ -359,7 +359,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             {urls.slice(1, 3).map((url, idx) => (
               <div
                 key={idx}
-                className="overflow-hidden rounded-[8px] border border-[#d5d5d5] h-full bg-[#efefef]"
+                className="overflow-hidden rounded-[8px] border border-cloud h-full bg-mist"
               >
                 <img
                   src={url}
@@ -386,7 +386,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
         {urls.slice(0, 4).map((url, idx) => (
           <div
             key={idx}
-            className="relative overflow-hidden rounded-[8px] border border-[#d5d5d5] aspect-[4/3] bg-[#efefef]"
+            className="relative overflow-hidden rounded-[8px] border border-cloud aspect-[4/3] bg-mist"
           >
             <img
               src={url}
@@ -402,7 +402,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             />
             {idx === 3 && urls.length > 4 && (
               <div
-                className="absolute inset-0 bg-black/50 flex items-center justify-center text-[#fafafa] font-semibold text-[16px] cursor-pointer"
+                className="absolute inset-0 bg-black/50 flex items-center justify-center text-paper font-semibold text-[16px] cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(url, '_blank');
@@ -427,16 +427,16 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
         }}
         data-post-id={post.id}
         onClick={handleCardClick}
-        className={`group relative flex gap-3 p-4 border-b border-[#d5d5d5] bg-[#fafafa] hover:bg-[#efefef]/40 transition-colors cursor-pointer select-text ${
+        className={`group relative flex gap-3 p-4 border-b border-cloud bg-paper hover:bg-mist/40 transition-colors cursor-pointer select-text ${
           isThreadChild ? 'pl-8' : ''
         }`}
       >
         {/* Thread connecting line for hierarchical replies */}
         {isThreadParent && (
-          <div className="absolute left-[36px] top-14 bottom-0 w-[1.5px] bg-[#d5d5d5] z-0" />
+          <div className="absolute left-[36px] top-14 bottom-0 w-[1.5px] bg-cloud z-0" />
         )}
         {isThreadChild && (
-          <div className="absolute left-[20px] -top-3 bottom-8 w-[1.5px] bg-[#d5d5d5] z-0" />
+          <div className="absolute left-[20px] -top-3 bottom-8 w-[1.5px] bg-cloud z-0" />
         )}
 
         {/* Avatar Column (40px circular avatar, no border) */}
@@ -462,9 +462,9 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
           {post.isPinned && (
             <div
               data-testid="pinned-post-badge"
-              className="flex items-center gap-1.5 text-[12px] font-semibold text-[#71717a] mb-1 pl-0.5"
+              className="flex items-center gap-1.5 text-[12px] font-semibold text-ash mb-1 pl-0.5"
             >
-              <Pin className="w-3.5 h-3.5 rotate-45 text-[#71717a]" />
+              <Pin className="w-3.5 h-3.5 rotate-45 text-ash" />
               <span>Bài viết đã ghim</span>
             </div>
           )}
@@ -474,7 +474,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
               <button
                 onClick={handleAuthorClick}
-                className="text-[15px] font-semibold text-[#000000] hover:underline truncate"
+                className="text-[15px] font-semibold text-ink hover:underline truncate"
               >
                 {post.author.displayName}
               </button>
@@ -483,15 +483,15 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                 <VerifiedBadge size={12} title="Tài khoản đã xác minh (KOL VIP)" />
               )}
 
-              <span className="text-[13px] text-[#424242] truncate">
+              <span className="text-[13px] text-graphite truncate">
                 @{post.author.username}
               </span>
 
-              <span className="text-[#969696] text-[13px]">•</span>
+              <span className="text-ash text-[13px]">•</span>
 
               <time
                 dateTime={post.createdAt}
-                className="text-[13px] text-[#424242] hover:underline"
+                className="text-[13px] text-graphite hover:underline"
               >
                 {formatRelativeTime(post.createdAt)}
               </time>
@@ -505,7 +505,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                     e.stopPropagation();
                     setIsVersionHistoryOpen(true);
                   }}
-                  className="text-[13px] text-[#71717a] hover:text-[#000000] hover:underline focus:outline-none cursor-pointer"
+                  className="text-[13px] text-ash hover:text-ink hover:underline focus:outline-none cursor-pointer"
                   title="Xem lịch sử chỉnh sửa bài viết"
                 >
                   {' '}• Đã chỉnh sửa
@@ -521,7 +521,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                   e.stopPropagation();
                   setShowActionMenu((prev) => !prev);
                 }}
-                className="p-1.5 text-[#969696] hover:text-[#000000] hover:bg-[#efefef] rounded-full transition-colors focus:outline-none"
+                className="p-1.5 text-ash hover:text-ink hover:bg-mist rounded-full transition-colors focus:outline-none"
                 title="Tùy chọn bài viết"
                 aria-label="Tùy chọn bài viết"
               >
@@ -531,7 +531,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
               {showActionMenu && (
                 <div
                   data-testid="post-action-menu-dropdown"
-                  className="absolute right-0 top-full mt-1 w-52 bg-[#fafafa] border border-[#d5d5d5] rounded-[14px] shadow-xl p-1.5 z-40 animate-scale-up"
+                  className="absolute right-0 top-full mt-1 w-52 bg-paper border border-cloud rounded-[14px] shadow-xl p-1.5 z-40 animate-scale-up"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {isSelf ? (
@@ -547,8 +547,8 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                         }}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold rounded-[8px] transition-colors ${
                           canEditPost
-                            ? 'text-[#000000] hover:bg-[#efefef] cursor-pointer'
-                            : 'text-[#969696] cursor-not-allowed opacity-50'
+                            ? 'text-ink hover:bg-mist cursor-pointer'
+                            : 'text-ash cursor-not-allowed opacity-50'
                         }`}
                         title={
                           canEditPost
@@ -567,16 +567,16 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                           data-testid="action-pin-post"
                           disabled={isPinLoading}
                           onClick={handleTogglePin}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold text-[#000000] hover:bg-[#efefef] rounded-[8px] transition-colors cursor-pointer"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold text-ink hover:bg-mist rounded-[8px] transition-colors cursor-pointer"
                         >
                           {post.isPinned ? (
                             <>
-                              <PinOff className="w-4 h-4 text-[#71717a]" />
+                              <PinOff className="w-4 h-4 text-ash" />
                               <span>Bỏ ghim khỏi trang cá nhân</span>
                             </>
                           ) : (
                             <>
-                              <Pin className="w-4 h-4 text-[#71717a] rotate-45" />
+                              <Pin className="w-4 h-4 text-ash rotate-45" />
                               <span>Ghim lên trang cá nhân</span>
                             </>
                           )}
@@ -591,9 +591,9 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                         data-testid="action-mute-user"
                         disabled={isMuteLoading}
                         onClick={handleMuteUser}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold text-[#000000] hover:bg-[#efefef] rounded-[8px] transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold text-ink hover:bg-mist rounded-[8px] transition-colors cursor-pointer"
                       >
-                        <VolumeX className="w-4 h-4 text-[#71717a]" />
+                        <VolumeX className="w-4 h-4 text-ash" />
                         <span>Tắt tiếng @{post.author.username}</span>
                       </button>
                     </>
@@ -607,9 +607,9 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                       setShowActionMenu(false);
                       handleShare(e);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold text-[#000000] hover:bg-[#efefef] rounded-[8px] transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] font-semibold text-ink hover:bg-mist rounded-[8px] transition-colors cursor-pointer"
                   >
-                    <Send className="w-4 h-4 text-[#71717a]" />
+                    <Send className="w-4 h-4 text-ash" />
                     <span>Sao chép liên kết</span>
                   </button>
                 </div>
@@ -619,9 +619,9 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
 
           {/* Reply To indicator if present */}
           {post.replyTo && (
-            <div className="text-[13px] text-[#424242] mb-1">
+            <div className="text-[13px] text-graphite mb-1">
               Đang trả lời{' '}
-              <span className="text-[#385898] hover:underline">
+              <span className="text-meta hover:underline">
                 @{post.replyTo.author.username}
               </span>
             </div>
@@ -634,7 +634,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
           >
             {/* Post Text Content (15px/400, line-height 1.4, color #000000) */}
             {post.content && (
-              <div className="text-[15px] leading-[1.4] text-[#000000] font-normal whitespace-pre-line break-words mb-2.5">
+              <div className="text-[15px] leading-[1.4] text-ink font-normal whitespace-pre-line break-words mb-2.5">
                 {renderRichContent(
                   post.content,
                   (tag) => navigateTo('explore', { hashtag: tag }),
@@ -677,7 +677,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                 e.stopPropagation();
                 navigateTo('thread', { postId: post.quoteOf!.id });
               }}
-              className="mb-2.5 p-3 rounded-[8px] border border-[#d5d5d5] bg-[#fafafa] hover:bg-[#efefef]/50 transition-colors"
+              className="mb-2.5 p-3 rounded-[8px] border border-cloud bg-paper hover:bg-mist/50 transition-colors"
             >
               <div className="flex items-center gap-2 mb-1.5">
                 <img
@@ -689,22 +689,22 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                   className="w-5 h-5 rounded-full object-cover shrink-0"
                 />
                 <div className="flex items-center gap-1.5 min-w-0 flex-wrap text-[13px]">
-                  <span className="font-semibold text-[#000000]">
+                  <span className="font-semibold text-ink">
                     {post.quoteOf.author.displayName}
                   </span>
                   {post.quoteOf.author.isCelebrity && (
                     <VerifiedBadge size={11} title="Tài khoản đã xác minh" />
                   )}
-                  <span className="text-[#424242]">@{post.quoteOf.author.username}</span>
-                  <span className="text-[#969696]">•</span>
-                  <span className="text-[#424242]">
+                  <span className="text-graphite">@{post.quoteOf.author.username}</span>
+                  <span className="text-ash">•</span>
+                  <span className="text-graphite">
                     {formatRelativeTime(post.quoteOf.createdAt)}
                   </span>
                 </div>
               </div>
 
               {post.quoteOf.content && (
-                <p className="text-[14px] leading-[1.4] text-[#000000] line-clamp-3 mb-2 font-normal">
+                <p className="text-[14px] leading-[1.4] text-ink line-clamp-3 mb-2 font-normal">
                   {post.quoteOf.content}
                 </p>
               )}
@@ -717,11 +717,11 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                       key={mIdx}
                       src={mUrl}
                       alt="Quoted media"
-                      className="w-16 h-16 object-cover rounded-[6px] border border-[#d5d5d5] bg-[#efefef]"
+                      className="w-16 h-16 object-cover rounded-[6px] border border-cloud bg-mist"
                     />
                   ))}
                   {post.quoteOf.mediaUrls.length > 3 && (
-                    <div className="w-16 h-16 rounded-[6px] bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center text-[12px] font-semibold text-[#424242]">
+                    <div className="w-16 h-16 rounded-[6px] bg-mist border border-cloud flex items-center justify-center text-[12px] font-semibold text-graphite">
                       +{post.quoteOf.mediaUrls.length - 3}
                     </div>
                   )}
@@ -731,24 +731,24 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
           )}
 
           {/* Post Engagement Bar: Like, Reply, Repost/Quote Menu, Bookmark, Views, Share */}
-          <div className="flex items-center justify-between pt-1 max-w-[460px] text-[#969696]">
+          <div className="flex items-center justify-between pt-1 max-w-[460px] text-ash">
             {/* Like Action */}
             <button
               type="button"
               onClick={handleToggleLike}
               disabled={isLikeLoading}
               className={`flex items-center gap-1.5 py-1 focus:outline-none transition-colors ${
-                isLiked ? 'text-[#000000]' : 'text-[#969696] hover:text-[#000000]'
+                isLiked ? 'text-ink' : 'text-ash hover:text-ink'
               }`}
               title="Thích"
             >
               <Heart
                 className={`w-[18px] h-[18px] stroke-[1.8] transition-transform duration-150 ${
-                  isLiked ? 'fill-[#000000] text-[#000000]' : ''
+                  isLiked ? 'fill-ink text-ink' : ''
                 } ${likeHeartBounced ? 'scale-125' : ''}`}
               />
               {likesCount > 0 && (
-                <span className="text-[13px] text-[#424242] font-normal tabular-nums">
+                <span className="text-[13px] text-graphite font-normal tabular-nums">
                   {formatCount(likesCount)}
                 </span>
               )}
@@ -765,12 +765,12 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                   navigateTo('thread', { postId: post.id });
                 }
               }}
-              className="flex items-center gap-1.5 py-1 text-[#969696] hover:text-[#000000] focus:outline-none transition-colors"
+              className="flex items-center gap-1.5 py-1 text-ash hover:text-ink focus:outline-none transition-colors"
               title="Trả lời"
             >
               <MessageCircle className="w-[18px] h-[18px] stroke-[1.8]" />
               {post.repliesCount > 0 && (
-                <span className="text-[13px] text-[#424242] font-normal tabular-nums">
+                <span className="text-[13px] text-graphite font-normal tabular-nums">
                   {formatCount(post.repliesCount)}
                 </span>
               )}
@@ -786,13 +786,13 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                 }}
                 disabled={isRepostLoading}
                 className={`flex items-center gap-1.5 py-1 focus:outline-none transition-colors ${
-                  isReposted ? 'text-[#000000]' : 'text-[#969696] hover:text-[#000000]'
+                  isReposted ? 'text-ink' : 'text-ash hover:text-ink'
                 }`}
                 title="Đăng lại hoặc trích dẫn"
               >
                 <Repeat className="w-[18px] h-[18px] stroke-[1.8]" />
                 {repostsCount > 0 && (
-                  <span className="text-[13px] text-[#424242] font-normal tabular-nums">
+                  <span className="text-[13px] text-graphite font-normal tabular-nums">
                     {formatCount(repostsCount)}
                   </span>
                 )}
@@ -800,7 +800,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
 
               {/* Repost / Quote Dropdown Popover */}
               {showRepostMenu && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 bg-[#fafafa] border border-[#d5d5d5] rounded-[14px] shadow-xl p-1.5 z-30 animate-scale-up">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 bg-paper border border-cloud rounded-[14px] shadow-xl p-1.5 z-30 animate-scale-up">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -808,9 +808,9 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                       setShowRepostMenu(false);
                       handleToggleRepost(e);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[14px] font-semibold text-[#000000] hover:bg-[#efefef] rounded-[8px] transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[14px] font-semibold text-ink hover:bg-mist rounded-[8px] transition-colors"
                   >
-                    <Repeat className="w-4 h-4 text-[#000000]" />
+                    <Repeat className="w-4 h-4 text-ink" />
                     <span>{isReposted ? 'Hủy đăng lại' : 'Đăng lại'}</span>
                   </button>
                   <button
@@ -820,9 +820,9 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                       setShowRepostMenu(false);
                       setIsQuoteModalOpen(true);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[14px] font-semibold text-[#000000] hover:bg-[#efefef] rounded-[8px] transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[14px] font-semibold text-ink hover:bg-mist rounded-[8px] transition-colors"
                   >
-                    <Quote className="w-4 h-4 text-[#000000]" />
+                    <Quote className="w-4 h-4 text-ink" />
                     <span>Trích dẫn</span>
                   </button>
                 </div>
@@ -835,25 +835,25 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
               onClick={handleToggleBookmark}
               disabled={isBookmarkLoading}
               className={`flex items-center gap-1.5 py-1 focus:outline-none transition-colors ${
-                isBookmarked ? 'text-[#000000]' : 'text-[#969696] hover:text-[#000000]'
+                isBookmarked ? 'text-ink' : 'text-ash hover:text-ink'
               }`}
               title={isBookmarked ? 'Bỏ lưu bài viết' : 'Lưu bài viết'}
             >
               <Bookmark
                 className={`w-[18px] h-[18px] stroke-[1.8] ${
-                  isBookmarked ? 'fill-[#000000] text-[#000000]' : ''
+                  isBookmarked ? 'fill-ink text-ink' : ''
                 }`}
               />
             </button>
 
             {/* Post Views Count Badge (TASK-20) */}
             <div
-              className="flex items-center gap-1.5 py-1 text-[#969696] hover:text-[#000000] select-none transition-colors"
+              className="flex items-center gap-1.5 py-1 text-ash hover:text-ink select-none transition-colors"
               title={`${(post.viewsCount ?? 0).toLocaleString()} lượt xem`}
               data-testid="post-views-badge"
             >
               <Eye className="w-[18px] h-[18px] stroke-[1.8]" />
-              <span className="text-[13px] text-[#424242] font-normal tabular-nums">
+              <span className="text-[13px] text-graphite font-normal tabular-nums">
                 {formatViewsBadge(post.viewsCount ?? 0)}
               </span>
             </div>
@@ -862,7 +862,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             <button
               type="button"
               onClick={handleShare}
-              className="flex items-center gap-1.5 py-1 text-[#969696] hover:text-[#000000] focus:outline-none transition-colors"
+              className="flex items-center gap-1.5 py-1 text-ash hover:text-ink focus:outline-none transition-colors"
               title="Chia sẻ liên kết"
             >
               <Send className="w-[18px] h-[18px] stroke-[1.8]" />

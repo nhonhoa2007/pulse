@@ -83,7 +83,7 @@ export function renderRichContent(
             e.stopPropagation();
             onTagClick?.(tag);
           }}
-          className="text-[#385898] hover:underline cursor-pointer font-normal"
+          className="text-meta hover:underline cursor-pointer font-normal"
         >
           {part}
         </span>
@@ -99,7 +99,7 @@ export function renderRichContent(
             e.stopPropagation();
             onMentionClick?.(username);
           }}
-          className="text-[#385898] hover:underline cursor-pointer font-normal"
+          className="text-meta hover:underline cursor-pointer font-normal"
         >
           {part}
         </span>
@@ -114,7 +114,7 @@ export function renderRichContent(
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="text-[#385898] hover:underline break-all"
+          className="text-meta hover:underline break-all"
         >
           {part}
         </a>

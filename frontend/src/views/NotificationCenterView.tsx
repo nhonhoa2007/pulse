@@ -137,55 +137,55 @@ export const NotificationCenterView: React.FC = () => {
         return {
           icon: Heart,
           text: 'đã thích bài viết của bạn',
-          color: 'text-[#000000] fill-[#000000]',
+          color: 'text-ink fill-ink',
         };
       case 'REPLY':
         return {
           icon: MessageCircle,
           text: 'đã trả lời bài viết của bạn',
-          color: 'text-[#000000]',
+          color: 'text-ink',
         };
       case 'REPOST':
         return {
           icon: Repeat,
           text: 'đã đăng lại bài viết của bạn',
-          color: 'text-[#000000]',
+          color: 'text-ink',
         };
       case 'QUOTE':
         return {
           icon: Quote,
           text: 'đã trích dẫn bài viết của bạn',
-          color: 'text-[#000000]',
+          color: 'text-ink',
         };
       case 'FOLLOW':
         return {
           icon: UserPlus,
           text: 'đã bắt đầu theo dõi bạn',
-          color: 'text-[#385898]',
+          color: 'text-meta',
         };
       case 'FOLLOW_REQUEST':
         return {
           icon: Lock,
           text: 'đã gửi yêu cầu theo dõi bạn',
-          color: 'text-[#385898]',
+          color: 'text-meta',
         };
       case 'FOLLOW_ACCEPT':
         return {
           icon: UserCheck,
           text: 'đã chấp nhận yêu cầu theo dõi của bạn',
-          color: 'text-[#385898]',
+          color: 'text-meta',
         };
       case 'MENTION':
         return {
           icon: AtSign,
           text: 'đã nhắc đến bạn trong một bài viết',
-          color: 'text-[#385898]',
+          color: 'text-meta',
         };
       default:
         return {
           icon: Bell,
           text: 'đã tương tác với bạn',
-          color: 'text-[#424242]',
+          color: 'text-graphite',
         };
     }
   };
@@ -199,17 +199,17 @@ export const NotificationCenterView: React.FC = () => {
   };
 
   return (
-    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-[#fafafa]">
+    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-paper">
       {/* Top Header (~53px tall, background Paper White #fafafa, centered section title in 15px/600 #000000) */}
-      <header className="sticky top-0 z-20 bg-[#fafafa]/95 backdrop-blur-md border-b border-[#d5d5d5]">
+      <header className="sticky top-0 z-20 bg-paper/95 backdrop-blur-md border-b border-cloud">
         <div className="flex items-center justify-between h-[53px] px-4">
           <div className="w-8" />
-          <h1 className="text-[15px] font-semibold text-[#000000]">Thông báo</h1>
+          <h1 className="text-[15px] font-semibold text-ink">Thông báo</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={handleMarkAllRead}
               disabled={isMarkingRead || notifications.every((n) => n.isRead)}
-              className="flex items-center gap-1 px-3 py-1 text-[12px] font-semibold rounded-full border border-[#d5d5d5] hover:border-[#000000] text-[#000000] hover:bg-[#efefef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1 px-3 py-1 text-[12px] font-semibold rounded-full border border-cloud hover:border-ink text-ink hover:bg-mist disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               title="Đánh dấu tất cả là đã đọc"
             >
               <Check className="w-3.5 h-3.5" />
@@ -217,7 +217,7 @@ export const NotificationCenterView: React.FC = () => {
             </button>
             <button
               onClick={() => fetchNotifications()}
-              className="p-1.5 text-[#969696] hover:text-[#000000] rounded-full hover:bg-[#efefef] transition-colors focus:outline-none"
+              className="p-1.5 text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
@@ -237,8 +237,8 @@ export const NotificationCenterView: React.FC = () => {
               onClick={() => setFilter(item.id as any)}
               className={`px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-colors focus:outline-none ${
                 filter === item.id
-                  ? 'bg-[#000000] text-[#fafafa]'
-                  : 'border border-[#d5d5d5] text-[#424242] hover:text-[#000000] hover:bg-[#efefef]'
+                  ? 'bg-ink text-paper'
+                  : 'border border-cloud text-graphite hover:text-ink hover:bg-mist'
               }`}
             >
               {item.label}
@@ -251,18 +251,18 @@ export const NotificationCenterView: React.FC = () => {
       {(currentUser.isPrivate || pendingFollowRequestsCount > 0) && (
         <div
           onClick={openFollowRequestsModal}
-          className="mx-4 my-3 p-3.5 bg-[#ffffff] border border-[#d5d5d5] rounded-xl flex items-center justify-between cursor-pointer hover:bg-[#efefef]/60 transition-colors shadow-sm"
+          className="mx-4 my-3 p-3.5 bg-card border border-cloud rounded-xl flex items-center justify-between cursor-pointer hover:bg-mist/60 transition-colors shadow-sm"
           data-testid="notification-follow-requests-banner"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-[#efefef] text-[#000000]">
+            <div className="p-2 rounded-full bg-mist text-ink">
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-[14px] font-semibold text-[#000000]">
+              <div className="text-[14px] font-semibold text-ink">
                 Yêu cầu theo dõi
               </div>
-              <div className="text-[12px] text-[#424242]">
+              <div className="text-[12px] text-graphite">
                 {pendingFollowRequestsCount > 0
                   ? `${pendingFollowRequestsCount} yêu cầu đang chờ bạn phê duyệt`
                   : 'Quản lý danh sách yêu cầu theo dõi'}
@@ -271,49 +271,49 @@ export const NotificationCenterView: React.FC = () => {
           </div>
           {pendingFollowRequestsCount > 0 ? (
             <span
-              className="px-2.5 py-0.5 rounded-full text-[12px] font-bold bg-[#000000] text-[#fafafa]"
+              className="px-2.5 py-0.5 rounded-full text-[12px] font-bold bg-ink text-paper"
               data-testid="notification-follow-requests-count"
             >
               {pendingFollowRequestsCount}
             </span>
           ) : (
-            <span className="text-[12px] font-medium text-[#424242]">Xem</span>
+            <span className="text-[12px] font-medium text-graphite">Xem</span>
           )}
         </div>
       )}
 
       {/* Web Push Notification Opt-in Prompt (TASK-20) */}
-      <div className="p-3 border-b border-[#d5d5d5]/60 bg-[#fafafa]">
+      <div className="p-3 border-b border-cloud/60 bg-paper">
         <WebPushToggle />
       </div>
 
       {/* Notifications List */}
       {isLoading ? (
-        <div className="divide-y divide-[#d5d5d5]">
+        <div className="divide-y divide-cloud">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="p-4 flex gap-3 animate-pulse bg-[#fafafa]">
-              <div className="w-10 h-10 rounded-full bg-[#efefef] shrink-0" />
+            <div key={n} className="p-4 flex gap-3 animate-pulse bg-paper">
+              <div className="w-10 h-10 rounded-full bg-mist shrink-0" />
               <div className="space-y-2 flex-1">
-                <div className="h-4 bg-[#efefef] rounded w-2/3" />
-                <div className="h-3 bg-[#efefef] rounded w-1/4" />
+                <div className="h-4 bg-mist rounded w-2/3" />
+                <div className="h-3 bg-mist rounded w-1/4" />
               </div>
             </div>
           ))}
         </div>
       ) : filteredNotifications.length === 0 ? (
-        <div className="py-16 text-center text-[#969696]">
-          <Bell className="w-8 h-8 mx-auto mb-2 text-[#969696]" />
-          <p className="font-semibold text-[#000000] text-[15px] mb-1">
+        <div className="py-16 text-center text-ash">
+          <Bell className="w-8 h-8 mx-auto mb-2 text-ash" />
+          <p className="font-semibold text-ink text-[15px] mb-1">
             Không có thông báo nào
           </p>
-          <p className="text-[13px] text-[#424242]">
+          <p className="text-[13px] text-graphite">
             {filter === 'UNREAD'
               ? 'Bạn đã đọc hết toàn bộ thông báo.'
               : 'Khi có người like, reply hoặc follow, thông báo sẽ hiển thị tại đây.'}
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[#d5d5d5]">
+        <div className="divide-y divide-cloud">
           {filteredNotifications.map((notif) => {
             const verbInfo = getVerbDetails(notif.verb);
             const Icon = verbInfo.icon;
@@ -323,8 +323,8 @@ export const NotificationCenterView: React.FC = () => {
               <div
                 key={notif.id}
                 onClick={() => handleNotificationClick(notif)}
-                className={`flex items-start gap-3 p-4 hover:bg-[#efefef]/40 cursor-pointer transition-colors ${
-                  !notif.isRead ? 'bg-[#efefef]/30' : 'bg-[#fafafa]'
+                className={`flex items-start gap-3 p-4 hover:bg-mist/40 cursor-pointer transition-colors ${
+                  !notif.isRead ? 'bg-mist/30' : 'bg-paper'
                 }`}
                 data-testid={`notification-item-${notif.id}`}
               >
@@ -338,26 +338,26 @@ export const NotificationCenterView: React.FC = () => {
                     alt={notif.actor.displayName}
                     className="w-10 h-10 rounded-full object-cover"
                   />
-                  <div className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-[#fafafa] border border-[#d5d5d5]">
+                  <div className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-paper border border-cloud">
                     <Icon className={`w-3 h-3 ${verbInfo.color}`} />
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] leading-[1.4] text-[#000000] mb-0.5">
-                    <span className="font-semibold text-[#000000] hover:underline">
+                  <div className="text-[15px] leading-[1.4] text-ink mb-0.5">
+                    <span className="font-semibold text-ink hover:underline">
                       {notif.actorSummary || notif.actor.displayName}
                     </span>{' '}
-                    <span className="text-[#424242]">{verbInfo.text}</span>
+                    <span className="text-graphite">{verbInfo.text}</span>
                     {notif.aggregatedCount > 1 && (
-                      <span className="ml-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#efefef] text-[#424242]">
+                      <span className="ml-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-mist text-graphite">
                         +{notif.aggregatedCount - 1} khác
                       </span>
                     )}
                   </div>
 
-                  <span className="text-[13px] text-[#424242]">
+                  <span className="text-[13px] text-graphite">
                     {formatRelativeTime(notif.createdAt)}
                   </span>
 
@@ -368,7 +368,7 @@ export const NotificationCenterView: React.FC = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       {actionStatus[notif.id] ? (
-                        <span className="text-[12px] font-semibold text-[#424242] px-3 py-1 bg-[#efefef] rounded-full border border-[#d5d5d5]">
+                        <span className="text-[12px] font-semibold text-graphite px-3 py-1 bg-mist rounded-full border border-cloud">
                           {actionStatus[notif.id] === 'ACCEPTED'
                             ? 'Đã chấp nhận'
                             : 'Đã từ chối'}
@@ -379,7 +379,7 @@ export const NotificationCenterView: React.FC = () => {
                             onClick={() => handleInlineAccept(notif)}
                             disabled={processingMap[notif.id]}
                             data-testid={`notif-accept-${notif.id}`}
-                            className="px-3.5 py-1 rounded-full bg-[#000000] text-[#fafafa] text-[12px] font-semibold hover:bg-[#000000]/85 transition-colors disabled:opacity-50 flex items-center gap-1 focus:outline-none"
+                            className="px-3.5 py-1 rounded-full bg-ink text-paper text-[12px] font-semibold hover:bg-ink/85 transition-colors disabled:opacity-50 flex items-center gap-1 focus:outline-none"
                           >
                             <UserCheck className="w-3 h-3" />
                             <span>Chấp nhận</span>
@@ -388,7 +388,7 @@ export const NotificationCenterView: React.FC = () => {
                             onClick={() => handleInlineReject(notif)}
                             disabled={processingMap[notif.id]}
                             data-testid={`notif-reject-${notif.id}`}
-                            className="px-3.5 py-1 rounded-full border border-[#d5d5d5] hover:border-[#000000] text-[#000000] hover:bg-[#efefef] text-[12px] font-semibold transition-colors disabled:opacity-50 flex items-center gap-1 focus:outline-none"
+                            className="px-3.5 py-1 rounded-full border border-cloud hover:border-ink text-ink hover:bg-mist text-[12px] font-semibold transition-colors disabled:opacity-50 flex items-center gap-1 focus:outline-none"
                           >
                             <UserX className="w-3 h-3" />
                             <span>Từ chối</span>
@@ -401,7 +401,7 @@ export const NotificationCenterView: React.FC = () => {
 
                 {/* Unread indicator dot: Meta Blue #385898 */}
                 {!notif.isRead && (
-                  <div className="w-2 h-2 rounded-full bg-[#385898] shrink-0 mt-2" />
+                  <div className="w-2 h-2 rounded-full bg-meta shrink-0 mt-2" />
                 )}
               </div>
             );

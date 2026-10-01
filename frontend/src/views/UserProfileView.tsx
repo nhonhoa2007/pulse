@@ -286,22 +286,22 @@ export const UserProfileView: React.FC = () => {
       });
 
   return (
-    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-[#fafafa]">
+    <div className="min-w-0 flex-1 min-h-screen pb-20 md:pb-8 bg-paper">
       {/* Top Header (~53px tall, background Paper White #fafafa, centered section title in 15px/600 #000000) */}
-      <header className="sticky top-0 z-20 bg-[#fafafa]/95 backdrop-blur-md border-b border-[#d5d5d5] flex items-center justify-between h-[53px] px-4">
+      <header className="sticky top-0 z-20 bg-paper/95 backdrop-blur-md border-b border-cloud flex items-center justify-between h-[53px] px-4">
         <button
           onClick={() => navigateTo('home')}
-          className="p-1.5 -ml-1.5 rounded-full text-[#969696] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+          className="p-1.5 -ml-1.5 rounded-full text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-1.5">
-          <h1 className="text-[15px] font-semibold text-[#000000]">
+          <h1 className="text-[15px] font-semibold text-ink">
             {profile ? profile.displayName : username}
           </h1>
           {profile?.isPrivate && (
             <span title="Tài khoản riêng tư">
-              <Lock className="w-3.5 h-3.5 text-[#424242]" />
+              <Lock className="w-3.5 h-3.5 text-graphite" />
             </span>
           )}
         </div>
@@ -309,26 +309,26 @@ export const UserProfileView: React.FC = () => {
       </header>
 
       {isLoading ? (
-        <div className="animate-pulse bg-[#fafafa]">
-          <div className="h-28 bg-[#efefef]" />
+        <div className="animate-pulse bg-paper">
+          <div className="h-28 bg-mist" />
           <div className="p-4 space-y-3">
-            <div className="w-20 h-20 -mt-12 rounded-full bg-[#d5d5d5] border-4 border-[#fafafa]" />
-            <div className="h-5 bg-[#efefef] rounded w-1/4" />
-            <div className="h-3 bg-[#efefef] rounded w-1/2" />
+            <div className="w-20 h-20 -mt-12 rounded-full bg-cloud border-4 border-paper" />
+            <div className="h-5 bg-mist rounded w-1/4" />
+            <div className="h-3 bg-mist rounded w-1/2" />
           </div>
         </div>
       ) : error || !profile ? (
         <div className="py-16 px-4 text-center">
-          <AlertCircle className="w-8 h-8 text-[#424242] mx-auto mb-2" />
-          <h2 className="text-[15px] font-semibold text-[#000000] mb-1">
+          <AlertCircle className="w-8 h-8 text-graphite mx-auto mb-2" />
+          <h2 className="text-[15px] font-semibold text-ink mb-1">
             Không tìm thấy người dùng
           </h2>
-          <p className="text-[#424242] text-[13px] max-w-sm mx-auto mb-4">
+          <p className="text-graphite text-[13px] max-w-sm mx-auto mb-4">
             {error || `Người dùng @${username} không tồn tại hoặc đã kích hoạt chặn.`}
           </p>
           <button
             onClick={() => navigateTo('home')}
-            className="px-4 py-2 bg-[#000000] text-[#fafafa] rounded-full text-[13px] font-semibold hover:bg-[#000000]/85 transition-colors"
+            className="px-4 py-2 bg-ink text-paper rounded-full text-[13px] font-semibold hover:bg-ink/85 transition-colors"
           >
             Trở về trang chủ
           </button>
@@ -336,10 +336,10 @@ export const UserProfileView: React.FC = () => {
       ) : (
         <div>
           {/* Subtle Mist Header Strip */}
-          <div className="h-24 bg-[#efefef] border-b border-[#d5d5d5]" />
+          <div className="h-24 bg-mist border-b border-cloud" />
 
           {/* Profile Details Card */}
-          <div className="px-4 pt-2 pb-4 border-b border-[#d5d5d5]">
+          <div className="px-4 pt-2 pb-4 border-b border-cloud">
             {/* Avatar & Action Button Row */}
             <div className="flex items-end justify-between -mt-12 mb-3">
               <div className="relative">
@@ -349,7 +349,7 @@ export const UserProfileView: React.FC = () => {
                     `https://api.dicebear.com/7.x/bottts/svg?seed=${profile.username}`
                   }
                   alt={profile.displayName}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-[#fafafa] bg-[#efefef]"
+                  className="w-20 h-20 rounded-full object-cover border-4 border-paper bg-mist"
                 />
               </div>
 
@@ -359,21 +359,21 @@ export const UserProfileView: React.FC = () => {
                   <>
                     <button
                       onClick={() => setIsEditProfileOpen(true)}
-                      className="px-4 py-1.5 rounded-full border border-[#d5d5d5] hover:border-[#000000] text-[13px] font-semibold text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+                      className="px-4 py-1.5 rounded-full border border-cloud hover:border-ink text-[13px] font-semibold text-ink hover:bg-mist transition-colors focus:outline-none"
                     >
                       Chỉnh sửa trang cá nhân
                     </button>
                     {currentUser.isPrivate && (
                       <button
                         onClick={openFollowRequestsModal}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#d5d5d5] hover:border-[#000000] text-[13px] font-semibold text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none relative"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-cloud hover:border-ink text-[13px] font-semibold text-ink hover:bg-mist transition-colors focus:outline-none relative"
                         title="Yêu cầu theo dõi đang chờ duyệt"
                         data-testid="profile-view-follow-requests-btn"
                       >
-                        <Lock className="w-3.5 h-3.5 text-[#424242]" />
+                        <Lock className="w-3.5 h-3.5 text-graphite" />
                         <span>Yêu cầu</span>
                         {pendingFollowRequestsCount > 0 && (
-                          <span className="ml-0.5 px-1.5 py-0.2 bg-[#000000] text-[#fafafa] text-[10px] rounded-full font-bold">
+                          <span className="ml-0.5 px-1.5 py-0.2 bg-ink text-paper text-[10px] rounded-full font-bold">
                             {pendingFollowRequestsCount}
                           </span>
                         )}
@@ -381,7 +381,7 @@ export const UserProfileView: React.FC = () => {
                     )}
                     <button
                       onClick={() => openMuteModal('users')}
-                      className="p-2 rounded-full border border-[#d5d5d5] hover:border-[#000000] text-[#424242] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+                      className="p-2 rounded-full border border-cloud hover:border-ink text-graphite hover:text-ink hover:bg-mist transition-colors focus:outline-none"
                       title="Quản lý tắt tiếng"
                       aria-label="Quản lý tắt tiếng"
                       data-testid="profile-manage-mute-btn"
@@ -396,7 +396,7 @@ export const UserProfileView: React.FC = () => {
                       <button
                         onClick={handleToggleMute}
                         disabled={isGraphActionLoading}
-                        className="p-2 rounded-full border border-[#d5d5d5] hover:border-[#000000] text-[#424242] hover:text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+                        className="p-2 rounded-full border border-cloud hover:border-ink text-graphite hover:text-ink hover:bg-mist transition-colors focus:outline-none"
                         title={`Tắt tiếng @${profile.username}`}
                         data-testid="profile-mute-user-btn"
                       >
@@ -410,8 +410,8 @@ export const UserProfileView: React.FC = () => {
                       disabled={isGraphActionLoading}
                       className={`p-2 rounded-full border transition-colors focus:outline-none ${
                         isBlocked
-                          ? 'border-[#000000] bg-[#000000] text-[#fafafa]'
-                          : 'border-[#d5d5d5] hover:border-[#000000] text-[#424242] hover:text-[#000000]'
+                          ? 'border-ink bg-ink text-paper'
+                          : 'border-cloud hover:border-ink text-graphite hover:text-ink'
                       }`}
                       title={isBlocked ? 'Bỏ chặn người này' : 'Chặn người dùng (2-way unfollow)'}
                     >
@@ -460,7 +460,7 @@ export const UserProfileView: React.FC = () => {
                     {!isBlocked && (
                       <button
                         onClick={() => navigateTo('messages', { recipientId: profile.id })}
-                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#d5d5d5] hover:border-[#000000] text-[13px] font-semibold text-[#000000] hover:bg-[#efefef] transition-colors focus:outline-none"
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cloud hover:border-ink text-[13px] font-semibold text-ink hover:bg-mist transition-colors focus:outline-none"
                         title={`Nhắn tin với @${profile.username}`}
                       >
                         <MessageSquare className="w-3.5 h-3.5 stroke-[2]" />
@@ -475,7 +475,7 @@ export const UserProfileView: React.FC = () => {
             {/* Display Name & Verified Badge */}
             <div className="mb-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h2 className="text-[20px] font-semibold text-[#000000]">
+                <h2 className="text-[20px] font-semibold text-ink">
                   {profile.displayName}
                 </h2>
                 {profile.isCelebrity && (
@@ -483,29 +483,29 @@ export const UserProfileView: React.FC = () => {
                 )}
                 {profile.isPrivate && (
                   <span
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-[#424242] bg-[#efefef] px-2 py-0.5 rounded-full border border-[#d5d5d5]"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-graphite bg-mist px-2 py-0.5 rounded-full border border-cloud"
                     data-testid="profile-private-pill"
                     title="Tài khoản riêng tư"
                   >
-                    <Lock className="w-3 h-3 text-[#424242]" />
+                    <Lock className="w-3 h-3 text-graphite" />
                     <span>Riêng tư</span>
                   </span>
                 )}
               </div>
-              <span className="text-[13px] text-[#424242]">@{profile.username}</span>
+              <span className="text-[13px] text-graphite">@{profile.username}</span>
             </div>
 
             {/* Bio */}
             {profile.bio && (
-              <p className="text-[15px] leading-[1.4] text-[#000000] mb-3">
+              <p className="text-[15px] leading-[1.4] text-ink mb-3">
                 {profile.bio}
               </p>
             )}
 
             {/* Meta tags */}
-            <div className="flex items-center gap-4 text-[13px] text-[#424242] mb-3 flex-wrap">
+            <div className="flex items-center gap-4 text-[13px] text-graphite mb-3 flex-wrap">
               <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-[#969696]" />
+                <Calendar className="w-3.5 h-3.5 text-ash" />
                 Tham gia{' '}
                 {new Date(profile.createdAt).toLocaleDateString('vi-VN', {
                   month: 'long',
@@ -513,7 +513,7 @@ export const UserProfileView: React.FC = () => {
                 })}
               </span>
               {profile.isCelebrity && (
-                <span className="text-[#385898]">
+                <span className="text-meta">
                   Tài khoản người nổi tiếng (Fan-out on Read)
                 </span>
               )}
@@ -522,28 +522,28 @@ export const UserProfileView: React.FC = () => {
             {/* Stats Row */}
             <div className="flex items-center gap-5 text-[13px]">
               <div>
-                <strong className="text-[#000000] font-semibold">
+                <strong className="text-ink font-semibold">
                   {formatCount(profile.followingCount)}
                 </strong>{' '}
-                <span className="text-[#424242]">Đang theo dõi</span>
+                <span className="text-graphite">Đang theo dõi</span>
               </div>
               <div>
-                <strong className="text-[#000000] font-semibold">
+                <strong className="text-ink font-semibold">
                   {formatCount(followersCount)}
                 </strong>{' '}
-                <span className="text-[#424242]">Người theo dõi</span>
+                <span className="text-graphite">Người theo dõi</span>
               </div>
               <div>
-                <strong className="text-[#000000] font-semibold">
+                <strong className="text-ink font-semibold">
                   {formatCount(profile.postsCount)}
                 </strong>{' '}
-                <span className="text-[#424242]">Bài viết</span>
+                <span className="text-graphite">Bài viết</span>
               </div>
             </div>
 
             {/* Blocked Notice */}
             {isBlocked && (
-              <div className="mt-3 p-3 rounded-[8px] bg-[#efefef] border border-[#d5d5d5] text-[13px] text-[#424242]">
+              <div className="mt-3 p-3 rounded-[8px] bg-mist border border-cloud text-[13px] text-graphite">
                 Bạn đã chặn người dùng này. Bài viết của họ bị ẩn khỏi bảng tin.
               </div>
             )}
@@ -556,13 +556,13 @@ export const UserProfileView: React.FC = () => {
               className="py-16 px-6 text-center max-w-md mx-auto"
               data-testid="private-account-lock-shield"
             >
-              <div className="w-16 h-16 rounded-full bg-[#efefef] border border-[#d5d5d5] flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-8 h-8 text-[#000000]" />
+              <div className="w-16 h-16 rounded-full bg-mist border border-cloud flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-ink" />
               </div>
-              <h3 className="text-[17px] font-bold text-[#000000] mb-1.5">
+              <h3 className="text-[17px] font-bold text-ink mb-1.5">
                 Tài khoản này ở chế độ riêng tư
               </h3>
-              <p className="text-[13px] text-[#424242] mb-6 leading-relaxed">
+              <p className="text-[13px] text-graphite mb-6 leading-relaxed">
                 Hãy theo dõi để xem bài viết của họ.
               </p>
               <button
@@ -594,32 +594,32 @@ export const UserProfileView: React.FC = () => {
               <div
                 className={`grid ${
                   isSelf ? 'grid-cols-3' : 'grid-cols-2'
-                } text-center text-[15px] border-b border-[#d5d5d5]`}
+                } text-center text-[15px] border-b border-cloud`}
               >
                 <button
                   onClick={() => setActiveTab('posts')}
                   className={`py-3 relative font-semibold transition-colors focus:outline-none ${
                     activeTab === 'posts'
-                      ? 'text-[#000000]'
-                      : 'text-[#969696] hover:text-[#000000]'
+                      ? 'text-ink'
+                      : 'text-ash hover:text-ink'
                   }`}
                 >
                   <span>Bài viết</span>
                   {activeTab === 'posts' && (
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-[#000000]" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-ink" />
                   )}
                 </button>
                 <button
                   onClick={() => setActiveTab('replies')}
                   className={`py-3 relative font-semibold transition-colors focus:outline-none ${
                     activeTab === 'replies'
-                      ? 'text-[#000000]'
-                      : 'text-[#969696] hover:text-[#000000]'
+                      ? 'text-ink'
+                      : 'text-ash hover:text-ink'
                   }`}
                 >
                   <span>Câu trả lời</span>
                   {activeTab === 'replies' && (
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-[#000000]" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-ink" />
                   )}
                 </button>
                 {isSelf && (
@@ -627,13 +627,13 @@ export const UserProfileView: React.FC = () => {
                     onClick={() => setActiveTab('bookmarks')}
                     className={`py-3 relative font-semibold transition-colors focus:outline-none ${
                       activeTab === 'bookmarks'
-                        ? 'text-[#000000]'
-                        : 'text-[#969696] hover:text-[#000000]'
+                        ? 'text-ink'
+                        : 'text-ash hover:text-ink'
                     }`}
                   >
                     <span>Đã lưu</span>
                     {activeTab === 'bookmarks' && (
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-[#000000]" />
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-ink" />
                     )}
                   </button>
                 )}
@@ -642,22 +642,22 @@ export const UserProfileView: React.FC = () => {
               {/* Posts / Bookmarks Feed */}
               {activeTab === 'bookmarks' ? (
                 isBookmarksLoading ? (
-                  <div className="py-16 text-center text-[#969696]">
-                    <div className="w-6 h-6 border-2 border-[#000000] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <div className="py-16 text-center text-ash">
+                    <div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                     <p className="text-[13px]">Đang tải bài viết đã lưu...</p>
                   </div>
                 ) : bookmarkedPosts.length === 0 ? (
-                  <div className="py-16 text-center text-[#969696]">
-                    <Bookmark className="w-8 h-8 mx-auto mb-2 text-[#969696]" />
-                    <p className="text-[15px] font-semibold text-[#000000] mb-1">
+                  <div className="py-16 text-center text-ash">
+                    <Bookmark className="w-8 h-8 mx-auto mb-2 text-ash" />
+                    <p className="text-[15px] font-semibold text-ink mb-1">
                       Chưa có bài viết đã lưu
                     </p>
-                    <p className="text-[13px] text-[#424242] max-w-xs mx-auto">
+                    <p className="text-[13px] text-graphite max-w-xs mx-auto">
                       Nhấn vào biểu tượng bookmark trên bài viết bất kỳ để lưu lại xem sau.
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-[#d5d5d5]">
+                  <div className="divide-y divide-cloud">
                     {bookmarkedPosts.map((post) => (
                       <PostFeedItem
                         key={post.id}
@@ -678,8 +678,8 @@ export const UserProfileView: React.FC = () => {
                   </div>
                 )
               ) : displayedPosts.length === 0 ? (
-                <div className="py-16 text-center text-[#969696]">
-                  <Inbox className="w-8 h-8 mx-auto mb-2 text-[#969696]" />
+                <div className="py-16 text-center text-ash">
+                  <Inbox className="w-8 h-8 mx-auto mb-2 text-ash" />
                   <p className="text-[13px]">
                     {activeTab === 'replies'
                       ? 'Chưa có câu trả lời nào.'
@@ -687,7 +687,7 @@ export const UserProfileView: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-[#d5d5d5]">
+                <div className="divide-y divide-cloud">
                   {displayedPosts.map((post) => (
                     <PostFeedItem
                       key={post.id}
