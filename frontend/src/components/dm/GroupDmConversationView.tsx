@@ -5,6 +5,7 @@ import {
   RealtimeEvent,
 } from '../../types/PulseTypes';
 import { api } from '../../api/PulseApiClient';
+import { ProtectedMedia } from '../ProtectedMedia';
 import { usePulse } from '../../context/PulseContext';
 import { GroupMembersModal } from './GroupMembersModal';
 import { formatRelativeTime } from '../../utils/formatters';
@@ -304,7 +305,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
           {/* Group Avatar */}
           <div className="relative shrink-0">
             {group.avatarUrl ? (
-              <img
+              <ProtectedMedia
                 src={group.avatarUrl}
                 alt={group.title}
                 className="w-10 h-10 rounded-full object-cover border border-cloud"
@@ -375,11 +376,11 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
           </div>
         ) : error ? (
           <div className="p-4 text-center">
-            <AlertCircle className="w-6 h-6 text-red-500 mx-auto mb-2" />
+            <AlertCircle className="w-6 h-6 text-danger mx-auto mb-2" />
             <p className="text-[13px] text-ink mb-2">{error}</p>
             <button
               onClick={loadInitialMessages}
-              className="px-3 py-1 bg-ink text-white text-[12px] rounded-full font-semibold"
+              className="px-3 py-1 bg-ink text-paper text-[12px] rounded-full font-semibold"
             >
               Thử lại
             </button>
@@ -423,7 +424,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
                 <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[75%]">
                   {/* Sender Avatar on Left (for others) */}
                   {!isOwn && (
-                    <img
+                    <ProtectedMedia
                       src={
                         senderAvatar ||
                         `https://api.dicebear.com/7.x/bottts/svg?seed=${senderName}`
@@ -438,7 +439,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
                     <button
                       type="button"
                       onClick={() => handleDeleteMessage(message.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-ash hover:text-red-500 rounded-full transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 text-ash hover:text-danger rounded-full transition-all"
                       title="Xóa tin nhắn"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -469,10 +470,11 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
                         {message.mediaUrls && message.mediaUrls.length > 0 && (
                           <div className="mt-2 space-y-1.5">
                             {message.mediaUrls.map((url, i) => (
-                              <img
+                              <ProtectedMedia
                                 key={i}
                                 src={url}
                                 alt="Media đính kèm"
+                                allowExternal={false}
                                 className="rounded-[12px] max-h-60 object-cover border border-black/10"
                               />
                             ))}
@@ -499,7 +501,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
         <div className="p-2 border-t border-cloud bg-paper flex gap-2 overflow-x-auto">
           {mediaUrls.map((url, index) => (
             <div key={index} className="relative group shrink-0">
-              <img
+              <ProtectedMedia
                 src={url}
                 alt="Đính kèm"
                 className="w-16 h-16 rounded-[10px] object-cover border border-cloud"
@@ -507,6 +509,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
               <button
                 type="button"
                 onClick={() => setMediaUrls((prev) => prev.filter((_, i) => i !== index))}
+                aria-label={`Gỡ ảnh đính kèm ${index + 1}`}
                 className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-black text-white rounded-full flex items-center justify-center shadow"
               >
                 <X className="w-3 h-3" />
@@ -546,7 +549,7 @@ export const GroupDmConversationView: React.FC<GroupDmConversationViewProps> = (
             disabled={(!inputContent.trim() && mediaUrls.length === 0) || isSending}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
               inputContent.trim() || mediaUrls.length > 0
-                ? 'bg-ink hover:bg-graphite text-white'
+                ? 'bg-ink hover:bg-graphite text-paper'
                 : 'bg-mist text-ash cursor-not-allowed'
             }`}
             data-testid="send-group-message-btn"

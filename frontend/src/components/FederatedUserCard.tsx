@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "./ProtectedMedia";
 import React, { useState, useEffect } from 'react';
 import { UserDto, RemoteActorDiscoveryResult } from '../types/PulseTypes';
 import { usePulse } from '../context/PulseContext';
@@ -122,8 +123,18 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
   };
 
   return (
-    <div
+    <article
       onClick={handleCardClick}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleCardClick();
+        }
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label={`Xem hồ sơ ${displayName}`}
       data-testid="federated-user-card"
       className={`p-4 bg-paper hover:bg-mist/40 transition-colors cursor-pointer ${
         hideBorder ? '' : 'border-b border-cloud'
@@ -133,7 +144,7 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
         <div className="flex items-start gap-3 min-w-0 flex-1">
           {/* Circular Avatar (40px, rounded-full, with fallback) */}
           {rawAvatar && !imgError ? (
-            <img
+            <ProtectedMedia
               src={rawAvatar}
               alt={displayName}
               onError={() => setImgError(true)}
@@ -249,7 +260,7 @@ export const FederatedUserCard: React.FC<FederatedUserCardProps> = ({
           </button>
         )}
       </div>
-    </div>
+    </article>
   );
 };
 

@@ -1,79 +1,34 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { UserDto, RealtimeEvent } from '../types/PulseTypes';
 import { api, PRESET_USERS } from '../api/PulseApiClient';
+import { ApiError } from '../api/core';
 import { parsePath, viewToPath, isLegacyQueryUrl } from '../utils/router.ts';
 import type { ViewType, ViewParams } from '../utils/router.ts';
+import {
+  AuthSessionContext,
+  UiContext,
+  RealtimeContext,
+} from './PulseContexts';
+import type {
+  AuthSessionContextValue,
+  UiContextValue,
+  RealtimeContextValue,
+  ToastItem,
+} from './PulseContexts';
 
 export type { ViewType, ViewParams } from '../utils/router.ts';
+export type { ToastItem } from './PulseContexts';
 
-export interface ToastItem {
-  id: string;
-  message: string;
-  type: 'info' | 'success' | 'error';
-}
-
-interface PulseContextType {
-  currentUser: UserDto;
-  users: UserDto[];
-  switchUser: (user: UserDto) => void;
-  refreshUsers: () => Promise<void>;
-  currentView: ViewType;
-  viewParams: ViewParams;
-  navigateTo: (view: ViewType, params?: ViewParams) => void;
-  toasts: ToastItem[];
-  addToast: (message: string, type?: 'info' | 'success' | 'error') => void;
-  removeToast: (id: string) => void;
-  unreadCount: number;
-  setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
-  dmUnreadCount: number;
-  setDmUnreadCount: React.Dispatch<React.SetStateAction<number>>;
-  refreshDmUnreadCount: () => Promise<void>;
-  hasNewTimelinePosts: boolean;
-  setHasNewTimelinePosts: (has: boolean) => void;
-  isComposerOpen: boolean;
-  setIsComposerOpen: (open: boolean) => void;
-
-  // Real Auth State & Actions
-  token: string | null;
-  isAuthenticated: boolean;
-  isAuthModalOpen: boolean;
-  setIsAuthModalOpen: (open: boolean) => void;
-  authModalTab: 'login' | 'register';
-  setAuthModalTab: (tab: 'login' | 'register') => void;
-  openAuthModal: (tab?: 'login' | 'register') => void;
-  isEditProfileOpen: boolean;
-  setIsEditProfileOpen: (open: boolean) => void;
-  isMuteModalOpen: boolean;
-  setIsMuteModalOpen: (open: boolean) => void;
-  muteModalTab: 'users' | 'keywords';
-  setMuteModalTab: (tab: 'users' | 'keywords') => void;
-  openMuteModal: (tab?: 'users' | 'keywords') => void;
-
-  login: (identifier: string, password: string) => Promise<void>;
-  register: (data: { username: string; email: string; password: string; displayName: string }) => Promise<void>;
-  logout: () => void;
-  updateProfile: (data: { displayName?: string; bio?: string; avatarUrl?: string; isPrivate?: boolean }) => Promise<UserDto>;
-
-  // Task-21: Follow Requests
-  isFollowRequestsOpen: boolean;
-  setIsFollowRequestsOpen: (open: boolean) => void;
-  openFollowRequestsModal: () => void;
-  pendingFollowRequestsCount: number;
-  setPendingFollowRequestsCount: React.Dispatch<React.SetStateAction<number>>;
-  refreshFollowRequestsCount: () => Promise<void>;
-  incrementFollowersCount: () => void;
-}
+type PulseContextType = AuthSessionContextValue & UiContextValue & RealtimeContextValue;
 
 const PulseContext = createContext<PulseContextType | undefined>(undefined);
 
 export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<UserDto[]>(PRESET_USERS);
-  const [token, setToken] = useState<string | null>(() => {
-    return typeof window !== 'undefined' ? localStorage.getItem('pulse_auth_token') : null;
-  });
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return typeof window !== 'undefined' ? !!localStorage.getItem('pulse_auth_token') : false;
-  });
+  const [token, setToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
+  const [authRestoreError, setAuthRestoreError] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<UserDto>(() => {
     const savedId = typeof window !== 'undefined' ? localStorage.getItem('pulse_active_user_id') : null;
@@ -147,7 +102,12 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const path = viewToPath(view, params);
         const current = window.location.pathname + window.location.search;
         if (current !== path) {
-          window.history.pushState({ view, params }, '', path);
+          window.history.replaceState(
+            { ...(window.history.state || {}), scrollY: window.scrollY },
+            '',
+            current
+          );
+          window.history.pushState({ view, params, scrollY: 0 }, '', path);
         }
       }
       setCurrentView(view);
@@ -181,11 +141,13 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // PKG-08: back/forward browser sync vào view state.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const onPopState = () => {
+    const onPopState = (event: PopStateEvent) => {
       const parsed = parsePath(window.location.pathname, window.location.search);
       if (parsed) {
         setCurrentView(parsed.view);
         setViewParams(parsed.params);
+        const targetY = typeof event.state?.scrollY === 'number' ? event.state.scrollY : 0;
+        requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: targetY })));
       }
     };
     window.addEventListener('popstate', onPopState);
@@ -211,16 +173,16 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setUsers(updated);
 
       // Refresh active user reference if not logged in via real auth
-      const savedToken = localStorage.getItem('pulse_auth_token');
-      if (!savedToken) {
+      if (!api.getToken()) {
         const foundCurrent = updated.find((u) => u.username === currentUser.username);
         if (foundCurrent) {
           setCurrentUser(foundCurrent);
           api.setActiveUserId(foundCurrent.id);
         }
       }
-    } catch {
-      // ignore
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : 'Không thể đăng xuất. Hãy thử lại.', 'error');
+      return;
     }
   }, [currentUser.username, users]);
 
@@ -242,8 +204,9 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const total = res.conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
         setDmUnreadCount(total);
       }
-    } catch {
-      // ignore
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : 'Không thể đăng xuất. Hãy thử lại.', 'error');
+      return;
     }
   }, []);
 
@@ -282,10 +245,7 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         refreshDmUnreadCount();
         refreshFollowRequestsCount();
       } catch {
-        addToast(
-          `Không đăng nhập được tài khoản demo @${selectedUser.username}. Hãy chạy "npm run db:seed" ở backend.`,
-          'error'
-        );
+        addToast(`Không thể chuyển sang tài khoản @${selectedUser.username}.`, 'error');
       }
     },
     [addToast, checkNotifications, refreshDmUnreadCount, refreshFollowRequestsCount]
@@ -354,42 +314,62 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [addToast]
   );
 
-  // Initial load: restore real session if token exists
-  useEffect(() => {
-    const initAuth = async () => {
-      const savedToken = typeof window !== 'undefined' ? localStorage.getItem('pulse_auth_token') : null;
-      if (savedToken) {
-        try {
-          const me = await api.getMe();
-          if (me && me.id) {
-            setCurrentUser(me);
-            setIsAuthenticated(true);
-            setToken(savedToken);
-            setUsers((prev) => {
-              const exists = prev.some((u) => u.id === me.id);
-              return exists ? prev.map((u) => (u.id === me.id ? me : u)) : [me, ...prev];
-            });
-            return;
-          }
-        } catch (err) {
-          console.warn('Could not restore session from token:', err);
-          api.logout();
-          setToken(null);
-          setIsAuthenticated(false);
-        }
+  // Restore the session from the HttpOnly refresh cookie. A rejected cookie
+  // means guest mode; a transport failure is kept as a separate, retryable
+  // state so the UI never misreports an offline user as signed out.
+  const retryRestoreSession = useCallback(async () => {
+    setIsAuthReady(false);
+    setAuthRestoreError(null);
+    try {
+      const restored = await api.refreshToken();
+      if (restored?.accessToken && restored.user?.id) {
+        setToken(restored.accessToken);
+        setCurrentUser(restored.user);
+        setIsAuthenticated(true);
+        setUsers((prev) => {
+          const exists = prev.some((u) => u.id === restored.user!.id);
+          return exists
+            ? prev.map((u) => (u.id === restored.user!.id ? restored.user! : u))
+            : [restored.user!, ...prev];
+        });
+      } else {
+        setToken(null);
+        setIsAuthenticated(false);
       }
-    };
+    } catch (error) {
+      const isNetworkFailure = error instanceof ApiError && error.code === 'NETWORK_ERROR';
+      setAuthRestoreError(
+        isNetworkFailure
+          ? 'Không thể kết nối để kiểm tra phiên đăng nhập.'
+          : 'Máy chủ chưa thể kiểm tra phiên đăng nhập.'
+      );
+    } finally {
+      setIsAuthReady(true);
+    }
+  }, []);
 
-    initAuth();
-    refreshUsers();
-    checkNotifications();
-    refreshDmUnreadCount();
-    refreshFollowRequestsCount();
-  }, [refreshDmUnreadCount, refreshFollowRequestsCount]);
+  useEffect(() => {
+    void retryRestoreSession();
+  }, [retryRestoreSession]);
+
+  useEffect(() => {
+    if (!authRestoreError || typeof window === 'undefined') return;
+    const retryWhenOnline = () => void retryRestoreSession();
+    window.addEventListener('online', retryWhenOnline);
+    return () => window.removeEventListener('online', retryWhenOnline);
+  }, [authRestoreError, retryRestoreSession]);
+
+  useEffect(() => {
+    if (!isAuthReady || !isAuthenticated) return;
+    void refreshUsers();
+    void checkNotifications();
+    void refreshDmUnreadCount();
+    void refreshFollowRequestsCount();
+  }, [isAuthReady, isAuthenticated]);
 
   // SSE Listener for real-time events
   useEffect(() => {
-    if (!currentUser.id) return;
+    if (!isAuthReady || !isAuthenticated || !token || !currentUser.id) return;
 
     const unsubscribe = api.subscribeRealtimeEvents(
       currentUser.id,
@@ -418,67 +398,123 @@ export const PulseProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           refreshDmUnreadCount();
         }
       },
-      () => {
-        // SSE disconnected, will retry automatically by browser
-      }
+      () => undefined
     );
 
     return () => {
       unsubscribe();
     };
-  }, [currentUser.id, addToast, refreshDmUnreadCount, refreshFollowRequestsCount]);
+  }, [isAuthReady, isAuthenticated, token, currentUser.id, addToast, refreshDmUnreadCount, refreshFollowRequestsCount]);
+
+  const authSessionValue = useMemo<AuthSessionContextValue>(() => ({
+    currentUser,
+    users,
+    token,
+    isAuthenticated,
+    isAuthReady,
+    authRestoreError,
+    retryRestoreSession,
+    switchUser,
+    refreshUsers,
+    login,
+    register,
+    logout,
+    updateProfile,
+    incrementFollowersCount,
+  }), [
+    currentUser,
+    users,
+    token,
+    isAuthenticated,
+    isAuthReady,
+    authRestoreError,
+    retryRestoreSession,
+    switchUser,
+    refreshUsers,
+    login,
+    register,
+    logout,
+    updateProfile,
+    incrementFollowersCount,
+  ]);
+
+  const uiValue = useMemo<UiContextValue>(() => ({
+    currentView,
+    viewParams,
+    navigateTo,
+    toasts,
+    addToast,
+    removeToast,
+    isComposerOpen,
+    setIsComposerOpen,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    authModalTab,
+    setAuthModalTab,
+    openAuthModal,
+    isEditProfileOpen,
+    setIsEditProfileOpen,
+    isMuteModalOpen,
+    setIsMuteModalOpen,
+    muteModalTab,
+    setMuteModalTab,
+    openMuteModal,
+    isFollowRequestsOpen,
+    setIsFollowRequestsOpen,
+    openFollowRequestsModal,
+  }), [
+    currentView,
+    viewParams,
+    navigateTo,
+    toasts,
+    addToast,
+    removeToast,
+    isComposerOpen,
+    isAuthModalOpen,
+    authModalTab,
+    openAuthModal,
+    isEditProfileOpen,
+    isMuteModalOpen,
+    muteModalTab,
+    openMuteModal,
+    isFollowRequestsOpen,
+    openFollowRequestsModal,
+  ]);
+
+  const realtimeValue = useMemo<RealtimeContextValue>(() => ({
+    unreadCount,
+    setUnreadCount,
+    dmUnreadCount,
+    setDmUnreadCount,
+    refreshDmUnreadCount,
+    hasNewTimelinePosts,
+    setHasNewTimelinePosts,
+    pendingFollowRequestsCount,
+    setPendingFollowRequestsCount,
+    refreshFollowRequestsCount,
+  }), [
+    unreadCount,
+    dmUnreadCount,
+    refreshDmUnreadCount,
+    hasNewTimelinePosts,
+    pendingFollowRequestsCount,
+    refreshFollowRequestsCount,
+  ]);
+
+  const pulseValue = useMemo<PulseContextType>(() => ({
+    ...authSessionValue,
+    ...uiValue,
+    ...realtimeValue,
+  }), [authSessionValue, uiValue, realtimeValue]);
 
   return (
-    <PulseContext.Provider
-      value={{
-        currentUser,
-        users,
-        switchUser,
-        refreshUsers,
-        currentView,
-        viewParams,
-        navigateTo,
-        toasts,
-        addToast,
-        removeToast,
-        unreadCount,
-        setUnreadCount,
-        dmUnreadCount,
-        setDmUnreadCount,
-        refreshDmUnreadCount,
-        hasNewTimelinePosts,
-        setHasNewTimelinePosts,
-        isComposerOpen,
-        setIsComposerOpen,
-        token,
-        isAuthenticated,
-        isAuthModalOpen,
-        setIsAuthModalOpen,
-        authModalTab,
-        setAuthModalTab,
-        openAuthModal,
-        isEditProfileOpen,
-        setIsEditProfileOpen,
-        isMuteModalOpen,
-        setIsMuteModalOpen,
-        muteModalTab,
-        setMuteModalTab,
-        openMuteModal,
-        login,
-        register,
-        logout,
-        updateProfile,
-        isFollowRequestsOpen,
-        setIsFollowRequestsOpen,
-        openFollowRequestsModal,
-        pendingFollowRequestsCount,
-        setPendingFollowRequestsCount,
-        refreshFollowRequestsCount,
-        incrementFollowersCount,
-      }}
-    >
-      {children}
-    </PulseContext.Provider>
+    <AuthSessionContext.Provider value={authSessionValue}>
+      <UiContext.Provider value={uiValue}>
+        <RealtimeContext.Provider value={realtimeValue}>
+          <PulseContext.Provider value={pulseValue}>{children}</PulseContext.Provider>
+        </RealtimeContext.Provider>
+      </UiContext.Provider>
+    </AuthSessionContext.Provider>
   );
 };
 

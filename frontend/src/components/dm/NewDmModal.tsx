@@ -1,9 +1,11 @@
+import { ProtectedMedia } from "../ProtectedMedia";
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePulse } from '../../context/PulseContext';
 import { api } from '../../api/PulseApiClient';
 import { UserDto, DmConversationDto } from '../../types/PulseTypes';
 import { VerifiedBadge } from '../VerifiedBadge';
 import { X, Search, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
+import { useAccessibleDialog } from '../../utils/useAccessibleDialog';
 
 interface NewDmModalProps {
   isOpen: boolean;
@@ -23,7 +25,9 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useAccessibleDialog(isOpen, () => {
+    if (!isSubmitting) onClose();
+  });
 
   // Focus search input when modal opens
   useEffect(() => {
@@ -36,17 +40,6 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
       }, 50);
     }
   }, [isOpen]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   // Filter available users (exclude current user)
   const filteredUsers = useMemo(() => {
@@ -146,7 +139,7 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
 
         {/* Error banner if any */}
         {errorMessage && (
-          <div className="mx-4 mt-3 p-3 rounded-[10px] bg-[#fdf2f2] border border-[#f8b4b4] text-[#9b1c1c] text-[13px] flex items-center gap-2">
+          <div className="mx-4 mt-3 p-3 rounded-[10px] bg-danger-surface border border-danger-border text-danger text-[13px] flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span className="flex-1">{errorMessage}</span>
           </div>
@@ -177,7 +170,7 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
+                    <ProtectedMedia
                       src={
                         user.avatarUrl ||
                         `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -194,7 +187,7 @@ export const NewDmModal: React.FC<NewDmModalProps> = ({
                           <VerifiedBadge size={13} title="VIP Verified" />
                         )}
                         {isTargetBlocked && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded-md font-medium">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-danger-surface text-danger rounded-md font-medium">
                             Đã chặn
                           </span>
                         )}

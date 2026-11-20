@@ -80,7 +80,7 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
   if (isBlocked) {
     return (
       <div className="p-4 bg-mist/60 border-t border-cloud flex items-center justify-center gap-2 text-[13px] text-graphite">
-        <Ban className="w-4 h-4 text-red-500 shrink-0" />
+        <Ban className="w-4 h-4 text-danger shrink-0" />
         <span>Bạn không thể gửi tin nhắn vì cuộc trò chuyện này đã bị chặn.</span>
       </div>
     );
@@ -114,7 +114,7 @@ export const DmMessageComposer: React.FC<DmMessageComposerProps> = ({
         {content.length > 4500 && (
           <span
             className={`text-[11px] font-medium px-1 mb-2 ${
-              isOverLimit ? 'text-red-500 font-bold' : 'text-ash'
+              isOverLimit ? 'text-danger font-bold' : 'text-ash'
             }`}
           >
             {5000 - content.length}

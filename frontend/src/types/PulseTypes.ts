@@ -72,6 +72,12 @@ export interface PostDto {
   poll?: PollDto | null;
 }
 
+export interface FeedPage {
+  posts: PostDto[];
+  nextCursor: string | null;
+  isLocked?: boolean;
+}
+
 export interface NotificationDto {
   id: string;
   recipientId: string;

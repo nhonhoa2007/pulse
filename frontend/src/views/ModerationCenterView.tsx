@@ -167,7 +167,7 @@ export const ModerationCenterView: React.FC = () => {
                   <button
                     onClick={() => handleResolve(r.id, 'SUSPEND_USER')}
                     disabled={resolvingId === r.id}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#dc2626] text-paper text-[12px] font-semibold hover:opacity-85 disabled:opacity-50"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-danger text-paper text-[12px] font-semibold hover:opacity-85 disabled:opacity-50"
                     data-testid="resolve-suspend"
                   >
                     <UserX className="w-3.5 h-3.5" /> Đình chỉ

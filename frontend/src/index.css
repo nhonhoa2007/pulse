@@ -12,6 +12,12 @@
   --c-graphite: 66 66 66;
   --c-meta: 56 88 152;
   --c-card: 255 255 255;
+  --c-danger: 185 28 28;
+  --c-danger-surface: 254 242 242;
+  --c-danger-border: 248 180 180;
+  --c-warning: 146 64 14;
+  --c-warning-surface: 254 243 199;
+  --c-warning-border: 180 83 9;
 
   /* Biến cũ (giữ để tương thích nội bộ css) */
   --color-ink-black: rgb(var(--c-ink));
@@ -88,6 +94,12 @@ html.dark {
   --c-graphite: 168 168 168;
   --c-meta: 109 138 205;
   --c-card: 32 32 32;
+  --c-danger: 248 113 113;
+  --c-danger-surface: 69 10 10;
+  --c-danger-border: 127 29 29;
+  --c-warning: 251 191 36;
+  --c-warning-surface: 69 26 3;
+  --c-warning-border: 146 64 14;
 }
 
 /* PKG-02 — OLED Black theme (#000000 tuyệt đối) */
@@ -100,6 +112,12 @@ html.black {
   --c-graphite: 168 168 168;
   --c-meta: 109 138 205;
   --c-card: 12 12 12;
+  --c-danger: 248 113 113;
+  --c-danger-surface: 55 8 8;
+  --c-danger-border: 127 29 29;
+  --c-warning: 251 191 36;
+  --c-warning-surface: 54 20 2;
+  --c-warning-border: 146 64 14;
 }
 
 @layer base {
@@ -118,6 +136,20 @@ html.black {
   html.dark body,
   html.black body {
     color-scheme: dark;
+  }
+
+  :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid rgb(var(--c-meta)) !important;
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

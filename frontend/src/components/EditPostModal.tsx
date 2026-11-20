@@ -4,6 +4,7 @@ import { usePulse } from '../context/PulseContext';
 import { api } from '../api/PulseApiClient';
 import { computeEditWindowRemaining } from '../utils/trustSafety';
 import { X, Clock, AlertTriangle, ShieldAlert, Loader2 } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
 
 export interface EditPostModalProps {
   post: PostDto;
@@ -54,16 +55,9 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
     return () => clearInterval(timer);
   }, [isOpen]);
 
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isSubmitting) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isSubmitting, onClose]);
+  const dialogRef = useAccessibleDialog(isOpen, () => {
+    if (!isSubmitting) onClose();
+  });
 
   if (!isOpen) return null;
 
@@ -106,12 +100,16 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-start justify-center pt-16 md:pt-20 px-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) {
           onClose();
         }
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Chỉnh sửa bài viết"
     >
       <div
         data-testid="edit-post-modal"
@@ -139,12 +137,12 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
             data-testid="edit-countdown-banner"
             className={`flex items-center gap-2 p-2.5 rounded-[12px] border text-[13px] transition-colors ${
               isExpired
-                ? 'bg-[#fee2e2] border-[#fecaca] text-[#991b1b]'
+                ? 'bg-danger-surface border-danger-border text-danger'
                 : 'bg-mist border-cloud text-graphite'
             }`}
           >
             {isExpired ? (
-              <AlertTriangle className="w-4 h-4 shrink-0 text-[#dc2626]" />
+              <AlertTriangle className="w-4 h-4 shrink-0 text-danger" />
             ) : (
               <Clock className="w-4 h-4 shrink-0 text-meta" />
             )}
@@ -180,7 +178,7 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
 
             <div className="flex items-center justify-between text-[12px] text-ash px-1 mt-1">
               <span>Cửa sổ 15 phút lưu lại lịch sử chỉnh sửa</span>
-              <span className={isOverLimit ? 'text-red-500 font-semibold' : ''}>
+              <span className={isOverLimit ? 'text-danger font-semibold' : ''}>
                 {remainingChars} ký tự còn lại
               </span>
             </div>

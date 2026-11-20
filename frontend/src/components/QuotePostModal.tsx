@@ -6,6 +6,8 @@ import { VerifiedBadge } from './VerifiedBadge';
 import { ReplyPrivacySelector } from './ReplyPrivacySelector';
 import { formatRelativeTime } from '../utils/formatters';
 import { X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
+import { ProtectedMedia } from './ProtectedMedia';
 
 interface QuotePostModalProps {
   post: PostDto | null;
@@ -42,15 +44,9 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isSubmitting) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isSubmitting, onClose]);
+  const dialogRef = useAccessibleDialog(isOpen, () => {
+    if (!isSubmitting) onClose();
+  });
 
   if (!isOpen || !post) return null;
 
@@ -133,12 +129,16 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-start justify-center pt-14 md:pt-20 px-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) {
           onClose();
         }
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Trích dẫn bài viết"
     >
       <div className="w-full max-w-xl bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden animate-scale-up">
         {/* Modal Header (~53px tall, Paper White, centered title 15px/600 #000000) */}
@@ -161,7 +161,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
         <div className="p-4">
           <div className="flex gap-3">
             {/* Current user avatar (40px circular, no border) */}
-            <img
+            <ProtectedMedia
               src={
                 currentUser.avatarUrl ||
                 `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`
@@ -202,7 +202,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                       key={idx}
                       className="relative rounded-[8px] overflow-hidden border border-cloud w-24 h-24 bg-mist"
                     >
-                      <img
+                      <ProtectedMedia
                         src={url}
                         alt="Preview"
                         className="w-full h-full object-cover"
@@ -210,7 +210,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveMedia(idx)}
-                        className="absolute top-1 right-1 p-1 bg-ink/75 hover:bg-ink text-white rounded-full transition-colors"
+                        className="absolute top-1 right-1 p-1 bg-black/75 hover:bg-black text-white rounded-full transition-colors"
                         title="Xóa ảnh"
                       >
                         <X className="w-3 h-3" />
@@ -223,7 +223,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
               {/* Embedded Quoted Post Preview Card (1px #d5d5d5 border, 8px radius, padding 12px) */}
               <div className="mt-2 mb-3 p-3 rounded-[8px] border border-cloud bg-paper text-[13px]">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <img
+                  <ProtectedMedia
                     src={
                       post.author.avatarUrl ||
                       `https://api.dicebear.com/7.x/bottts/svg?seed=${post.author.username}`
@@ -255,7 +255,7 @@ export const QuotePostModal: React.FC<QuotePostModalProps> = ({
                 {post.mediaUrls && post.mediaUrls.length > 0 && (
                   <div className="flex gap-1.5 mt-2 overflow-hidden rounded-[6px]">
                     {post.mediaUrls.slice(0, 3).map((mUrl, mIdx) => (
-                      <img
+                      <ProtectedMedia
                         key={mIdx}
                         src={mUrl}
                         alt="Quoted media"

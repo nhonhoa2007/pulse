@@ -36,8 +36,11 @@ import type {
   FollowRequestDto,
   FollowActionResponse,
   LogoutResponseDto,
+  FeedPage,
 } from '../types/PulseTypes.ts';
-import { PulseApiCore, IS_DEV } from './core.ts';
+import { ApiError, PulseApiCore, IS_DEV } from './core.ts';
+import { FeedApi } from './domains/FeedApi.ts';
+import { RealtimeClient } from './domains/RealtimeClient.ts';
 
 // SEC-06: môi trường dev detection chuyển vào api/core.ts (IS_DEV export dùng chung).
 
@@ -111,80 +114,33 @@ export const PRESET_USERS: UserDto[] = IS_DEV
 ];
 
 class PulseApiClient extends PulseApiCore {
+  private readonly feedApi = new FeedApi((endpoint, options) => this.request(endpoint, options));
+  private readonly realtimeClient = new RealtimeClient({
+    baseUrl: () => this.baseUrl,
+    hasSession: () => Boolean(this.getToken()),
+    getTicket: () => this.request('/realtime/ticket', { method: 'POST' }),
+  });
 
   // ================= FEED APIS =================
 
-  public async getHomeFeed(cursor?: string, limit = 20): Promise<PostDto[]> {
-    const params = new URLSearchParams();
-    if (cursor) params.append('cursor', cursor);
-    if (limit) params.append('limit', limit.toString());
-
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-    const res = await this.request<any>(`/feed/home${queryString}`);
-
-    if (Array.isArray(res)) return res;
-    if (res && Array.isArray(res.items)) return res.items;
-    if (res && Array.isArray(res.posts)) return res.posts;
-    return [];
+  public async getHomeFeed(cursor?: string, limit = 20): Promise<FeedPage> {
+    return this.feedApi.getHome(cursor, limit);
   }
 
-  public async getForYouFeed(cursor?: string, limit = 20): Promise<PostDto[]> {
-    const params = new URLSearchParams();
-    if (cursor) params.append('cursor', cursor);
-    if (limit) params.append('limit', limit.toString());
-
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-    try {
-      const res = await this.request<any>(`/feed/for-you${queryString}`);
-      if (Array.isArray(res)) return res;
-      if (res && Array.isArray(res.items)) return res.items;
-      if (res && Array.isArray(res.posts)) return res.posts;
-      return [];
-    } catch (err) {
-      console.warn('getForYouFeed failed, falling back to home feed:', err);
-      return this.getHomeFeed(cursor, limit);
-    }
+  public async getForYouFeed(cursor?: string, limit = 20): Promise<FeedPage> {
+    return this.feedApi.getForYou(cursor, limit);
   }
 
   public async recordPostViews(postIds: string[]): Promise<RecordPostViewsResponse> {
-    if (!postIds || postIds.length === 0) {
-      return { recorded: 0, buffered: 0 };
-    }
-    return this.request<RecordPostViewsResponse>('/posts/views', {
-      method: 'POST',
-      body: JSON.stringify({ postIds }),
-    });
+    return this.feedApi.recordViews(postIds || []);
   }
 
-  public async getExploreFeed(cursor?: string, limit = 20): Promise<PostDto[]> {
-    const params = new URLSearchParams();
-    if (cursor) params.append('cursor', cursor);
-    if (limit) params.append('limit', limit.toString());
-
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-    try {
-      const res = await this.request<any>(`/feed/explore${queryString}`);
-      if (Array.isArray(res)) return res;
-      if (res && Array.isArray(res.items)) return res.items;
-      return [];
-    } catch {
-      // Fallback to home feed if explore is not explicitly implemented on backend
-      return this.getHomeFeed(cursor, limit);
-    }
+  public async getExploreFeed(cursor?: string, limit = 20): Promise<FeedPage> {
+    return this.feedApi.getExplore(cursor, limit);
   }
 
-  public async getUserFeed(username: string, cursor?: string, limit = 20): Promise<PostDto[]> {
-    const params = new URLSearchParams();
-    if (cursor) params.append('cursor', cursor);
-    if (limit) params.append('limit', limit.toString());
-
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-    const res = await this.request<any>(`/feed/user/${encodeURIComponent(username)}${queryString}`);
-
-    if (Array.isArray(res)) return res;
-    if (res && Array.isArray(res.items)) return res.items;
-    if (res && Array.isArray(res.posts)) return res.posts;
-    return [];
+  public async getUserFeed(username: string, cursor?: string, limit = 20): Promise<FeedPage> {
+    return this.feedApi.getUser(username, cursor, limit);
   }
 
   // ================= POST APIS =================
@@ -391,21 +347,32 @@ class PulseApiClient extends PulseApiCore {
       ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
     };
 
-    const res = await fetch(`${this.baseUrl}/media/upload`, {
-      method: 'POST',
-      credentials: 'include',
-      headers,
-      body: formData,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${this.baseUrl}/media/upload`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: formData,
+      });
+    } catch (error) {
+      throw new ApiError(
+        error instanceof Error ? error.message : 'Không thể kết nối tới máy chủ',
+        null,
+        'NETWORK_ERROR'
+      );
+    }
 
     const contentType = res.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');
 
     if (!res.ok) {
       let errorMessage = `HTTP ${res.status} - ${res.statusText}`;
+      let errorCode = 'UPLOAD_FAILED';
       if (isJson) {
         try {
           const errData = await res.json();
+          errorCode = errData.error?.code || errData.code || errorCode;
           if (errData.error?.message) {
             errorMessage = errData.error.message;
           } else if (errData.message) {
@@ -415,15 +382,15 @@ class PulseApiClient extends PulseApiCore {
           // ignore parse failure
         }
       }
-      throw new Error(errorMessage);
+      throw new ApiError(errorMessage, res.status, errorCode);
     }
 
     const json = await res.json();
-    if (json?.data?.url) {
-      return json.data.url;
-    }
     if (json?.data?.relativeUrl) {
       return json.data.relativeUrl;
+    }
+    if (json?.data?.url) {
+      return json.data.url;
     }
     if (json?.url) {
       return json.url;
@@ -486,7 +453,7 @@ class PulseApiClient extends PulseApiCore {
   public async loginAsDemoUser(user: UserDto): Promise<{ user: UserDto; token: string }> {
     // SEC-06: mật khẩu demo bị loại khỏi bundle production qua constant folding.
     if (!IS_DEV) {
-      throw new Error('Demo user switcher is disabled in production builds');
+      throw new Error('Account switching is unavailable in this build');
     }
     return this.login(user.username, IS_DEV ? DEMO_LOGIN_PASSWORD : '');
   }
@@ -505,6 +472,7 @@ class PulseApiClient extends PulseApiCore {
     });
     // Dọn trạng thái cục bộ ngay — server đã thu hồi token.
     this.setToken(null);
+    this.disconnectRealtime();
     this.setActiveUserId(PRESET_USERS[0]?.id ?? '');
     if (typeof window !== 'undefined') {
       localStorage.removeItem('pulse_auth_token');
@@ -514,8 +482,7 @@ class PulseApiClient extends PulseApiCore {
   }
 
   public async logout(): Promise<ApiResponse<LogoutResponseDto>> {
-    try {
-      await fetch(`${this.baseUrl}/auth/logout`, {
+    const response = await fetch(`${this.baseUrl}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -523,15 +490,20 @@ class PulseApiClient extends PulseApiCore {
         },
         credentials: 'include',
       });
-    } catch (err) {
-      console.warn('Backend logout request failed:', err);
-    } finally {
-      this.setToken(null);
-      this.setActiveUserId(PRESET_USERS[0]?.id ?? '');
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('pulse_auth_token');
-        localStorage.removeItem('pulse_active_user_id');
-      }
+    if (!response.ok) {
+      let message = 'Không thể thu hồi phiên đăng nhập';
+      try {
+        const body = await response.json();
+        message = body.error?.message || message;
+      } catch { /* Keep the stable fallback message. */ }
+      throw new ApiError(message, response.status, 'LOGOUT_FAILED');
+    }
+    this.setToken(null);
+    this.disconnectRealtime();
+    this.setActiveUserId(PRESET_USERS[0]?.id ?? '');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pulse_auth_token');
+      localStorage.removeItem('pulse_active_user_id');
     }
     return {
       success: true,
@@ -556,20 +528,9 @@ class PulseApiClient extends PulseApiCore {
 
   public async refreshToken(): Promise<{ accessToken: string; user?: UserDto } | null> {
     try {
-      const refreshRes = await fetch(`${this.baseUrl}/auth/refresh`, {
+      const payload = await this.request<{ accessToken: string; token?: string; user?: UserDto }>('/auth/refresh', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
       });
-
-      if (!refreshRes.ok) {
-        return null;
-      }
-
-      const data = await refreshRes.json();
-      const payload = data.data || data;
       const newAccessToken = payload.accessToken || payload.token;
 
       if (newAccessToken) {
@@ -580,8 +541,9 @@ class PulseApiClient extends PulseApiCore {
         return { accessToken: newAccessToken, user: payload.user };
       }
       return null;
-    } catch {
-      return null;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) return null;
+      throw error;
     }
   }
 
@@ -791,19 +753,13 @@ class PulseApiClient extends PulseApiCore {
       params.append('type', 'all');
     }
 
-    try {
-      const res = await this.request<any>(`/search?${params.toString()}`);
-      return {
-        posts: Array.isArray(res?.posts) ? res.posts : [],
-        users: Array.isArray(res?.users) ? res.users : [],
-        query: typeof res?.query === 'string' ? res.query : trimmed,
-        federatedResult: res?.federatedResult || null,
-      };
-    } catch (err: any) {
-      // Fallback for offline/disconnected mock mode
-      console.warn('Search API fallback:', err?.message);
-      return { posts: [], users: [], query: trimmed, federatedResult: null };
-    }
+    const res = await this.request<any>(`/search?${params.toString()}`);
+    return {
+      posts: Array.isArray(res?.posts) ? res.posts : [],
+      users: Array.isArray(res?.users) ? res.users : [],
+      query: typeof res?.query === 'string' ? res.query : trimmed,
+      federatedResult: res?.federatedResult || null,
+    };
   }
 
   // ================= FEDERATION APIS =================
@@ -827,15 +783,10 @@ class PulseApiClient extends PulseApiCore {
   }
 
   public async getTrending(): Promise<Array<{ tag: string; postsCount: number; score: number }>> {
-    try {
-      const res = await this.request<any>('/trending');
-      if (Array.isArray(res)) return res;
-      if (res && Array.isArray(res.trending)) return res.trending;
-      return [];
-    } catch (err: any) {
-      console.warn('Trending API fallback:', err?.message);
-      return [];
-    }
+    const res = await this.request<any>('/trending');
+    if (Array.isArray(res)) return res;
+    if (res && Array.isArray(res.trending)) return res.trending;
+    return [];
   }
 
   // ================= POLL APIS =================
@@ -1180,250 +1131,15 @@ class PulseApiClient extends PulseApiCore {
    * Ticket được lấy qua POST /realtime/ticket (JWT auth), dùng đúng 1 lần, TTL 30s.
    */
   public subscribeRealtimeEvents(
-    _userId: string,
+    userId: string,
     onEvent: (event: RealtimeEvent) => void,
     onError?: (error: Event) => void
   ): () => void {
-    let cancelled = false;
-    let streamCleaner: (() => void) | null = null;
-
-    void this.openAuthenticatedRealtimeStream(onEvent, onError)
-      .then((cleaner) => {
-        if (cancelled) {
-          cleaner();
-          return;
-        }
-        streamCleaner = cleaner;
-      })
-      .catch(() => {
-        if (onError) onError(new Event('sse-ticket-error'));
-      });
-
-    return () => {
-      cancelled = true;
-      if (streamCleaner) streamCleaner();
-    };
+    return this.realtimeClient.subscribe(userId, onEvent, onError);
   }
 
-  private async openAuthenticatedRealtimeStream(
-    onEvent: (event: RealtimeEvent) => void,
-    onError?: (error: Event) => void
-  ): Promise<() => void> {
-    const ticketData = await this.request<{ ticket: string; expiresIn: number }>('/realtime/ticket', {
-      method: 'POST',
-    });
-    const sseUrl = `${this.baseUrl}/realtime/stream?ticket=${encodeURIComponent(ticketData.ticket)}`;
-    const eventSource = new EventSource(sseUrl);
-
-    // 1. Listen to named events
-    eventSource.addEventListener('NEW_TIMELINE_POST', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'NEW_TIMELINE_POST',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'NEW_TIMELINE_POST',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    eventSource.addEventListener('NEW_NOTIFICATION', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'NEW_NOTIFICATION',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'NEW_NOTIFICATION',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    eventSource.addEventListener('POLL_UPDATED', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'POLL_UPDATED',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'POLL_UPDATED',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    eventSource.addEventListener('POLL_EXPIRED', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'POLL_EXPIRED',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'POLL_EXPIRED',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    // Direct Messaging Real-time events
-    eventSource.addEventListener('dm.typing', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'dm.typing',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'dm.typing',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    eventSource.addEventListener('dm.reaction.updated', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({ type: 'dm.reaction.updated', data, timestamp: new Date().toISOString() });
-      } catch {
-        onEvent({ type: 'dm.reaction.updated', data: e.data, timestamp: new Date().toISOString() });
-      }
-    });
-
-    eventSource.addEventListener('dm.group.reaction.updated', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({ type: 'dm.group.reaction.updated', data, timestamp: new Date().toISOString() });
-      } catch {
-        onEvent({ type: 'dm.group.reaction.updated', data: e.data, timestamp: new Date().toISOString() });
-      }
-    });
-
-    eventSource.addEventListener('dm.message.new', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'dm.message.new',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'dm.message.new',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    eventSource.addEventListener('dm.message.deleted', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'dm.message.deleted',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'dm.message.deleted',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    eventSource.addEventListener('dm.read_receipt.updated', (e: MessageEvent) => {
-      try {
-        const data = e.data ? JSON.parse(e.data) : null;
-        onEvent({
-          type: 'dm.read_receipt.updated',
-          data,
-          timestamp: new Date().toISOString(),
-        });
-      } catch {
-        onEvent({
-          type: 'dm.read_receipt.updated',
-          data: e.data,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    // Group DM Real-time events (TASK-20)
-    const groupEventTypes = [
-      'dm.group.message.new',
-      'dm.group.message.deleted',
-      'dm.group.member.joined',
-      'dm.group.member.left',
-      'dm.group.read_receipt.updated',
-      'dm.group.updated',
-    ];
-
-    groupEventTypes.forEach((eventType) => {
-      eventSource.addEventListener(eventType, (e: MessageEvent) => {
-        try {
-          const data = e.data ? JSON.parse(e.data) : null;
-          onEvent({
-            type: eventType,
-            data,
-            timestamp: new Date().toISOString(),
-          });
-        } catch {
-          onEvent({
-            type: eventType,
-            data: e.data,
-            timestamp: new Date().toISOString(),
-          });
-        }
-      });
-    });
-
-    // 2. Generic message event fallback
-    eventSource.onmessage = (e: MessageEvent) => {
-      try {
-        const payload = JSON.parse(e.data);
-        if (payload.type || payload.event) {
-          onEvent({
-            type: payload.type || payload.event,
-            data: payload.data,
-            timestamp: payload.timestamp || new Date().toISOString(),
-          });
-        }
-      } catch {
-        // Ping or non-JSON message
-      }
-    };
-
-    eventSource.onerror = (err) => {
-      if (onError) onError(err);
-    };
-
-    // Return unsubscribe cleaner function
-    return () => {
-      eventSource.close();
-    };
+  public disconnectRealtime(): void {
+    this.realtimeClient.disconnect();
   }
 }
 

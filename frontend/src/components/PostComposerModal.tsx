@@ -1,21 +1,12 @@
 import React from 'react';
-import { usePulse } from '../context/PulseContext';
+import { usePulseUi } from '../context/PulseContexts';
 import { PostComposerCard } from './PostComposerCard';
 import { X } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
 
 export const PostComposerModal: React.FC = () => {
-  const { isComposerOpen, setIsComposerOpen, navigateTo } = usePulse();
-
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.defaultPrevented) return;
-      if (e.key === 'Escape' && isComposerOpen) {
-        setIsComposerOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isComposerOpen, setIsComposerOpen]);
+  const { isComposerOpen, setIsComposerOpen, navigateTo } = usePulseUi();
+  const dialogRef = useAccessibleDialog(isComposerOpen, () => setIsComposerOpen(false));
 
   if (!isComposerOpen) return null;
 
@@ -28,11 +19,17 @@ export const PostComposerModal: React.FC = () => {
         }
       }}
     >
-      <div className="w-full max-w-xl bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden animate-scale-up">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="composer-dialog-title"
+        className="w-full max-w-xl bg-paper border border-cloud rounded-[18px] shadow-2xl overflow-hidden animate-scale-up"
+      >
         {/* Modal Header (~53px tall, Paper White, centered title 15px/600 #000000) */}
         <div className="flex items-center justify-between h-[53px] px-4 border-b border-cloud bg-paper">
           <div className="w-8" />
-          <span className="text-[15px] font-semibold text-ink">
+          <span id="composer-dialog-title" className="text-[15px] font-semibold text-ink">
             Bài viết mới
           </span>
           <button
@@ -47,7 +44,10 @@ export const PostComposerModal: React.FC = () => {
         {/* Composer Body */}
         <div>
           <PostComposerCard
-            autoFocus={true}
+            // The dialog effect captures the opener before moving focus. Native
+            // autoFocus would run during commit and make the textarea look like
+            // the opener, preventing focus restoration when the dialog closes.
+            autoFocus={false}
             onPostCreated={() => {
               setIsComposerOpen(false);
               navigateTo('home');

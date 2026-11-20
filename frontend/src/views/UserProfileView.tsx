@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { ProtectedMedia } from "../components/ProtectedMedia";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserDto, PostDto } from '../types/PulseTypes';
 import { usePulse } from '../context/PulseContext';
 import { api } from '../api/PulseApiClient';
 import { PostFeedItem } from '../components/PostFeedItem';
 import { VerifiedBadge } from '../components/VerifiedBadge';
 import { formatCount } from '../utils/formatters';
+import { useInfiniteScrollTrigger } from '../utils/useInfiniteScrollTrigger';
 import {
   isAccountLocked,
   getFollowButtonVisualInfo,
@@ -23,7 +25,10 @@ import {
   VolumeX,
   Lock,
   Clock,
+  Loader2,
 } from 'lucide-react';
+
+const profileFeedCache = new Map<string, { posts: PostDto[]; nextCursor: string | null; scrollY: number }>();
 
 export const UserProfileView: React.FC = () => {
   const {
@@ -46,6 +51,11 @@ export const UserProfileView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isBookmarksLoading, setIsBookmarksLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [paginationError, setPaginationError] = useState<string | null>(null);
+  const paginationInFlightRef = useRef(false);
+  const requestGenerationRef = useRef(0);
 
   // Social graph action states
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
@@ -56,6 +66,7 @@ export const UserProfileView: React.FC = () => {
   const [isGraphActionLoading, setIsGraphActionLoading] = useState<boolean>(false);
 
   const isSelf = currentUser.username === username;
+  const profileCacheKey = `${currentUser.id || 'guest'}:${username}`;
 
   // Handle tab from viewParams
   useEffect(() => {
@@ -69,12 +80,15 @@ export const UserProfileView: React.FC = () => {
   }, [viewParams.tab, isSelf]);
 
   const loadProfileAndPosts = useCallback(async () => {
+    const generation = ++requestGenerationRef.current;
+    paginationInFlightRef.current = false;
     setIsLoading(true);
     setError(null);
 
     try {
       // 1. Fetch user profile
       const userData = await api.getUserProfile(username);
+      if (generation !== requestGenerationRef.current) return;
       setProfile(userData);
       setIsFollowing(!!userData.isFollowing);
       setHasPendingFollowRequest(!!userData.hasPendingFollowRequest);
@@ -86,18 +100,29 @@ export const UserProfileView: React.FC = () => {
 
       // 2. Fetch user's posts if unblocked and not locked
       if (!userData.isBlocked && !locked) {
-        const userPosts = await api.getUserFeed(username);
-        setPosts(userPosts);
+        const cached = profileFeedCache.get(profileCacheKey);
+        if (cached) {
+          setPosts(cached.posts);
+          setNextCursor(cached.nextCursor);
+          requestAnimationFrame(() => window.scrollTo({ top: cached.scrollY }));
+        } else {
+          const page = await api.getUserFeed(username);
+          if (generation !== requestGenerationRef.current) return;
+          setPosts(page.posts);
+          setNextCursor(page.nextCursor);
+        }
       } else {
         setPosts([]);
+        setNextCursor(null);
       }
     } catch (err: any) {
+      if (generation !== requestGenerationRef.current) return;
       console.error('Failed to load profile:', err);
       setError(err.message || 'Không thể tải hồ sơ người dùng này.');
     } finally {
-      setIsLoading(false);
+      if (generation === requestGenerationRef.current) setIsLoading(false);
     }
-  }, [username, currentUser.id]);
+  }, [username, currentUser.id, profileCacheKey]);
 
   const loadBookmarks = useCallback(async () => {
     if (!isSelf) return;
@@ -115,6 +140,36 @@ export const UserProfileView: React.FC = () => {
   useEffect(() => {
     loadProfileAndPosts();
   }, [loadProfileAndPosts]);
+
+  const loadMorePosts = useCallback(async () => {
+    if (!nextCursor || paginationInFlightRef.current) return;
+    const generation = requestGenerationRef.current;
+    paginationInFlightRef.current = true;
+    setIsLoadingMore(true);
+    setPaginationError(null);
+    try {
+      const page = await api.getUserFeed(username, nextCursor);
+      if (generation !== requestGenerationRef.current) return;
+      setPosts((previous) => {
+        const knownIds = new Set(previous.map((post) => post.id));
+        return [...previous, ...page.posts.filter((post) => !knownIds.has(post.id))];
+      });
+      setNextCursor(page.nextCursor);
+    } catch (loadError: any) {
+      if (generation !== requestGenerationRef.current) return;
+      setPaginationError(loadError.message || 'Không thể tải thêm bài viết.');
+    } finally {
+      if (generation === requestGenerationRef.current) {
+        setIsLoadingMore(false);
+        paginationInFlightRef.current = false;
+      }
+    }
+  }, [username, nextCursor]);
+
+  const paginationSentinelRef = useInfiniteScrollTrigger({
+    enabled: activeTab !== 'bookmarks' && Boolean(nextCursor) && !isLoadingMore,
+    onLoadMore: () => void loadMorePosts(),
+  });
 
   useEffect(() => {
     if (activeTab === 'bookmarks' && isSelf) {
@@ -159,6 +214,12 @@ export const UserProfileView: React.FC = () => {
       : null,
     currentUser.id
   );
+
+  useEffect(() => () => {
+    if (profile && !isLocked) {
+      profileFeedCache.set(profileCacheKey, { posts, nextCursor, scrollY: window.scrollY });
+    }
+  }, [profileCacheKey, profile, isLocked, posts, nextCursor]);
 
   // Handle Follow / Request / Unfollow / Cancel Request
   const handleToggleFollow = async () => {
@@ -291,6 +352,7 @@ export const UserProfileView: React.FC = () => {
       <header className="sticky top-0 z-20 bg-paper/95 backdrop-blur-md border-b border-cloud flex items-center justify-between h-[53px] px-4">
         <button
           onClick={() => navigateTo('home')}
+          aria-label="Quay về trang chủ"
           className="p-1.5 -ml-1.5 rounded-full text-ash hover:text-ink hover:bg-mist transition-colors focus:outline-none"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -343,7 +405,7 @@ export const UserProfileView: React.FC = () => {
             {/* Avatar & Action Button Row */}
             <div className="flex items-end justify-between -mt-12 mb-3">
               <div className="relative">
-                <img
+                <ProtectedMedia
                   src={
                     profile.avatarUrl ||
                     `https://api.dicebear.com/7.x/bottts/svg?seed=${profile.username}`
@@ -678,37 +740,87 @@ export const UserProfileView: React.FC = () => {
                   </div>
                 )
               ) : displayedPosts.length === 0 ? (
-                <div className="py-16 text-center text-ash">
-                  <Inbox className="w-8 h-8 mx-auto mb-2 text-ash" />
-                  <p className="text-[13px]">
-                    {activeTab === 'replies'
-                      ? 'Chưa có câu trả lời nào.'
-                      : 'Chưa có bài viết nào từ người dùng này.'}
-                  </p>
-                </div>
+                <>
+                  <div className="py-16 text-center text-ash">
+                    <Inbox className="w-8 h-8 mx-auto mb-2 text-ash" />
+                    <p className="text-[13px]">
+                      {activeTab === 'replies'
+                        ? 'Chưa có câu trả lời nào trong trang đã tải.'
+                        : 'Chưa có bài viết nào từ người dùng này.'}
+                    </p>
+                  </div>
+                  {nextCursor && (
+                    <div
+                      ref={paginationSentinelRef}
+                      className="min-h-16 flex items-center justify-center"
+                      aria-live="polite"
+                    >
+                      {isLoadingMore && (
+                        <span className="inline-flex items-center gap-2 text-[13px] text-graphite">
+                          <Loader2 className="w-4 h-4 animate-spin" /> Đang tìm thêm…
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {paginationError && (
+                    <div className="px-4 pb-6 text-center">
+                      <p className="text-[13px] text-graphite mb-2">{paginationError}</p>
+                      <button
+                        type="button"
+                        onClick={() => void loadMorePosts()}
+                        className="px-4 py-2 rounded-full border border-cloud text-[13px] font-semibold"
+                      >
+                        Thử tải lại
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="divide-y divide-cloud">
-                  {displayedPosts.map((post) => (
-                    <PostFeedItem
-                      key={post.id}
-                      post={post}
-                      onPostUpdated={(updated) => {
-                        setPosts((prev) => {
-                          if (updated.isPinned) {
-                            return prev.map((p) =>
-                              p.id === updated.id
-                                ? updated
-                                : p.isPinned
-                                ? { ...p, isPinned: false }
-                                : p
-                            );
-                          }
-                          return prev.map((p) => (p.id === updated.id ? updated : p));
-                        });
-                      }}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="divide-y divide-cloud">
+                    {displayedPosts.map((post) => (
+                      <PostFeedItem
+                        key={post.id}
+                        post={post}
+                        onPostUpdated={(updated) => {
+                          setPosts((prev) => {
+                            if (updated.isPinned) {
+                              return prev.map((p) =>
+                                p.id === updated.id
+                                  ? updated
+                                  : p.isPinned
+                                  ? { ...p, isPinned: false }
+                                  : p
+                              );
+                            }
+                            return prev.map((p) => (p.id === updated.id ? updated : p));
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div ref={paginationSentinelRef} className="min-h-16 flex items-center justify-center" aria-live="polite">
+                    {isLoadingMore ? (
+                      <span className="inline-flex items-center gap-2 text-[13px] text-graphite">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Đang tải thêm…
+                      </span>
+                    ) : nextCursor ? null : (
+                      <span className="text-[12px] text-ash">Bạn đã xem hết bài viết.</span>
+                    )}
+                  </div>
+                  {paginationError && (
+                    <div className="px-4 pb-6 text-center">
+                      <p className="text-[13px] text-graphite mb-2">{paginationError}</p>
+                      <button
+                        type="button"
+                        onClick={() => void loadMorePosts()}
+                        className="px-4 py-2 rounded-full border border-cloud text-[13px] font-semibold"
+                      >
+                        Thử tải lại
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}

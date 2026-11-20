@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "../ProtectedMedia";
 import React from 'react';
 import { GroupConversationDto } from '../../types/PulseTypes';
 import { formatRelativeTime } from '../../utils/formatters';
@@ -74,7 +75,7 @@ export const GroupConversationListItem: React.FC<GroupConversationListItemProps>
       {/* Group Avatar Icon with unread badge */}
       <div className="relative shrink-0">
         {avatarUrl ? (
-          <img
+          <ProtectedMedia
             src={avatarUrl}
             alt={title}
             className="w-12 h-12 rounded-full object-cover border border-cloud bg-paper"

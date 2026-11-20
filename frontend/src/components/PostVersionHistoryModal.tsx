@@ -3,6 +3,7 @@ import { PostVersionsResponse, PostVersionDto } from '../types/PulseTypes';
 import { api } from '../api/PulseApiClient';
 import { formatRelativeTime } from '../utils/formatters';
 import { X, History, AlertCircle, EyeOff, Loader2 } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
 
 export interface PostVersionHistoryModalProps {
   postId: string;
@@ -50,16 +51,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
     };
   }, [isOpen, postId]);
 
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const dialogRef = useAccessibleDialog(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -70,12 +62,16 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-start justify-center pt-16 md:pt-20 px-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Lịch sử chỉnh sửa"
     >
       <div
         data-testid="version-history-modal"
@@ -107,8 +103,8 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
               <span className="text-[13px]">Đang tải lịch sử phiên bản...</span>
             </div>
           ) : error ? (
-            <div className="p-4 rounded-[12px] bg-[#fee2e2] border border-[#fecaca] text-[#991b1b] text-center space-y-2">
-              <AlertCircle className="w-6 h-6 mx-auto text-[#dc2626]" />
+            <div className="p-4 rounded-[12px] bg-danger-surface border border-danger-border text-danger text-center space-y-2">
+              <AlertCircle className="w-6 h-6 mx-auto text-danger" />
               <p className="text-[13px]">{error}</p>
               <button
                 onClick={() => {
@@ -116,7 +112,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
                   setError(null);
                   api.getPostVersions(postId).then(setData).catch(e => setError(e.message)).finally(() => setIsLoading(false));
                 }}
-                className="px-3 py-1 bg-white text-[12px] font-semibold rounded-full border border-[#fecaca] shadow-xs hover:bg-gray-50"
+                className="px-3 py-1 bg-card text-[12px] font-semibold rounded-full border border-danger-border shadow-xs hover:bg-mist"
               >
                 Thử lại
               </button>
@@ -132,7 +128,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
                 <div
                   key={version.id}
                   data-testid={`version-item-${version.versionNumber}`}
-                  className="p-3.5 rounded-[12px] border border-cloud bg-white space-y-2 shadow-xs"
+                  className="p-3.5 rounded-[12px] border border-cloud bg-card space-y-2 shadow-xs"
                 >
                   <div className="flex items-center justify-between">
                     <span
@@ -150,7 +146,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
                   </div>
 
                   {version.contentWarning && (
-                    <div className="flex items-center gap-1.5 text-[12px] text-[#b45309] bg-[#fef3c7] px-2.5 py-1 rounded-[8px] font-medium">
+                    <div className="flex items-center gap-1.5 text-[12px] text-warning bg-warning-surface px-2.5 py-1 rounded-[8px] font-medium">
                       <EyeOff className="w-3.5 h-3.5 shrink-0" />
                       <span>Cảnh báo: {version.contentWarning}</span>
                     </div>
@@ -166,7 +162,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
               {data?.current && (
                 <div
                   data-testid="current-version-item"
-                  className="p-3.5 rounded-[12px] border-2 border-ink/30 bg-white space-y-2 shadow-xs"
+                  className="p-3.5 rounded-[12px] border-2 border-ink/30 bg-card space-y-2 shadow-xs"
                 >
                   <div className="flex items-center justify-between">
                     <span
@@ -186,7 +182,7 @@ export const PostVersionHistoryModal: React.FC<PostVersionHistoryModalProps> = (
                   </div>
 
                   {data.current.contentWarning && (
-                    <div className="flex items-center gap-1.5 text-[12px] text-[#b45309] bg-[#fef3c7] px-2.5 py-1 rounded-[8px] font-medium">
+                    <div className="flex items-center gap-1.5 text-[12px] text-warning bg-warning-surface px-2.5 py-1 rounded-[8px] font-medium">
                       <EyeOff className="w-3.5 h-3.5 shrink-0" />
                       <span>Cảnh báo: {data.current.contentWarning}</span>
                     </div>

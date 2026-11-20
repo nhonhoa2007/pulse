@@ -77,32 +77,34 @@ export function renderRichContent(
     if (part.startsWith('#')) {
       const tag = part.slice(1);
       return (
-        <span
+        <button
+          type="button"
           key={index}
           onClick={(e) => {
             e.stopPropagation();
             onTagClick?.(tag);
           }}
-          className="text-meta hover:underline cursor-pointer font-normal"
+          className="inline p-0 border-0 bg-transparent text-meta hover:underline cursor-pointer font-normal text-inherit"
         >
           {part}
-        </span>
+        </button>
       );
     }
 
     if (part.startsWith('@')) {
       const username = part.slice(1);
       return (
-        <span
+        <button
+          type="button"
           key={index}
           onClick={(e) => {
             e.stopPropagation();
             onMentionClick?.(username);
           }}
-          className="text-meta hover:underline cursor-pointer font-normal"
+          className="inline p-0 border-0 bg-transparent text-meta hover:underline cursor-pointer font-normal text-inherit"
         >
           {part}
-        </span>
+        </button>
       );
     }
 

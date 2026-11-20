@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "../ProtectedMedia";
 import React from 'react';
 import { DmConversationDto } from '../../types/PulseTypes';
 import { formatRelativeTime } from '../../utils/formatters';
@@ -63,7 +64,7 @@ export const DmConversationListItem: React.FC<DmConversationListItemProps> = ({
     >
       {/* Avatar with unread indicator dot */}
       <div className="relative shrink-0">
-        <img
+        <ProtectedMedia
           src={
             otherUser.avatarUrl ||
             `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser.username}`

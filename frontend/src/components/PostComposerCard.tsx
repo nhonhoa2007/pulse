@@ -12,6 +12,7 @@ import {
   createAutosaver,
 } from '../utils/drafts';
 import { Image, X, Loader2, Link as LinkIcon, BarChart2, Plus, Trash2, Lock, AlertCircle, ShieldAlert } from 'lucide-react';
+import { ProtectedMedia } from './ProtectedMedia';
 
 interface PostComposerCardProps {
   replyToPost?: PostDto | null;
@@ -640,9 +641,9 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
       {permissionError && (
         <div
           data-testid="composer-permission-error"
-          className="mb-3 p-3 rounded-[10px] bg-[#fdf2f2] border border-[#f8b4b4] text-[#9b1c1c] text-[13px] flex items-start gap-2 animate-fade-in"
+          className="mb-3 p-3 rounded-[10px] bg-danger-surface border border-danger-border text-danger text-[13px] flex items-start gap-2 animate-fade-in"
         >
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#e02424]" />
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-danger" />
           <div className="flex-1 min-w-0">
             <span className="font-semibold block">Không thể gửi câu trả lời</span>
             <span className="text-[12px]">{permissionError}</span>
@@ -650,7 +651,8 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
           <button
             type="button"
             onClick={() => setPermissionError(null)}
-            className="text-[#9b1c1c] hover:text-ink p-0.5"
+            aria-label="Đóng thông báo lỗi"
+            className="text-danger hover:text-ink p-0.5"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -659,7 +661,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
 
       <div className="flex gap-3">
         {/* Current User Avatar (40px, full circle, no border) */}
-        <img
+        <ProtectedMedia
           src={
             currentUser.avatarUrl ||
             `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`
@@ -728,7 +730,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                             : 'bg-paper hover:bg-mist'
                         }`}
                       >
-                        <img
+                        <ProtectedMedia
                           src={
                             item.avatarUrl ||
                             `https://api.dicebear.com/7.x/bottts/svg?seed=${item.username}`
@@ -799,7 +801,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                   key={idx}
                   className="relative rounded-[8px] overflow-hidden border border-cloud w-24 h-24 bg-mist"
                 >
-                  <img
+                  <ProtectedMedia
                     src={url}
                     alt={`Ảnh đính kèm ${idx + 1}`}
                     className="w-full h-full object-cover"
@@ -810,7 +812,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveMedia(idx)}
-                    className="absolute top-1 right-1 p-1 bg-ink/75 hover:bg-ink text-white rounded-full transition-colors"
+                    className="absolute top-1 right-1 p-1 bg-black/75 hover:bg-black text-white rounded-full transition-colors"
                     title="Xóa ảnh"
                   >
                     <X className="w-3 h-3" />
@@ -852,6 +854,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
               <button
                 type="button"
                 onClick={() => setShowMediaInput(false)}
+                aria-label="Đóng ô nhập liên kết ảnh"
                 className="p-1 text-ash hover:text-ink"
               >
                 <X className="w-4 h-4" />
@@ -941,7 +944,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                         onClick={() => {
                           setPollChoices(pollChoices.filter((_, i) => i !== idx));
                         }}
-                        className="p-1.5 text-ash hover:text-[#dc2626] rounded-full hover:bg-black/5 transition-colors"
+                        className="p-1.5 text-ash hover:text-danger rounded-full hover:bg-mist transition-colors"
                         title="Xóa lựa chọn"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -994,10 +997,10 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
           {showContentWarning && (
             <div
               data-testid="composer-content-warning-box"
-              className="my-2.5 p-3 rounded-xl border border-[#b45309]/30 bg-[#fef3c7]/30 space-y-2 animate-fade-in"
+              className="my-2.5 p-3 rounded-xl border border-warning-border/30 bg-warning-surface/30 space-y-2 animate-fade-in"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-semibold text-[#92400e] flex items-center gap-1.5">
+                <span className="text-[13px] font-semibold text-warning flex items-center gap-1.5">
                   <ShieldAlert className="w-4 h-4" />
                   <span>Cảnh báo nội dung (Content Warning)</span>
                 </span>
@@ -1022,7 +1025,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 onChange={(e) => setContentWarningText(e.target.value)}
                 placeholder="Nhập lý do cảnh báo (ví dụ: Tiết lộ cốt truyện Avatar, Nội dung nhạy cảm...)"
                 maxLength={100}
-                className="w-full px-3 py-1.5 rounded-lg border border-cloud bg-white text-[13px] text-ink placeholder-ash focus:outline-none focus:border-[#92400e]"
+                className="w-full px-3 py-1.5 rounded-lg border border-cloud bg-card text-[13px] text-ink placeholder-ash focus:outline-none focus:border-warning"
               />
 
               <label className="flex items-center gap-2 text-[12px] text-graphite cursor-pointer pt-0.5">
@@ -1113,7 +1116,7 @@ export const PostComposerCard: React.FC<PostComposerCardProps> = ({
                 disabled={isUploadingMedia || isSubmitting}
                 className={`p-1.5 rounded-full transition-colors focus:outline-none disabled:opacity-40 cursor-pointer ${
                   showContentWarning
-                    ? 'text-[#b45309] bg-[#fef3c7]'
+                    ? 'text-warning bg-warning-surface'
                     : 'text-ash hover:text-ink hover:bg-mist'
                 }`}
                 title={

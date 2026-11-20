@@ -361,7 +361,7 @@ export const DirectMessagingView: React.FC = () => {
                 <span
                   className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                     activeDmTab === 'direct'
-                      ? 'bg-white text-black'
+                      ? 'bg-paper text-ink'
                       : 'bg-meta text-white'
                   }`}
                 >
@@ -387,7 +387,7 @@ export const DirectMessagingView: React.FC = () => {
                 <span
                   className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                     activeDmTab === 'group'
-                      ? 'bg-white text-black'
+                      ? 'bg-paper text-ink'
                       : 'bg-meta text-white'
                   }`}
                 >
@@ -434,14 +434,14 @@ export const DirectMessagingView: React.FC = () => {
             </div>
           ) : error ? (
             <div className="p-4 text-center">
-              <AlertCircle className="w-6 h-6 text-red-500 mx-auto mb-2" />
+              <AlertCircle className="w-6 h-6 text-danger mx-auto mb-2" />
               <p className="text-[13px] text-ink mb-2">{error}</p>
               <button
                 onClick={() => {
                   loadConversations();
                   loadGroups();
                 }}
-                className="px-3 py-1 bg-ink text-white text-[12px] rounded-full font-semibold"
+                className="px-3 py-1 bg-ink text-paper text-[12px] rounded-full font-semibold"
               >
                 Thử lại
               </button>
@@ -462,7 +462,7 @@ export const DirectMessagingView: React.FC = () => {
                 {!searchFilter && (
                   <button
                     onClick={() => setIsNewDmModalOpen(true)}
-                    className="px-4 py-2 bg-ink hover:bg-graphite text-white text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
+                    className="px-4 py-2 bg-ink hover:bg-graphite text-paper text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Bắt đầu cuộc trò chuyện</span>
@@ -496,7 +496,7 @@ export const DirectMessagingView: React.FC = () => {
                 {!searchFilter && (
                   <button
                     onClick={() => setIsCreateGroupModalOpen(true)}
-                    className="px-4 py-2 bg-ink hover:bg-graphite text-white text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
+                    className="px-4 py-2 bg-ink hover:bg-graphite text-paper text-[13px] font-semibold rounded-full transition-all inline-flex items-center gap-1.5"
                     data-testid="empty-create-group-btn"
                   >
                     <Plus className="w-4 h-4" />
@@ -556,7 +556,7 @@ export const DirectMessagingView: React.FC = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsNewDmModalOpen(true)}
-                className="px-5 py-2.5 bg-ink hover:bg-graphite text-white text-[14px] font-semibold rounded-full transition-all shadow-sm hover:scale-105 active:scale-95"
+                className="px-5 py-2.5 bg-ink hover:bg-graphite text-paper text-[14px] font-semibold rounded-full transition-all shadow-sm hover:scale-105 active:scale-95"
               >
                 Soạn tin nhắn mới
               </button>

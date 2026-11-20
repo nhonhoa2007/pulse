@@ -1,7 +1,9 @@
+import { ProtectedMedia } from "./ProtectedMedia";
 import React, { useState, useEffect, useRef } from 'react';
 import { usePulse } from '../context/PulseContext';
 import { api } from '../api/PulseApiClient';
 import { X, Upload, Loader2, AlertCircle, Lock } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
 
 export const EditProfileModal: React.FC = () => {
   const {
@@ -38,16 +40,9 @@ export const EditProfileModal: React.FC = () => {
     }
   }, [isEditProfileOpen, currentUser]);
 
-  // Handle ESC key to close
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isEditProfileOpen && !isSaving && !isUploading) {
-        setIsEditProfileOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isEditProfileOpen, isSaving, isUploading, setIsEditProfileOpen]);
+  const dialogRef = useAccessibleDialog(isEditProfileOpen, () => {
+    if (!isSaving && !isUploading) setIsEditProfileOpen(false);
+  });
 
   if (!isEditProfileOpen) return null;
 
@@ -124,6 +119,7 @@ export const EditProfileModal: React.FC = () => {
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -164,7 +160,7 @@ export const EditProfileModal: React.FC = () => {
           {/* Avatar Editor */}
           <div className="flex items-center gap-4 p-3.5 bg-card border border-cloud rounded-xl">
             <div className="relative">
-              <img
+              <ProtectedMedia
                 src={
                   avatarUrl ||
                   `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`
@@ -290,7 +286,7 @@ export const EditProfileModal: React.FC = () => {
                   className="sr-only peer"
                   data-testid="edit-profile-private-toggle"
                 />
-                <div className="w-11 h-6 bg-mist peer-focus:outline-none rounded-full peer border border-cloud peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink peer-checked:border-ink"></div>
+                <div className="w-11 h-6 bg-mist peer-focus:outline-none rounded-full peer border border-cloud peer-checked:after:translate-x-full peer-checked:after:border-card after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-cloud after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ink peer-checked:border-ink"></div>
               </label>
             </div>
           </div>

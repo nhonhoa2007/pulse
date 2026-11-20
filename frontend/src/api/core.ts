@@ -11,6 +11,18 @@ import type { ApiResponse } from '../types/PulseTypes';
 // dưới Node thuần (node --test); vite build thay thế import.meta.env tĩnh.
 export const IS_DEV: boolean = (import.meta as any).env?.DEV ?? true;
 
+export class ApiError extends Error {
+  public readonly status: number | null;
+  public readonly code: string;
+
+  constructor(message: string, status: number | null, code: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
 export class PulseApiCore {
   protected activeUserId: string = '';
   protected token: string | null = null;
@@ -23,10 +35,9 @@ export class PulseApiCore {
       if (savedUserId) {
         this.activeUserId = savedUserId;
       }
-      const savedToken = localStorage.getItem('pulse_auth_token');
-      if (savedToken) {
-        this.token = savedToken;
-      }
+      // Access tokens are intentionally memory-only. Clear the legacy value
+      // once; an HttpOnly refresh cookie is used to restore the session.
+      localStorage.removeItem('pulse_auth_token');
     }
   }
 
@@ -48,17 +59,14 @@ export class PulseApiCore {
   public setToken(token: string | null): void {
     this.token = token;
     if (typeof window !== 'undefined') {
-      if (token) {
-        localStorage.setItem('pulse_auth_token', token);
-      } else {
-        localStorage.removeItem('pulse_auth_token');
-      }
+      localStorage.removeItem('pulse_auth_token');
     }
   }
 
   private refreshPromise: Promise<string | null> | null = null;
 
   protected async request<T>(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<T> {
+    const requestUserId = this.activeUserId;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
@@ -67,11 +75,17 @@ export class PulseApiCore {
 
     const url = `${this.baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-    const res = await fetch(url, {
-      credentials: 'include',
-      ...options,
-      headers,
-    });
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        credentials: 'include',
+        ...options,
+        headers,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Không thể kết nối tới máy chủ';
+      throw new ApiError(message, null, 'NETWORK_ERROR');
+    }
 
     // TASK-21: Handle 401 Unauthorized with Automatic Token Refresh
     const isAuthEndpoint =
@@ -102,6 +116,10 @@ export class PulseApiCore {
               const newAccessToken = payload.accessToken || payload.token;
 
               if (newAccessToken) {
+                if (
+                  this.activeUserId !== requestUserId ||
+                  (payload.user?.id && payload.user.id !== requestUserId)
+                ) return null;
                 this.setToken(newAccessToken);
                 if (payload.user?.id) {
                   this.setActiveUserId(payload.user.id);
@@ -119,6 +137,9 @@ export class PulseApiCore {
 
         const refreshedToken = await this.refreshPromise;
         if (refreshedToken) {
+          if (this.activeUserId !== requestUserId) {
+            throw new ApiError('Session changed while the request was pending', 401, 'SESSION_CHANGED');
+          }
           // Retry original request with the new access token
           return this.request<T>(endpoint, options, true);
         }
@@ -132,9 +153,13 @@ export class PulseApiCore {
 
     if (!res.ok) {
       let errorMessage = `HTTP ${res.status} - ${res.statusText}`;
+      let errorCode = res.status === 401 ? 'UNAUTHORIZED' : `HTTP_${res.status}`;
       if (isJson) {
         try {
           const errData = await res.json();
+          if (errData.error?.code) {
+            errorCode = errData.error.code;
+          }
           if (errData.error?.message) {
             errorMessage = errData.error.message;
           } else if (errData.message) {
@@ -144,7 +169,7 @@ export class PulseApiCore {
           // ignore parse failure
         }
       }
-      throw new Error(errorMessage);
+      throw new ApiError(errorMessage, res.status, errorCode);
     }
 
     if (isJson) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePulse } from '../context/PulseContext';
 import { X, Loader2, AlertCircle } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
 
 export const AuthModal: React.FC = () => {
   const {
@@ -34,16 +35,9 @@ export const AuthModal: React.FC = () => {
     }
   }, [isAuthModalOpen, authModalTab]);
 
-  // Handle ESC key to close
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isAuthModalOpen && !isSubmitting) {
-        setIsAuthModalOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAuthModalOpen, isSubmitting, setIsAuthModalOpen]);
+  const dialogRef = useAccessibleDialog(isAuthModalOpen, () => {
+    if (!isSubmitting) setIsAuthModalOpen(false);
+  });
 
   if (!isAuthModalOpen) return null;
 
@@ -145,6 +139,7 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {

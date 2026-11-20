@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "./ProtectedMedia";
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   UserMuteDto,
@@ -22,6 +23,7 @@ import {
   Loader2,
   Clock,
 } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
 
 export interface MuteManagementModalProps {
   isOpen: boolean;
@@ -156,27 +158,22 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
     }
   };
 
-  // Escape key handler
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const dialogRef = useAccessibleDialog(isOpen, onClose);
 
   if (!isOpen) return null;
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-start justify-center pt-14 md:pt-18 px-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Quản lý tắt tiếng"
     >
       <div
         data-testid="mute-management-modal"
@@ -258,7 +255,7 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-cloud border border-cloud rounded-[14px] bg-white overflow-hidden">
+                <div className="divide-y divide-cloud border border-cloud rounded-[14px] bg-card overflow-hidden">
                   {mutedUsers.map((mute) => {
                     const user = mute.mutedUser || {
                       id: mute.mutedId,
@@ -275,7 +272,7 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                         className="flex items-center justify-between p-3.5 hover:bg-mist/40 transition-colors"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <img
+                          <ProtectedMedia
                             src={
                               user.avatarUrl ||
                               `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -333,7 +330,7 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                     value={newKeyword}
                     onChange={(e) => setNewKeyword(e.target.value)}
                     placeholder="Nhập từ khóa hoặc #hashtag (ví dụ: crypto, spoiler...)"
-                    className="w-full px-3 py-2 text-[14px] bg-white border border-cloud rounded-[10px] text-ink focus:outline-none focus:ring-1 focus:ring-ink"
+                    className="w-full px-3 py-2 text-[14px] bg-card border border-cloud rounded-[10px] text-ink focus:outline-none focus:ring-1 focus:ring-ink"
                   />
                 </div>
 
@@ -347,7 +344,7 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                       data-testid="match-type-select"
                       value={matchType}
                       onChange={(e) => setMatchType(e.target.value as MuteMatchType)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-cloud rounded-[8px] text-ink focus:outline-none"
+                      className="w-full px-2.5 py-1.5 bg-card border border-cloud rounded-[8px] text-ink focus:outline-none"
                     >
                       <option value="CONTAINS">Khớp một phần (CONTAINS)</option>
                       <option value="EXACT_WORD">Khớp toàn bộ từ (EXACT_WORD)</option>
@@ -363,7 +360,7 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                       data-testid="mute-context-select"
                       value={muteContext}
                       onChange={(e) => setMuteContext(e.target.value as MuteContext)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-cloud rounded-[8px] text-ink focus:outline-none"
+                      className="w-full px-2.5 py-1.5 bg-card border border-cloud rounded-[8px] text-ink focus:outline-none"
                     >
                       <option value="ALL">Tất cả</option>
                       <option value="HOME_TIMELINE">Chỉ Bảng tin (Home)</option>
@@ -380,7 +377,7 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                       data-testid="mute-duration-select"
                       value={durationOption}
                       onChange={(e) => setDurationOption(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-cloud rounded-[8px] text-ink focus:outline-none"
+                      className="w-full px-2.5 py-1.5 bg-card border border-cloud rounded-[8px] text-ink focus:outline-none"
                     >
                       <option value="1">24 giờ (1 ngày)</option>
                       <option value="7">7 ngày</option>
@@ -428,7 +425,7 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-cloud border border-cloud rounded-[14px] bg-white overflow-hidden">
+                <div className="divide-y divide-cloud border border-cloud rounded-[14px] bg-card overflow-hidden">
                   {mutedKeywords.map((kw) => {
                     const isDeleting = deletingKeywordId === kw.id;
                     const durationText = formatMuteDuration(kw.expiresAt);
@@ -462,11 +459,11 @@ export const MuteManagementModal: React.FC<MuteManagementModalProps> = ({
                           data-testid={`delete-keyword-btn-${kw.keyword}`}
                           disabled={isDeleting}
                           onClick={() => handleDeleteKeyword(kw.id, kw.keyword)}
-                          className="p-2 text-ash hover:text-[#dc2626] hover:bg-[#fee2e2] rounded-full transition-colors focus:outline-none shrink-0"
+                          className="p-2 text-ash hover:text-danger hover:bg-danger-surface rounded-full transition-colors focus:outline-none shrink-0"
                           title="Xóa từ khóa"
                         >
                           {isDeleting ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-[#dc2626]" />
+                            <Loader2 className="w-4 h-4 animate-spin text-danger" />
                           ) : (
                             <Trash2 className="w-4 h-4" />
                           )}

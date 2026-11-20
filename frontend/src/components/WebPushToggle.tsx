@@ -155,7 +155,7 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
               Thông báo đẩy trên trình duyệt
             </h4>
             {permission === 'denied' && (
-              <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full uppercase">
+              <span className="text-[10px] font-bold text-danger bg-danger-surface border border-danger-border px-1.5 py-0.5 rounded-full uppercase">
                 Bị chặn
               </span>
             )}
@@ -181,7 +181,7 @@ export const WebPushToggle: React.FC<WebPushToggleProps> = ({
         >
           <span className="sr-only">Bật/tắt thông báo đẩy</span>
           <span
-            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
               isSubscribed ? 'translate-x-5' : 'translate-x-0'
             }`}
           />

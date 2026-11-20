@@ -12,6 +12,7 @@ import { EditPostModal } from './EditPostModal';
 import { PostVersionHistoryModal } from './PostVersionHistoryModal';
 import { computeEditWindowRemaining } from '../utils/trustSafety';
 import { formatViewsBadge } from '../utils/useViewportImpressionTracker';
+import { ProtectedMedia } from './ProtectedMedia';
 import {
   Heart,
   MessageCircle,
@@ -294,7 +295,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/#post-${post.id}`;
+    const url = `${window.location.origin}/post/${encodeURIComponent(post.id)}`;
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(url);
       addToast('Đã sao chép liên kết vào clipboard', 'success');
@@ -324,7 +325,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
     if (count === 1) {
       return (
         <div className="mb-2.5 overflow-hidden rounded-[8px] border border-cloud bg-mist">
-          <img
+          <ProtectedMedia
             src={urls[0]}
             alt="Post media"
             className="w-full max-h-[400px] object-cover hover:opacity-95 transition-opacity"
@@ -333,7 +334,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             }}
             onClick={(e) => {
               e.stopPropagation();
-              window.open(urls[0], '_blank');
+              window.open(urls[0], '_blank', 'noopener,noreferrer');
             }}
           />
         </div>
@@ -348,7 +349,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
               key={idx}
               className="overflow-hidden rounded-[8px] border border-cloud aspect-[4/3] bg-mist"
             >
-              <img
+              <ProtectedMedia
                 src={url}
                 alt={`Post media ${idx + 1}`}
                 className="w-full h-full object-cover hover:opacity-95 transition-opacity"
@@ -357,7 +358,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open(url, '_blank');
+                  window.open(url, '_blank', 'noopener,noreferrer');
                 }}
               />
             </div>
@@ -371,7 +372,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
         <div className="grid grid-cols-2 gap-2 mb-2.5 h-[320px]">
           {/* Left 1 big image */}
           <div className="overflow-hidden rounded-[8px] border border-cloud h-full bg-mist">
-            <img
+            <ProtectedMedia
               src={urls[0]}
               alt="Post media 1"
               className="w-full h-full object-cover hover:opacity-95 transition-opacity"
@@ -380,7 +381,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(urls[0], '_blank');
+                window.open(urls[0], '_blank', 'noopener,noreferrer');
               }}
             />
           </div>
@@ -391,7 +392,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                 key={idx}
                 className="overflow-hidden rounded-[8px] border border-cloud h-full bg-mist"
               >
-                <img
+                <ProtectedMedia
                   src={url}
                   alt={`Post media ${idx + 2}`}
                   className="w-full h-full object-cover hover:opacity-95 transition-opacity"
@@ -400,7 +401,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(url, '_blank');
+                    window.open(url, '_blank', 'noopener,noreferrer');
                   }}
                 />
               </div>
@@ -418,7 +419,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             key={idx}
             className="relative overflow-hidden rounded-[8px] border border-cloud aspect-[4/3] bg-mist"
           >
-            <img
+            <ProtectedMedia
               src={url}
               alt={`Post media ${idx + 1}`}
               className="w-full h-full object-cover hover:opacity-95 transition-opacity"
@@ -427,19 +428,21 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(url, '_blank');
+                window.open(url, '_blank', 'noopener,noreferrer');
               }}
             />
             {idx === 3 && urls.length > 4 && (
-              <div
+              <button
+                type="button"
+                aria-label={`Xem ảnh và ${urls.length - 4} ảnh khác`}
                 className="absolute inset-0 bg-black/50 flex items-center justify-center text-paper font-semibold text-[16px] cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open(url, '_blank');
+                  window.open(url, '_blank', 'noopener,noreferrer');
                 }}
               >
                 +{urls.length - 4}
-              </div>
+              </button>
             )}
           </div>
         ))}
@@ -457,7 +460,16 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
         }}
         data-post-id={post.id}
         onClick={handleCardClick}
-        className={`group relative flex gap-3 p-4 border-b border-cloud bg-paper hover:bg-mist/40 transition-colors cursor-pointer select-text ${
+        role="link"
+        tabIndex={0}
+        aria-label={`Mở bài viết của ${post.author.displayName}`}
+        onKeyDown={(event) => {
+          if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            handleCardClick();
+          }
+        }}
+        className={`group relative flex gap-3 p-4 border-b border-cloud bg-paper hover:bg-mist/40 transition-colors cursor-pointer select-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-meta ${
           isThreadChild ? 'pl-8' : ''
         }`}
       >
@@ -475,7 +487,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
             onClick={handleAuthorClick}
             className="rounded-full overflow-hidden block focus:outline-none hover:opacity-85 transition-opacity"
           >
-            <img
+            <ProtectedMedia
               src={
                 post.author.avatarUrl ||
                 `https://api.dicebear.com/7.x/bottts/svg?seed=${post.author.username}`
@@ -736,15 +748,16 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
 
           {/* Embedded Quoted Post Card (1px Cloud Gray #d5d5d5 border, 8px radius, padding 12px, clickable) */}
           {post.quoteOf && (
-            <div
+            <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 navigateTo('thread', { postId: post.quoteOf!.id });
               }}
-              className="mb-2.5 p-3 rounded-[8px] border border-cloud bg-paper hover:bg-mist/50 transition-colors"
+              className="w-full text-left mb-2.5 p-3 rounded-[8px] border border-cloud bg-paper hover:bg-mist/50 transition-colors"
             >
               <div className="flex items-center gap-2 mb-1.5">
-                <img
+                <ProtectedMedia
                   src={
                     post.quoteOf.author.avatarUrl ||
                     `https://api.dicebear.com/7.x/bottts/svg?seed=${post.quoteOf.author.username}`
@@ -777,7 +790,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
               {post.quoteOf.mediaUrls && post.quoteOf.mediaUrls.length > 0 && (
                 <div className="flex gap-2 overflow-hidden rounded-[6px]">
                   {post.quoteOf.mediaUrls.slice(0, 3).map((mUrl, mIdx) => (
-                    <img
+                    <ProtectedMedia
                       key={mIdx}
                       src={mUrl}
                       alt="Quoted media"
@@ -791,7 +804,7 @@ export const PostFeedItem: React.FC<PostFeedItemProps> = ({
                   )}
                 </div>
               )}
-            </div>
+            </button>
           )}
 
           {/* Post Engagement Bar: Like, Reply, Repost/Quote Menu, Bookmark, Views, Share */}

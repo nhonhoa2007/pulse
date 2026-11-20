@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "../components/ProtectedMedia";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PostDto, UserDto, TrendingItemDto, RemoteActorDiscoveryResult } from '../types/PulseTypes';
 import { usePulse } from '../context/PulseContext';
@@ -7,15 +8,10 @@ import { VerifiedBadge } from '../components/VerifiedBadge';
 import { FederatedUserCard } from '../components/FederatedUserCard';
 import { formatCount } from '../utils/formatters';
 import { parseFediverseIdentifier } from '../utils/federatedUtils';
+import { useInfiniteScrollTrigger } from '../utils/useInfiniteScrollTrigger';
 import { Search, X, Loader2, TrendingUp, Users, ArrowRight, Globe } from 'lucide-react';
 
-const FALLBACK_TRENDING: TrendingItemDto[] = [
-  { tag: 'tech', postsCount: 128 },
-  { tag: 'pulse', postsCount: 95 },
-  { tag: 'Sky', postsCount: 5400 },
-  { tag: 'concurrency', postsCount: 42 },
-  { tag: 'architecture', postsCount: 67 },
-];
+const exploreCache = new Map<string, { posts: PostDto[]; nextCursor: string | null; scrollY: number }>();
 
 export const ExploreView: React.FC = () => {
   const { viewParams, currentUser, navigateTo, addToast, refreshUsers } = usePulse();
@@ -34,15 +30,23 @@ export const ExploreView: React.FC = () => {
   const [resolvedHandle, setResolvedHandle] = useState<string | null>(null);
 
   // Data states
-  const [trendingList, setTrendingList] = useState<TrendingItemDto[]>(FALLBACK_TRENDING);
+  const [trendingList, setTrendingList] = useState<TrendingItemDto[]>([]);
   const [isTrendingLoading, setIsTrendingLoading] = useState<boolean>(false);
+  const [trendingError, setTrendingError] = useState<string | null>(null);
 
   const [postResults, setPostResults] = useState<PostDto[]>([]);
   const [userResults, setUserResults] = useState<UserDto[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const [explorePosts, setExplorePosts] = useState<PostDto[]>([]);
   const [isExploreLoading, setIsExploreLoading] = useState<boolean>(false);
+  const [isExploreLoadingMore, setIsExploreLoadingMore] = useState<boolean>(false);
+  const [exploreNextCursor, setExploreNextCursor] = useState<string | null>(null);
+  const [exploreError, setExploreError] = useState<string | null>(null);
+  const exploreRequestRef = useRef(false);
+  const exploreGenerationRef = useRef(0);
+  const exploreCacheKey = currentUser.id || 'guest';
   const [followLoadingMap, setFollowLoadingMap] = useState<Record<string, boolean>>({});
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -71,35 +75,85 @@ export const ExploreView: React.FC = () => {
   // Load Trending Hashtags
   const fetchTrending = useCallback(async () => {
     setIsTrendingLoading(true);
+    setTrendingError(null);
     try {
       const data = await api.getTrending();
-      if (Array.isArray(data) && data.length > 0) {
-        setTrendingList(data);
-      }
-    } catch {
-      // Keep fallback tags
+      setTrendingList(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      setTrendingList([]);
+      setTrendingError(error.message || 'Không thể tải chủ đề thịnh hành.');
     } finally {
       setIsTrendingLoading(false);
     }
   }, []);
 
   // Load Explore Feed (when search query is empty)
-  const fetchExploreFeed = useCallback(async () => {
-    setIsExploreLoading(true);
+  const fetchExploreFeed = useCallback(async (cursor?: string) => {
+    if (exploreRequestRef.current) return;
+    exploreRequestRef.current = true;
+    const generation = ++exploreGenerationRef.current;
+    const isPagination = Boolean(cursor);
+    if (isPagination) setIsExploreLoadingMore(true);
+    else setIsExploreLoading(true);
+    setExploreError(null);
     try {
-      const data = await api.getExploreFeed();
-      setExplorePosts(data);
-    } catch {
-      // Fallback
+      const page = await api.getExploreFeed(cursor);
+      if (generation !== exploreGenerationRef.current) return;
+      setExplorePosts((previous) => {
+        if (!isPagination) return page.posts;
+        const knownIds = new Set(previous.map((post) => post.id));
+        return [...previous, ...page.posts.filter((post) => !knownIds.has(post.id))];
+      });
+      setExploreNextCursor(page.nextCursor);
+    } catch (error: any) {
+      if (generation !== exploreGenerationRef.current) return;
+      setExploreError(error.message || 'Không thể tải nội dung khám phá.');
     } finally {
-      setIsExploreLoading(false);
+      if (generation === exploreGenerationRef.current) {
+        setIsExploreLoading(false);
+        setIsExploreLoadingMore(false);
+        exploreRequestRef.current = false;
+      }
     }
-  }, []);
+  }, [exploreCacheKey]);
 
   useEffect(() => {
-    fetchTrending();
-    fetchExploreFeed();
-  }, [fetchTrending, fetchExploreFeed]);
+    exploreGenerationRef.current += 1;
+    exploreRequestRef.current = false;
+    setPostResults([]);
+    setUserResults([]);
+    setFederatedUser(null);
+    setFederatedActor(null);
+    void fetchTrending();
+    const cached = exploreCache.get(exploreCacheKey);
+    if (cached) {
+      setExplorePosts(cached.posts);
+      setExploreNextCursor(cached.nextCursor);
+      setIsExploreLoading(false);
+      requestAnimationFrame(() => window.scrollTo({ top: cached.scrollY }));
+    } else {
+      setExplorePosts([]);
+      setExploreNextCursor(null);
+      void fetchExploreFeed();
+    }
+  }, [fetchTrending, fetchExploreFeed, exploreCacheKey]);
+
+  useEffect(() => () => {
+    exploreCache.set(exploreCacheKey, {
+      posts: explorePosts,
+      nextCursor: exploreNextCursor,
+      scrollY: window.scrollY,
+    });
+  }, [exploreCacheKey, explorePosts, exploreNextCursor]);
+
+  const loadMoreExplore = useCallback(() => {
+    if (exploreNextCursor && !isExploreLoadingMore) void fetchExploreFeed(exploreNextCursor);
+  }, [exploreNextCursor, isExploreLoadingMore, fetchExploreFeed]);
+
+  const exploreSentinelRef = useInfiniteScrollTrigger({
+    enabled: !searchQuery.trim() && Boolean(exploreNextCursor) && !isExploreLoadingMore,
+    onLoadMore: loadMoreExplore,
+  });
 
   // Resolve remote Fediverse actor
   const handleResolveRemote = useCallback(
@@ -197,12 +251,14 @@ export const ExploreView: React.FC = () => {
     if (!trimmed) {
       setPostResults([]);
       setUserResults([]);
+      setSearchError(null);
       setIsSearching(false);
       return;
     }
 
     let isCancelled = false;
     setIsSearching(true);
+    setSearchError(null);
 
     api
       .search(trimmed, activeTab)
@@ -215,10 +271,11 @@ export const ExploreView: React.FC = () => {
           }
         }
       })
-      .catch(() => {
+      .catch((error: any) => {
         if (!isCancelled) {
           setPostResults([]);
           setUserResults([]);
+          setSearchError(error.message || 'Không thể tải kết quả tìm kiếm.');
         }
       })
       .finally(() => {
@@ -345,15 +402,19 @@ export const ExploreView: React.FC = () => {
     const isLoading = !!followLoadingMap[user.id];
 
     return (
-      <div
+      <article
         key={user.id}
-        onClick={() => navigateTo('profile', { username: user.username })}
-        className="p-4 border-b border-cloud bg-paper hover:bg-mist/40 transition-colors cursor-pointer"
+        className="p-4 border-b border-cloud bg-paper hover:bg-mist/40 transition-colors"
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={() => navigateTo('profile', { username: user.username })}
+            className="flex items-start gap-3 min-w-0 flex-1 text-left rounded-lg"
+            aria-label={`Xem hồ sơ ${user.displayName}`}
+          >
             {/* Circular Avatar (40px, 1000px radius) */}
-            <img
+            <ProtectedMedia
               src={
                 user.avatarUrl ||
                 `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -390,7 +451,7 @@ export const ExploreView: React.FC = () => {
                 {formatCount(user.followersCount) || '0'} người theo dõi
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Follow/Unfollow pill button */}
           {!isMe && (
@@ -414,7 +475,7 @@ export const ExploreView: React.FC = () => {
             </button>
           )}
         </div>
-      </div>
+      </article>
     );
   };
 
@@ -557,6 +618,24 @@ export const ExploreView: React.FC = () => {
                 </button>
               );
             })}
+            {!isTrendingLoading && trendingList.length === 0 && (
+              <div className="w-full text-[13px] text-graphite">
+                {trendingError ? (
+                  <span>
+                    {trendingError}{' '}
+                    <button
+                      type="button"
+                      onClick={() => void fetchTrending()}
+                      className="font-semibold text-ink underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-meta"
+                    >
+                      Thử lại
+                    </button>
+                  </span>
+                ) : (
+                  'Chưa có chủ đề công khai nào trong 48 giờ qua.'
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -647,6 +726,20 @@ export const ExploreView: React.FC = () => {
             <div className="p-12 text-center flex flex-col items-center justify-center gap-2">
               <Loader2 className="w-6 h-6 animate-spin text-ink" />
               <span className="text-[13px] text-ash">Đang tìm kiếm...</span>
+            </div>
+          ) : searchError ? (
+            <div className="p-12 text-center" role="alert">
+              <p className="text-[14px] text-graphite mb-3">{searchError}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setDebouncedQuery('');
+                }}
+                className="px-4 py-2 rounded-full border border-cloud text-[13px] font-semibold text-ink"
+              >
+                Xóa tìm kiếm
+              </button>
             </div>
           ) : (
             <div>
@@ -823,18 +916,52 @@ export const ExploreView: React.FC = () => {
               <Loader2 className="w-6 h-6 animate-spin text-ink" />
               <span className="text-[13px] text-ash">Đang tải nội dung khám phá...</span>
             </div>
+          ) : exploreError && explorePosts.length === 0 ? (
+            <div className="p-12 text-center text-[13px]">
+              <p className="text-graphite mb-3">{exploreError}</p>
+              <button
+                type="button"
+                onClick={() => void fetchExploreFeed()}
+                className="px-4 py-2 rounded-full bg-ink text-paper font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-meta"
+              >
+                Thử lại
+              </button>
+            </div>
           ) : explorePosts.length === 0 ? (
             <div className="p-12 text-center text-ash text-[13px]">
               Chưa có bài viết khám phá nào hôm nay. Hãy bắt đầu theo dõi chủ đề bạn thích!
             </div>
           ) : (
-            explorePosts.map((post) => (
-              <PostFeedItem
-                key={post.id}
-                post={post}
-                onPostUpdated={handlePostUpdated}
-              />
-            ))
+            <>
+              {explorePosts.map((post) => (
+                <PostFeedItem
+                  key={post.id}
+                  post={post}
+                  onPostUpdated={handlePostUpdated}
+                />
+              ))}
+              <div ref={exploreSentinelRef} className="min-h-16 flex items-center justify-center" aria-live="polite">
+                {isExploreLoadingMore ? (
+                  <span className="inline-flex items-center gap-2 text-[13px] text-graphite">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Đang tải thêm…
+                  </span>
+                ) : exploreNextCursor ? null : (
+                  <span className="text-[12px] text-ash">Bạn đã xem hết nội dung khám phá.</span>
+                )}
+              </div>
+              {exploreError && (
+                <div className="px-4 pb-6 text-center">
+                  <p className="text-[13px] text-graphite mb-2">{exploreError}</p>
+                  <button
+                    type="button"
+                    onClick={loadMoreExplore}
+                    className="px-4 py-2 rounded-full border border-cloud text-[13px] font-semibold"
+                  >
+                    Thử tải lại
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

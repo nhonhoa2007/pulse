@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "../ProtectedMedia";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   DmConversationDto,
@@ -311,7 +312,7 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
             className="flex items-center gap-2.5 min-w-0 group text-left focus:outline-none"
             title={`Xem hồ sơ @${otherUser.username}`}
           >
-            <img
+            <ProtectedMedia
               src={
                 otherUser.avatarUrl ||
                 `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser.username}`
@@ -359,11 +360,11 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-64 gap-2 text-center p-4">
-            <AlertCircle className="w-8 h-8 text-red-500" />
+            <AlertCircle className="w-8 h-8 text-danger" />
             <p className="text-[14px] font-medium text-ink">{error}</p>
             <button
               onClick={() => loadInitialMessages()}
-              className="px-4 py-1.5 bg-ink text-white text-[13px] font-semibold rounded-full hover:bg-graphite transition-colors"
+              className="px-4 py-1.5 bg-ink text-paper text-[13px] font-semibold rounded-full hover:bg-graphite transition-colors"
             >
               Thử lại
             </button>
@@ -391,7 +392,7 @@ export const DmChatWindow: React.FC<DmChatWindowProps> = ({
             {/* Empty messages placeholder */}
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center p-6 text-ash">
-                <img
+                <ProtectedMedia
                   src={
                     otherUser.avatarUrl ||
                     `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser.username}`

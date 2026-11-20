@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "../components/ProtectedMedia";
 import React, { useState, useEffect, useCallback } from 'react';
 import { NotificationDto } from '../types/PulseTypes';
 import { usePulse } from '../context/PulseContext';
@@ -217,6 +218,7 @@ export const NotificationCenterView: React.FC = () => {
             </button>
             <button
               onClick={() => fetchNotifications()}
+              aria-label="Làm mới thông báo"
               className="p-1.5 text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -249,9 +251,10 @@ export const NotificationCenterView: React.FC = () => {
 
       {/* TASK-21: Follow Requests Banner for Private Accounts */}
       {(currentUser.isPrivate || pendingFollowRequestsCount > 0) && (
-        <div
+        <button
+          type="button"
           onClick={openFollowRequestsModal}
-          className="mx-4 my-3 p-3.5 bg-card border border-cloud rounded-xl flex items-center justify-between cursor-pointer hover:bg-mist/60 transition-colors shadow-sm"
+          className="w-[calc(100%_-_2rem)] mx-4 my-3 p-3.5 bg-card border border-cloud rounded-xl flex items-center justify-between text-left cursor-pointer hover:bg-mist/60 transition-colors shadow-sm"
           data-testid="notification-follow-requests-banner"
         >
           <div className="flex items-center gap-3">
@@ -279,7 +282,7 @@ export const NotificationCenterView: React.FC = () => {
           ) : (
             <span className="text-[12px] font-medium text-graphite">Xem</span>
           )}
-        </div>
+        </button>
       )}
 
       {/* Web Push Notification Opt-in Prompt (TASK-20) */}
@@ -323,6 +326,16 @@ export const NotificationCenterView: React.FC = () => {
               <div
                 key={notif.id}
                 onClick={() => handleNotificationClick(notif)}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleNotificationClick(notif);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Mở thông báo từ ${notif.actorSummary || notif.actor.displayName}`}
                 className={`flex items-start gap-3 p-4 hover:bg-mist/40 cursor-pointer transition-colors ${
                   !notif.isRead ? 'bg-mist/30' : 'bg-paper'
                 }`}
@@ -330,7 +343,7 @@ export const NotificationCenterView: React.FC = () => {
               >
                 {/* Verb icon badge */}
                 <div className="relative shrink-0">
-                  <img
+                  <ProtectedMedia
                     src={
                       notif.actor.avatarUrl ||
                       `https://api.dicebear.com/7.x/bottts/svg?seed=${notif.actor.username}`

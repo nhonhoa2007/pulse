@@ -67,7 +67,7 @@ export const ContentWarningShield: React.FC<ContentWarningShieldProps> = ({
           type="button"
           data-testid="shield-toggle-button"
           onClick={handleToggle}
-          className="shrink-0 text-[13px] font-semibold text-ink hover:text-meta bg-paper hover:bg-white px-3 py-1 rounded-full border border-cloud transition-all focus:outline-none shadow-xs cursor-pointer"
+          className="shrink-0 text-[13px] font-semibold text-ink hover:text-meta bg-paper hover:bg-card px-3 py-1 rounded-full border border-cloud transition-all focus:outline-none shadow-xs cursor-pointer"
         >
           {isRevealed ? 'Ẩn bài viết' : 'Xem bài viết'}
         </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PostDto } from '../types/PulseTypes';
 import { usePulse } from '../context/PulseContext';
 import { api } from '../api/PulseApiClient';
@@ -6,10 +6,16 @@ import { PostComposerCard } from '../components/PostComposerCard';
 import { PostFeedItem } from '../components/PostFeedItem';
 import { LiveFeedToastIndicator } from '../components/LiveFeedToastIndicator';
 import { useViewportImpressionTracker } from '../utils/useViewportImpressionTracker';
-import { RefreshCw, Inbox, AlertCircle } from 'lucide-react';
+import { useInfiniteScrollTrigger } from '../utils/useInfiniteScrollTrigger';
+import { RefreshCw, Inbox, AlertCircle, Loader2 } from 'lucide-react';
 
-// SEC-06: mock/fallback feed chỉ tồn tại ở môi trường dev
-const IS_DEV: boolean = import.meta.env.DEV;
+interface FeedCacheEntry {
+  posts: PostDto[];
+  nextCursor: string | null;
+  scrollY: number;
+}
+
+const feedCache = new Map<string, FeedCacheEntry>();
 
 export const HomeTimelineView: React.FC = () => {
   const { currentUser } = usePulse();
@@ -18,7 +24,12 @@ export const HomeTimelineView: React.FC = () => {
   const [posts, setPosts] = useState<PostDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const requestGenerationRef = useRef(0);
+  const requestInFlightRef = useRef(false);
+  const cacheKey = `${currentUser.id || 'guest'}:${activeTab}`;
 
   // Viewport impression tracker beacon (threshold >= 0.5, batching every 2.5s)
   const { observePostElement } = useViewportImpressionTracker({
@@ -28,39 +39,80 @@ export const HomeTimelineView: React.FC = () => {
   });
 
   const fetchFeed = useCallback(
-    async (isManualRefresh = false) => {
+    async (isManualRefresh = false, cursor?: string) => {
+      if (requestInFlightRef.current) return;
+      requestInFlightRef.current = true;
+      const generation = ++requestGenerationRef.current;
+      const isPagination = Boolean(cursor);
       if (isManualRefresh) {
         setIsRefreshing(true);
+      } else if (isPagination) {
+        setIsLoadingMore(true);
       } else {
         setIsLoading(true);
       }
       setError(null);
 
       try {
-        let feedData: PostDto[];
-        if (activeTab === 'forYou') {
-          feedData = await api.getForYouFeed();
-        } else {
-          feedData = await api.getHomeFeed();
-        }
-        setPosts(feedData);
+        const page = activeTab === 'forYou'
+          ? await api.getForYouFeed(cursor)
+          : await api.getHomeFeed(cursor);
+        if (generation !== requestGenerationRef.current) return;
+        setPosts((previous) => {
+          if (!isPagination) return page.posts;
+          const knownIds = new Set(previous.map((post) => post.id));
+          return [...previous, ...page.posts.filter((post) => !knownIds.has(post.id))];
+        });
+        setNextCursor(page.nextCursor);
       } catch (err: any) {
+        if (generation !== requestGenerationRef.current) return;
         console.error('Failed to load feed:', err);
         setError(err.message || 'Không thể tải bảng tin. Vui lòng thử lại!');
-        if (posts.length === 0) {
-          setPosts(getFallbackFeed());
-        }
       } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
+        if (generation === requestGenerationRef.current) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+          setIsLoadingMore(false);
+          requestInFlightRef.current = false;
+        }
       }
     },
     [activeTab]
   );
 
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed, currentUser.id]);
+    requestGenerationRef.current += 1;
+    requestInFlightRef.current = false;
+    const cached = feedCache.get(cacheKey);
+    if (cached) {
+      setPosts(cached.posts);
+      setNextCursor(cached.nextCursor);
+      setError(null);
+      setIsLoading(false);
+      requestAnimationFrame(() => window.scrollTo({ top: cached.scrollY }));
+    } else {
+      setPosts([]);
+      setNextCursor(null);
+      void fetchFeed();
+    }
+  }, [fetchFeed, cacheKey]);
+
+  useEffect(() => {
+    return () => {
+      feedCache.set(cacheKey, { posts, nextCursor, scrollY: window.scrollY });
+    };
+  }, [cacheKey, posts, nextCursor]);
+
+  const loadMore = useCallback(() => {
+    if (nextCursor && !isLoadingMore && !isLoading) {
+      void fetchFeed(false, nextCursor);
+    }
+  }, [nextCursor, isLoadingMore, isLoading, fetchFeed]);
+
+  const loadMoreRef = useInfiniteScrollTrigger({
+    enabled: Boolean(nextCursor) && !isLoading && !isLoadingMore,
+    onLoadMore: loadMore,
+  });
 
   const handleOptimisticCreate = (tempPost: PostDto) => {
     setPosts((prev) => [tempPost, ...prev]);
@@ -91,7 +143,8 @@ export const HomeTimelineView: React.FC = () => {
   };
 
   const handleRefresh = () => {
-    fetchFeed(true);
+    feedCache.delete(cacheKey);
+    void fetchFeed(true);
   };
 
   return (
@@ -113,7 +166,7 @@ export const HomeTimelineView: React.FC = () => {
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="p-1.5 text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus:outline-none"
+              className="p-1.5 text-ash hover:text-ink rounded-full hover:bg-mist transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-meta"
               title="Tải lại bảng tin"
             >
               <RefreshCw
@@ -139,7 +192,7 @@ export const HomeTimelineView: React.FC = () => {
               data-testid="tab-for-you"
               aria-selected={activeTab === 'forYou'}
               onClick={() => setActiveTab('forYou')}
-              className={`flex-1 sm:flex-none px-6 py-1.5 rounded-full text-[14px] font-semibold transition-all duration-200 focus:outline-none select-none ${
+              className={`flex-1 sm:flex-none px-6 py-1.5 rounded-full text-[14px] font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-meta select-none ${
                 activeTab === 'forYou'
                   ? 'bg-ink text-paper shadow-sm'
                   : 'text-graphite hover:text-ink'
@@ -154,7 +207,7 @@ export const HomeTimelineView: React.FC = () => {
               data-testid="tab-following"
               aria-selected={activeTab === 'following'}
               onClick={() => setActiveTab('following')}
-              className={`flex-1 sm:flex-none px-6 py-1.5 rounded-full text-[14px] font-semibold transition-all duration-200 focus:outline-none select-none ${
+              className={`flex-1 sm:flex-none px-6 py-1.5 rounded-full text-[14px] font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-meta select-none ${
                 activeTab === 'following'
                   ? 'bg-ink text-paper shadow-sm'
                   : 'text-graphite hover:text-ink'
@@ -219,53 +272,39 @@ export const HomeTimelineView: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-cloud">
-          {posts.map((post) => (
-            <PostFeedItem
-              key={post.id}
-              post={post}
-              onPostUpdated={handlePostUpdated}
-              observeImpression={observePostElement}
-            />
-          ))}
-        </div>
+        <>
+          <div className="divide-y divide-cloud">
+            {posts.map((post) => (
+              <PostFeedItem
+                key={post.id}
+                post={post}
+                onPostUpdated={handlePostUpdated}
+                observeImpression={observePostElement}
+              />
+            ))}
+          </div>
+          <div ref={loadMoreRef} className="min-h-16 flex items-center justify-center" aria-live="polite">
+            {isLoadingMore ? (
+              <span className="inline-flex items-center gap-2 text-[13px] text-graphite">
+                <Loader2 className="w-4 h-4 animate-spin" /> Đang tải thêm…
+              </span>
+            ) : nextCursor ? null : (
+              <span className="text-[12px] text-ash">Bạn đã xem hết bảng tin.</span>
+            )}
+          </div>
+          {error && posts.length > 0 && (
+            <div className="px-4 pb-6 text-center">
+              <p className="text-[13px] text-graphite mb-2">{error}</p>
+              <button
+                onClick={loadMore}
+                className="px-4 py-2 rounded-full border border-cloud text-[13px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-meta"
+              >
+                Thử tải lại
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 };
-
-// Fallback initial posts for instant preview
-function getFallbackFeed(): PostDto[] {
-  return IS_DEV ? [
-    {
-      id: 'mock-post-1',
-      authorId: '44444444-4444-4444-4444-444444444444',
-      content:
-        'Một ngày thật tuyệt vời cùng các bạn Sky! Hẹn gặp tối nay nhé ✨ #Sky #Concert',
-      mediaUrls: [
-        'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
-      ],
-      replyToId: null,
-      rootPostId: null,
-      repostOfId: null,
-      quoteOfId: null,
-      likesCount: 12500,
-      repliesCount: 420,
-      repostsCount: 3400,
-      quotesCount: 150,
-      hashtags: ['Sky', 'Concert'],
-      mentions: [],
-      createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      author: {
-        id: '44444444-4444-4444-4444-444444444444',
-        username: 'sontungmtp',
-        displayName: 'Sơn Tùng M-TP',
-        avatarUrl:
-          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-        isCelebrity: true,
-      },
-      isLiked: false,
-      isReposted: false,
-    },
-  ] : [];
-}

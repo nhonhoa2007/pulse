@@ -8,6 +8,7 @@ import { QuotePostModal } from '../components/QuotePostModal';
 import { VerifiedBadge } from '../components/VerifiedBadge';
 import { formatCount, formatRelativeTime, renderRichContent } from '../utils/formatters';
 import { evaluateReplyPermission } from '../utils/privacy';
+import { ProtectedMedia } from '../components/ProtectedMedia';
 import {
   ArrowLeft,
   Heart,
@@ -32,8 +33,10 @@ export const ConversationThreadView: React.FC = () => {
   // Root post interaction state
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
   const [repostsCount, setRepostsCount] = useState(0);
+  const [isRepostLoading, setIsRepostLoading] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
   const [showRepostMenu, setShowRepostMenu] = useState(false);
@@ -119,12 +122,13 @@ export const ConversationThreadView: React.FC = () => {
   };
 
   const handleToggleLike = async () => {
-    if (!rootPost) return;
+    if (!rootPost || isLikeLoading) return;
     const nextLiked = !isLiked;
     const nextCount = nextLiked ? likesCount + 1 : Math.max(0, likesCount - 1);
 
     setIsLiked(nextLiked);
     setLikesCount(nextCount);
+    setIsLikeLoading(true);
 
     try {
       const res = await api.toggleLike(rootPost.id);
@@ -132,19 +136,23 @@ export const ConversationThreadView: React.FC = () => {
         setIsLiked(res.isLiked);
         setLikesCount(res.likesCount);
       }
-    } catch {
+    } catch (likeError: any) {
       setIsLiked(isLiked);
       setLikesCount(likesCount);
+      addToast(likeError.message || 'Không thể cập nhật lượt thích', 'error');
+    } finally {
+      setIsLikeLoading(false);
     }
   };
 
   const handleToggleRepost = async () => {
-    if (!rootPost) return;
+    if (!rootPost || isRepostLoading) return;
     const nextReposted = !isReposted;
     const nextCount = nextReposted ? repostsCount + 1 : Math.max(0, repostsCount - 1);
 
     setIsReposted(nextReposted);
     setRepostsCount(nextCount);
+    setIsRepostLoading(true);
 
     try {
       const res = await api.toggleRepost(rootPost.id);
@@ -153,9 +161,12 @@ export const ConversationThreadView: React.FC = () => {
         setRepostsCount(res.repostsCount);
       }
       addToast(nextReposted ? 'Đã đăng lại bài viết' : 'Đã hủy đăng lại', 'info');
-    } catch {
+    } catch (repostError: any) {
       setIsReposted(isReposted);
       setRepostsCount(repostsCount);
+      addToast(repostError.message || 'Không thể cập nhật đăng lại', 'error');
+    } finally {
+      setIsRepostLoading(false);
     }
   };
 
@@ -179,7 +190,7 @@ export const ConversationThreadView: React.FC = () => {
 
   const handleShare = async () => {
     if (!rootPost) return;
-    const url = `${window.location.origin}/#post-${rootPost.id}`;
+    const url = `${window.location.origin}/post/${encodeURIComponent(rootPost.id)}`;
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(url);
       addToast('Đã sao chép liên kết vào clipboard', 'success');
@@ -193,11 +204,11 @@ export const ConversationThreadView: React.FC = () => {
     if (count === 1) {
       return (
         <div className="mb-3 overflow-hidden rounded-[8px] border border-cloud bg-mist">
-          <img
+          <ProtectedMedia
             src={urls[0]}
             alt="Post Attachment"
             className="w-full max-h-[400px] object-cover hover:opacity-95 transition-opacity cursor-pointer"
-            onClick={() => window.open(urls[0], '_blank')}
+            onClick={() => window.open(urls[0], '_blank', 'noopener,noreferrer')}
           />
         </div>
       );
@@ -211,11 +222,11 @@ export const ConversationThreadView: React.FC = () => {
               key={idx}
               className="overflow-hidden rounded-[8px] border border-cloud aspect-[4/3] bg-mist"
             >
-              <img
+              <ProtectedMedia
                 src={url}
                 alt={`Post Attachment ${idx + 1}`}
                 className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
-                onClick={() => window.open(url, '_blank')}
+                onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
               />
             </div>
           ))}
@@ -227,11 +238,11 @@ export const ConversationThreadView: React.FC = () => {
       return (
         <div className="grid grid-cols-2 gap-2 mb-3 h-[320px]">
           <div className="overflow-hidden rounded-[8px] border border-cloud h-full bg-mist">
-            <img
+            <ProtectedMedia
               src={urls[0]}
               alt="Post Attachment 1"
               className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
-              onClick={() => window.open(urls[0], '_blank')}
+              onClick={() => window.open(urls[0], '_blank', 'noopener,noreferrer')}
             />
           </div>
           <div className="grid grid-rows-2 gap-2 h-full">
@@ -240,11 +251,11 @@ export const ConversationThreadView: React.FC = () => {
                 key={idx}
                 className="overflow-hidden rounded-[8px] border border-cloud h-full bg-mist"
               >
-                <img
+                <ProtectedMedia
                   src={url}
                   alt={`Post Attachment ${idx + 2}`}
                   className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
-                  onClick={() => window.open(url, '_blank')}
+                  onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
                 />
               </div>
             ))}
@@ -260,11 +271,11 @@ export const ConversationThreadView: React.FC = () => {
             key={idx}
             className="overflow-hidden rounded-[8px] border border-cloud aspect-[4/3] bg-mist"
           >
-            <img
+            <ProtectedMedia
               src={url}
               alt={`Post Attachment ${idx + 1}`}
               className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
-              onClick={() => window.open(url, '_blank')}
+              onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
             />
           </div>
         ))}
@@ -327,7 +338,7 @@ export const ConversationThreadView: React.FC = () => {
                   }
                   className="rounded-full overflow-hidden block focus:outline-none"
                 >
-                  <img
+                  <ProtectedMedia
                     src={
                       rootPost.author.avatarUrl ||
                       `https://api.dicebear.com/7.x/bottts/svg?seed=${rootPost.author.username}`
@@ -358,6 +369,8 @@ export const ConversationThreadView: React.FC = () => {
 
               <button
                 onClick={handleShare}
+                aria-label="Chia sẻ bài viết"
+                title="Chia sẻ bài viết"
                 className="p-1.5 text-ash hover:text-ink hover:bg-mist rounded-full transition-colors focus:outline-none"
               >
                 <MoreHorizontal className="w-4 h-4" />
@@ -380,12 +393,13 @@ export const ConversationThreadView: React.FC = () => {
 
             {/* Embedded Quoted Post Card */}
             {rootPost.quoteOf && (
-              <div
+              <button
+                type="button"
                 onClick={() => navigateTo('thread', { postId: rootPost.quoteOf!.id })}
-                className="mb-3 p-3 rounded-[8px] border border-cloud bg-paper hover:bg-mist/50 transition-colors cursor-pointer"
+                className="w-full text-left mb-3 p-3 rounded-[8px] border border-cloud bg-paper hover:bg-mist/50 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <img
+                  <ProtectedMedia
                     src={
                       rootPost.quoteOf.author.avatarUrl ||
                       `https://api.dicebear.com/7.x/bottts/svg?seed=${rootPost.quoteOf.author.username}`
@@ -412,7 +426,7 @@ export const ConversationThreadView: React.FC = () => {
                 <p className="text-[14px] leading-[1.4] text-ink line-clamp-3">
                   {rootPost.quoteOf.content}
                 </p>
-              </div>
+              </button>
             )}
 
             {/* Timestamp & Metadata (13px/400 #424242, 1px #d5d5d5 border-y) */}
@@ -470,7 +484,9 @@ export const ConversationThreadView: React.FC = () => {
               {/* Like */}
               <button
                 onClick={handleToggleLike}
-                className={`flex items-center gap-1.5 p-1.5 focus:outline-none transition-colors ${
+                disabled={isLikeLoading}
+                aria-busy={isLikeLoading}
+                className={`flex items-center gap-1.5 p-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-meta transition-colors disabled:opacity-50 ${
                   isLiked ? 'text-ink' : 'text-ash hover:text-ink'
                 }`}
                 title="Thích"
@@ -489,7 +505,9 @@ export const ConversationThreadView: React.FC = () => {
               <div className="relative" ref={repostMenuRef}>
                 <button
                   onClick={() => setShowRepostMenu((prev) => !prev)}
-                  className={`flex items-center gap-1.5 p-1.5 focus:outline-none transition-colors ${
+                  disabled={isRepostLoading}
+                  aria-busy={isRepostLoading}
+                  className={`flex items-center gap-1.5 p-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-meta transition-colors disabled:opacity-50 ${
                     isReposted ? 'text-ink' : 'text-ash hover:text-ink'
                   }`}
                   title="Đăng lại hoặc trích dẫn"
@@ -504,6 +522,7 @@ export const ConversationThreadView: React.FC = () => {
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 bg-paper border border-cloud rounded-[14px] shadow-xl p-1.5 z-30 animate-scale-up">
                     <button
                       type="button"
+                      disabled={isRepostLoading}
                       onClick={() => {
                         setShowRepostMenu(false);
                         handleToggleRepost();

@@ -1,9 +1,11 @@
+import { ProtectedMedia } from "./ProtectedMedia";
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePulse } from '../context/PulseContext';
 import { api } from '../api/PulseApiClient';
 import { FollowRequestDto } from '../types/PulseTypes';
 import { formatRelativeTime } from '../utils/formatters';
 import { X, UserCheck, UserX, Loader2, Users } from 'lucide-react';
+import { useAccessibleDialog } from '../utils/useAccessibleDialog';
 
 export interface FollowRequestsModalProps {
   isOpen: boolean;
@@ -50,16 +52,7 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
     }
   }, [isOpen, fetchRequests]);
 
-  // Close on ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const dialogRef = useAccessibleDialog(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -133,6 +126,7 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -189,7 +183,7 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
               >
                 {/* Requester Profile Info */}
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <img
+                  <ProtectedMedia
                     src={
                       req.requester.avatarUrl ||
                       `https://api.dicebear.com/7.x/bottts/svg?seed=${req.requester.username}`

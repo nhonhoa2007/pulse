@@ -1,143 +1,108 @@
-import React from 'react';
+import { ProtectedMedia } from "./ProtectedMedia";
+import React, { useCallback, useEffect, useState } from 'react';
 import { usePulse } from '../context/PulseContext';
-import { VerifiedBadge } from './VerifiedBadge';
-import { Zap, Database, ShieldCheck, MessageSquare } from 'lucide-react';
+import { api } from '../api/PulseApiClient';
+import { TrendingItemDto } from '../types/PulseTypes';
+import { Loader2, RefreshCw, TrendingUp, User } from 'lucide-react';
 
 export const TrendingSidebar: React.FC = () => {
-  const { users, currentUser, navigateTo, switchUser } = usePulse();
+  const { currentUser, navigateTo, isAuthenticated } = usePulse();
+  const [topics, setTopics] = useState<TrendingItemDto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const invariants = [
-    {
-      icon: Zap,
-      title: 'Hybrid Fan-out',
-      desc: 'Push cho user thường, Pull cho VIP KOL',
-    },
-    {
-      icon: Database,
-      title: 'Atomic Counters',
-      desc: 'Concurrency chống race condition',
-    },
-    {
-      icon: ShieldCheck,
-      title: '2-Way Block Invariant',
-      desc: 'Hủy follow & dọn sạch inbox 2 chiều',
-    },
-    {
-      icon: MessageSquare,
-      title: 'Flattened Threading',
-      desc: 'Truy vấn toàn bộ thread với 1 query',
-    },
-  ];
+  const loadTrending = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      setTopics((await api.getTrending()).slice(0, 8));
+    } catch (loadError: any) {
+      setTopics([]);
+      setError(loadError.message || 'Không thể tải chủ đề thịnh hành.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTrending();
+  }, [loadTrending]);
 
   return (
-    <aside className="hidden lg:flex flex-col gap-5 w-72 xl:w-80 p-4 sticky top-0 h-screen overflow-y-auto select-none">
-      {/* Architecture Highlights Card (border 1px #d5d5d5, radius 8px or 12px) */}
-      <div className="p-4 bg-paper border border-cloud rounded-[12px]">
-        <div className="flex items-center justify-between mb-2.5">
-          <h3 className="text-[12px] font-semibold uppercase tracking-wider text-graphite">
-            Kiến trúc hệ thống
-          </h3>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-mist text-graphite font-medium">
-            Pulse Engine
-          </span>
+    <aside className="hidden lg:flex flex-col gap-5 w-72 xl:w-80 p-4 sticky top-0 h-screen overflow-y-auto">
+      <section className="p-4 bg-paper border border-cloud rounded-[12px]" aria-labelledby="trending-title">
+        <div className="flex items-center justify-between mb-3">
+          <h2 id="trending-title" className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wider text-graphite">
+            <TrendingUp className="w-4 h-4 text-meta" />
+            Đang thịnh hành
+          </h2>
+          <button
+            type="button"
+            onClick={() => void loadTrending()}
+            disabled={isLoading}
+            className="p-1.5 rounded-full text-ash hover:text-ink hover:bg-mist disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-meta"
+            aria-label="Tải lại chủ đề thịnh hành"
+          >
+            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          </button>
         </div>
-        <p className="text-[12px] text-graphite mb-3 leading-normal">
-          Tối ưu hóa Write Amplification và tính nhất quán với 4 Invariants.
-        </p>
 
-        <div className="space-y-2">
-          {invariants.map((inv, idx) => {
-            const Icon = inv.icon;
-            return (
-              <div
-                key={idx}
-                className="flex items-start gap-2.5 p-2.5 rounded-[8px] bg-paper border border-cloud hover:bg-mist/60 transition-colors"
-              >
-                <div className="p-1 rounded-full text-meta shrink-0 mt-0.5">
-                  <Icon className="w-3.5 h-3.5 stroke-[2]" />
-                </div>
-                <div>
-                  <span className="text-[13px] font-semibold text-ink block">
-                    {inv.title}
-                  </span>
-                  <span className="text-[12px] text-graphite leading-snug block">
-                    {inv.desc}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Role / Perspective Switcher */}
-      <div className="p-4 bg-paper border border-cloud rounded-[12px]">
-        <h3 className="text-[12px] font-semibold uppercase tracking-wider text-graphite mb-3">
-          Tài khoản kiểm thử
-        </h3>
-
-        <div className="space-y-2">
-          {users.map((user) => {
-            const isActive = user.id === currentUser.id;
-            return (
-              <div
-                key={user.id}
-                className={`flex items-center justify-between p-2 rounded-[8px] border transition-colors ${
-                  isActive
-                    ? 'border-ink bg-mist/50'
-                    : 'border-cloud bg-paper hover:bg-mist/40'
-                }`}
-              >
-                <div
-                  onClick={() => navigateTo('profile', { username: user.username })}
-                  className="flex items-center gap-2 min-w-0 cursor-pointer"
+        {error ? (
+          <div className="text-[12px] text-graphite">
+            <p>{error}</p>
+            <button type="button" onClick={() => void loadTrending()} className="mt-2 font-semibold text-ink underline underline-offset-2">
+              Thử lại
+            </button>
+          </div>
+        ) : !isLoading && topics.length === 0 ? (
+          <p className="text-[12px] text-graphite">Chưa có chủ đề công khai nào trong 48 giờ qua.</p>
+        ) : (
+          <ol className="space-y-1">
+            {topics.map((topic, index) => (
+              <li key={topic.tag}>
+                <button
+                  type="button"
+                  onClick={() => navigateTo('explore', { hashtag: topic.tag })}
+                  className="w-full flex items-center gap-3 p-2.5 rounded-[8px] text-left hover:bg-mist transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-meta"
                 >
-                  <img
-                    src={
-                      user.avatarUrl ||
-                      `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
-                    }
-                    alt={user.displayName}
-                    className="w-8 h-8 rounded-full object-cover shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[13px] font-semibold text-ink truncate">
-                        {user.displayName}
-                      </span>
-                      {user.isCelebrity && (
-                        <VerifiedBadge size={11} title="Celebrity VIP" />
-                      )}
-                    </div>
-                    <span className="text-[11px] text-graphite block truncate">
-                      @{user.username}
-                    </span>
-                  </div>
-                </div>
-
-                {isActive ? (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-ink text-paper">
-                    Đang chọn
+                  <span className="w-5 text-[11px] text-ash tabular-nums">{index + 1}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-semibold text-ink">#{topic.tag}</span>
+                    <span className="block text-[11px] text-graphite">{topic.postsCount} bài viết</span>
                   </span>
-                ) : (
-                  <button
-                    onClick={() => switchUser(user)}
-                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full border border-cloud hover:border-ink hover:bg-mist text-ink transition-colors"
-                  >
-                    Đổi sang
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
 
-      {/* Footer Info */}
-      <footer className="px-2 text-[12px] text-ash space-y-1">
-        <div>Pulse Microblogging Engine © 2026</div>
-        <div>Newspaper column on frosted glass</div>
-      </footer>
+      {isAuthenticated && currentUser.id && (
+        <section className="p-4 bg-paper border border-cloud rounded-[12px]" aria-labelledby="account-title">
+          <h2 id="account-title" className="text-[12px] font-semibold uppercase tracking-wider text-graphite mb-3">
+            Tài khoản của bạn
+          </h2>
+          <button
+            type="button"
+            onClick={() => navigateTo('profile', { username: currentUser.username, tab: 'posts' })}
+            className="w-full flex items-center gap-3 p-2 rounded-[8px] hover:bg-mist text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-meta"
+          >
+            {currentUser.avatarUrl ? (
+              <ProtectedMedia src={currentUser.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              <span className="w-9 h-9 rounded-full bg-mist flex items-center justify-center">
+                <User className="w-4 h-4 text-graphite" />
+              </span>
+            )}
+            <span className="min-w-0">
+              <span className="block truncate text-[13px] font-semibold text-ink">{currentUser.displayName}</span>
+              <span className="block truncate text-[11px] text-graphite">@{currentUser.username}</span>
+            </span>
+          </button>
+        </section>
+      )}
+
+      <footer className="px-2 text-[12px] text-ash">Pulse © 2026</footer>
     </aside>
   );
 };

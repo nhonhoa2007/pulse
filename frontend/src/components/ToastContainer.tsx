@@ -1,17 +1,23 @@
 import React from 'react';
-import { usePulse } from '../context/PulseContext';
+import { usePulseUi } from '../context/PulseContexts';
 import { Check, AlertCircle, Info, X } from 'lucide-react';
 
 export const ToastContainer: React.FC = () => {
-  const { toasts, removeToast } = usePulse();
+  const { toasts, removeToast } = usePulseUi();
 
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none max-w-md w-full px-4 items-center">
+    <div
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none max-w-md w-full px-4 items-center"
+      aria-live="polite"
+      aria-atomic="false"
+      role="status"
+    >
       {toasts.map((toast) => (
         <div
           key={toast.id}
+          role={toast.type === 'error' ? 'alert' : undefined}
           className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2.5 rounded-full bg-ink text-paper shadow-xl transition-all duration-300 animate-slide-up text-[13px] font-medium max-w-full"
         >
           <div className="flex items-center gap-2 min-w-0">
@@ -31,6 +37,7 @@ export const ToastContainer: React.FC = () => {
           <button
             onClick={() => removeToast(toast.id)}
             className="text-ash hover:text-paper p-0.5 rounded-full transition-colors shrink-0"
+            aria-label="Đóng thông báo"
           >
             <X className="w-3.5 h-3.5" />
           </button>

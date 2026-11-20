@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "../ProtectedMedia";
 import React, { useState } from 'react';
 import { usePulse } from '../../context/PulseContext';
 import { api } from '../../api/PulseApiClient';
@@ -13,6 +14,7 @@ import {
   AlertCircle,
   Search,
 } from 'lucide-react';
+import { useAccessibleDialog } from '../../utils/useAccessibleDialog';
 
 interface GroupMembersModalProps {
   group: GroupConversationDto;
@@ -36,6 +38,9 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const dialogRef = useAccessibleDialog(isOpen, () => {
+    if (!actionLoadingId && !isLeaving) onClose();
+  });
 
   if (!isOpen) return null;
 
@@ -165,6 +170,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -228,7 +234,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-[12px] flex items-center gap-2 text-red-700 text-[13px]">
+          <div className="mx-4 mt-3 p-3 bg-danger-surface border border-danger-border rounded-[12px] flex items-center gap-2 text-danger text-[13px]">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
@@ -268,7 +274,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                     data-testid={`member-row-${member.userId}`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <img
+                      <ProtectedMedia
                         src={
                           member.user.avatarUrl ||
                           `https://api.dicebear.com/7.x/bottts/svg?seed=${member.user.username}`
@@ -297,7 +303,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                       {/* Role Badge */}
                       {isMemberAdmin ? (
                         <span
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-ink text-white"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-ink text-paper"
                           title="Trưởng nhóm"
                         >
                           <Shield className="w-3 h-3" />
@@ -315,13 +321,13 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                           type="button"
                           onClick={() => handleKickMember(member.userId, member.user.displayName)}
                           disabled={isLoadingAction}
-                          className="p-1.5 text-ash hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          className="p-1.5 text-ash hover:text-danger hover:bg-danger-surface rounded-full transition-colors"
                           title={`Xóa ${member.user.displayName} khỏi nhóm`}
                           aria-label={`Xóa ${member.user.displayName} khỏi nhóm`}
                           data-testid={`kick-member-${member.userId}`}
                         >
                           {isLoadingAction ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                            <Loader2 className="w-4 h-4 animate-spin text-danger" />
                           ) : (
                             <UserMinus className="w-4 h-4" />
                           )}
@@ -339,7 +345,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                 type="button"
                 onClick={handleLeaveGroup}
                 disabled={isLeaving}
-                className="flex items-center gap-2 px-3 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-[13px] font-semibold text-danger hover:bg-danger-surface rounded-full transition-colors"
                 data-testid="leave-group-btn"
               >
                 {isLeaving ? (
@@ -390,7 +396,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                       className="flex items-center justify-between py-2 px-2 hover:bg-mist/50 rounded-xl transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <img
+                        <ProtectedMedia
                           src={
                             user.avatarUrl ||
                             `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -412,7 +418,7 @@ export const GroupMembersModal: React.FC<GroupMembersModalProps> = ({
                         type="button"
                         onClick={() => handleAddMember(user)}
                         disabled={isAdding}
-                        className="px-3 py-1 bg-ink hover:bg-graphite text-white text-[12px] font-semibold rounded-full transition-all flex items-center gap-1.5"
+                        className="px-3 py-1 bg-ink hover:bg-graphite text-paper text-[12px] font-semibold rounded-full transition-all flex items-center gap-1.5"
                         data-testid={`add-user-btn-${user.id}`}
                       >
                         {isAdding ? (

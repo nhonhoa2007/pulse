@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DmMessageDto } from '../../types/PulseTypes';
 import { formatRelativeTime } from '../../utils/formatters';
 import { Check, CheckCheck, Trash2, Loader2, Smile } from 'lucide-react';
+import { ProtectedMedia } from '../ProtectedMedia';
 
 interface DmMessageBubbleProps {
   message: DmMessageDto;
@@ -66,7 +67,7 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
                   type="button"
                   disabled={isDeleting}
                   onClick={handleDelete}
-                  className="text-red-600 font-bold hover:underline px-1"
+                  className="text-danger font-bold hover:underline px-1"
                 >
                   {isDeleting ? <Loader2 className="w-3 h-3 animate-spin inline" /> : 'Xóa'}
                 </button>
@@ -82,7 +83,7 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
               <button
                 type="button"
                 onClick={() => setShowConfirmDelete(true)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-ash hover:text-red-600 hover:bg-mist transition-colors focus:outline-none"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-ash hover:text-danger hover:bg-mist transition-colors focus:outline-none"
                 title="Xóa tin nhắn"
                 aria-label="Xóa tin nhắn"
               >
@@ -113,14 +114,12 @@ export const DmMessageBubble: React.FC<DmMessageBubbleProps> = ({
               {message.mediaUrls && message.mediaUrls.length > 0 && (
                 <div className="grid grid-cols-2 gap-1.5 mb-2 rounded-[12px] overflow-hidden">
                   {message.mediaUrls.map((url, idx) => (
-                    <img
+                    <ProtectedMedia
                       key={idx}
                       src={url}
                       alt="Ảnh đính kèm"
+                      allowExternal={false}
                       className="w-full h-36 object-cover rounded-[8px] border border-black/10"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
                     />
                   ))}
                 </div>

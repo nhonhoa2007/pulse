@@ -280,8 +280,8 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
               role="listitem"
               className={`relative min-h-[44px] h-[44px] w-full rounded-lg overflow-hidden border transition-colors flex items-center ${
                 isUserSelected
-                  ? 'border-meta bg-[#f0f4f8]'
-                  : 'border-cloud bg-[#f8fafc]'
+                  ? 'border-meta bg-meta/10'
+                  : 'border-cloud bg-card'
               }`}
             >
               {/* Animated Progress Bar Fill (Smooth width transition) */}
@@ -297,7 +297,7 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
                   isUserSelected
                     ? 'bg-meta/25'
                     : isHighest
-                    ? 'bg-[#cbd5e1]'
+                    ? 'bg-cloud'
                     : 'bg-cloud'
                 }`}
                 style={{ width: `${percentage}%` }}
@@ -309,10 +309,10 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
                   <span
                     className={`truncate text-left ${
                       isUserSelected
-                        ? 'font-bold text-[#1e293b]'
+                        ? 'font-bold text-ink'
                         : isHighest
-                        ? 'font-semibold text-[#1e293b]'
-                        : 'font-medium text-[#334155]'
+                        ? 'font-semibold text-ink'
+                        : 'font-medium text-graphite'
                     }`}
                     title={choice.text}
                   >
@@ -336,7 +336,7 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
                       isUserSelected
                         ? 'text-meta'
                         : isHighest
-                        ? 'text-[#0f172a]'
+                        ? 'text-ink'
                         : 'text-graphite'
                     }`}
                   >
@@ -350,7 +350,7 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
       </div>
 
       {/* Footer: Vote Count & Expiration Timer */}
-      <div className="mt-3 flex items-center justify-between text-[12px] text-[#64748b] border-t border-[#f1f5f9] pt-2 px-0.5">
+      <div className="mt-3 flex items-center justify-between text-[12px] text-graphite border-t border-cloud pt-2 px-0.5">
         <div className="flex items-center gap-1.5">
           <span className="font-medium text-graphite">
             {totalVotesCount} {totalVotesCount === 1 ? 'lượt bình chọn' : 'lượt bình chọn'}
@@ -365,13 +365,13 @@ export const PollComponent: React.FC<PollComponentProps> = (props) => {
 
         <div className="flex items-center gap-1">
           {isPollClosed ? (
-            <span className="font-semibold text-[#dc2626] flex items-center gap-1">
+            <span className="font-semibold text-danger flex items-center gap-1">
               <AlertCircle className="w-3.5 h-3.5" />
               <span>Poll closed</span>
             </span>
           ) : (
             <span className="flex items-center gap-1 font-medium text-graphite">
-              <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
+              <Clock className="w-3.5 h-3.5 text-ash" />
               <span>{timeInfo.formatted || 'Đang diễn ra'}</span>
             </span>
           )}

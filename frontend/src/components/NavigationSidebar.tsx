@@ -1,3 +1,4 @@
+import { ProtectedMedia } from "./ProtectedMedia";
 import React, { useState, useRef, useEffect } from 'react';
 import { usePulse } from '../context/PulseContext';
 import { VerifiedBadge } from './VerifiedBadge';
@@ -234,11 +235,11 @@ export const NavigationSidebar: React.FC = () => {
               title={
                 isAuthenticated
                   ? `Đang đăng nhập: ${currentUser.displayName} (@${currentUser.username})`
-                  : `Tài khoản demo: ${currentUser.displayName} (@${currentUser.username})`
+                  : `Khách: ${currentUser.displayName}`
               }
               aria-label="Menu tài khoản"
             >
-              <img
+              <ProtectedMedia
                 src={
                   currentUser.avatarUrl ||
                   `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`
@@ -253,7 +254,7 @@ export const NavigationSidebar: React.FC = () => {
               <div className="absolute bottom-2 left-14 mb-0 w-72 bg-paper border border-cloud rounded-[18px] shadow-[0_4px_24px_rgba(0,0,0,0.12)] p-2 z-50 animate-scale-up">
                 {/* User Summary Header */}
                 <div className="flex items-center gap-2.5 p-2 rounded-xl bg-mist/50">
-                  <img
+                  <ProtectedMedia
                     src={
                       currentUser.avatarUrl ||
                       `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`
@@ -280,7 +281,7 @@ export const NavigationSidebar: React.FC = () => {
                     </span>
                   ) : (
                     <span className="text-[10px] uppercase font-bold text-ash bg-cloud/50 px-1.5 py-0.5 rounded-full">
-                      Demo
+                      Khách
                     </span>
                   )}
                 </div>
@@ -409,7 +410,7 @@ export const NavigationSidebar: React.FC = () => {
                                     }`}
                                   >
                                     <div className="flex items-center gap-2 min-w-0">
-                                      <img
+                                      <ProtectedMedia
                                         src={
                                           user.avatarUrl ||
                                           `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -516,7 +517,7 @@ export const NavigationSidebar: React.FC = () => {
                                   }`}
                                 >
                                   <div className="flex items-center gap-2.5 min-w-0">
-                                    <img
+                                    <ProtectedMedia
                                       src={
                                         user.avatarUrl ||
                                         `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -645,9 +646,10 @@ export const NavigationSidebar: React.FC = () => {
           <button
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             className="p-1 rounded-full focus:outline-none"
+            aria-label="Menu tài khoản"
             title="Menu tài khoản"
           >
-            <img
+            <ProtectedMedia
               src={
                 currentUser.avatarUrl ||
                 `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`
@@ -661,7 +663,7 @@ export const NavigationSidebar: React.FC = () => {
           {isMobileMenuOpen && (
             <div className="fixed bottom-16 right-2 w-64 bg-paper border border-cloud rounded-[18px] shadow-2xl p-2 z-50 animate-scale-up">
               <div className="flex items-center gap-2 p-2 border-b border-cloud/80">
-                <img
+                <ProtectedMedia
                   src={
                     currentUser.avatarUrl ||
                     `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`
@@ -682,6 +684,17 @@ export const NavigationSidebar: React.FC = () => {
               <div className="flex flex-col gap-1 mt-1">
                 {isAuthenticated ? (
                   <>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        navigateTo('profile', { username: currentUser.username, tab: 'posts' });
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-ink hover:bg-mist rounded-xl text-left"
+                    >
+                      <User className="w-4 h-4 text-graphite" />
+                      <span>Trang cá nhân</span>
+                    </button>
+
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
@@ -739,18 +752,22 @@ export const NavigationSidebar: React.FC = () => {
                   </button>
                 )}
 
-                <button
-                  onClick={() => {
-                    const currentIndex = users.findIndex((u) => u.id === currentUser.id);
-                    const nextIndex = (currentIndex + 1) % users.length;
-                    switchUser(users[nextIndex]);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-ink hover:bg-mist rounded-xl text-left"
-                >
-                  <Users className="w-4 h-4 text-graphite" />
-                  <span>Đổi tài khoản demo tiếp theo</span>
-                </button>
+                <ThemeSwitcher />
+
+                {IS_DEV && users.length > 0 && (
+                  <button
+                    onClick={() => {
+                      const currentIndex = users.findIndex((u) => u.id === currentUser.id);
+                      const nextIndex = (currentIndex + 1) % users.length;
+                      void switchUser(users[nextIndex]);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-ink hover:bg-mist rounded-xl text-left"
+                  >
+                    <Users className="w-4 h-4 text-graphite" />
+                    <span>Đổi tài khoản demo tiếp theo</span>
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -1,5 +1,6 @@
-import React from 'react';
-import { PulseProvider, usePulse } from './context/PulseContext';
+import React, { Suspense, lazy } from 'react';
+import { PulseProvider } from './context/PulseContext';
+import { useAuthSession, usePulseUi } from './context/PulseContexts';
 import { NavigationSidebar } from './components/NavigationSidebar';
 import { TrendingSidebar } from './components/TrendingSidebar';
 import { PostComposerModal } from './components/PostComposerModal';
@@ -8,18 +9,18 @@ import { EditProfileModal } from './components/EditProfileModal';
 import { MuteManagementModal } from './components/MuteManagementModal';
 import { FollowRequestsModal } from './components/FollowRequestsModal';
 import { ToastContainer } from './components/ToastContainer';
-import { HomeTimelineView } from './views/HomeTimelineView';
-import { ExploreView } from './views/ExploreView';
-import { NotificationCenterView } from './views/NotificationCenterView';
-import { UserProfileView } from './views/UserProfileView';
-import { ConversationThreadView } from './views/ConversationThreadView';
-import { DirectMessagingView } from './views/DirectMessagingView';
-import { BookmarksView } from './views/BookmarksView';
-import { StatsView } from './views/StatsView';
-import { ModerationCenterView } from './views/ModerationCenterView';
+const HomeTimelineView = lazy(() => import('./views/HomeTimelineView').then((module) => ({ default: module.HomeTimelineView })));
+const ExploreView = lazy(() => import('./views/ExploreView').then((module) => ({ default: module.ExploreView })));
+const NotificationCenterView = lazy(() => import('./views/NotificationCenterView').then((module) => ({ default: module.NotificationCenterView })));
+const UserProfileView = lazy(() => import('./views/UserProfileView').then((module) => ({ default: module.UserProfileView })));
+const ConversationThreadView = lazy(() => import('./views/ConversationThreadView').then((module) => ({ default: module.ConversationThreadView })));
+const DirectMessagingView = lazy(() => import('./views/DirectMessagingView').then((module) => ({ default: module.DirectMessagingView })));
+const BookmarksView = lazy(() => import('./views/BookmarksView').then((module) => ({ default: module.BookmarksView })));
+const StatsView = lazy(() => import('./views/StatsView').then((module) => ({ default: module.StatsView })));
+const ModerationCenterView = lazy(() => import('./views/ModerationCenterView').then((module) => ({ default: module.ModerationCenterView })));
 
 const MainContentRouter: React.FC = () => {
-  const { currentView } = usePulse();
+  const { currentView } = usePulseUi();
 
   switch (currentView) {
     case 'home':
@@ -46,6 +47,7 @@ const MainContentRouter: React.FC = () => {
 };
 
 export const AppContent: React.FC = () => {
+  const { isAuthReady, authRestoreError, retryRestoreSession } = useAuthSession();
   const {
     currentView,
     isMuteModalOpen,
@@ -53,8 +55,34 @@ export const AppContent: React.FC = () => {
     muteModalTab,
     isFollowRequestsOpen,
     setIsFollowRequestsOpen,
-  } = usePulse();
+  } = usePulseUi();
   const isMessages = currentView === 'messages';
+
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen bg-paper text-ink flex items-center justify-center" role="status" aria-live="polite">
+        <span className="text-sm text-graphite">Đang khôi phục phiên đăng nhập…</span>
+      </div>
+    );
+  }
+
+  if (authRestoreError) {
+    return (
+      <div className="min-h-screen bg-paper text-ink flex items-center justify-center px-6">
+        <div className="max-w-sm text-center" role="alert">
+          <h1 className="text-lg font-semibold mb-2">Chưa thể khôi phục phiên</h1>
+          <p className="text-sm text-graphite mb-5">{authRestoreError}</p>
+          <button
+            type="button"
+            onClick={() => void retryRestoreSession()}
+            className="px-5 py-2.5 rounded-full bg-ink text-paper text-sm font-semibold"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-paper text-ink flex justify-center selection:bg-meta/15 selection:text-ink">
@@ -69,8 +97,10 @@ export const AppContent: React.FC = () => {
             isMessages ? 'max-w-[940px]' : 'max-w-[640px]'
           }`}
         >
-          <div className="w-full bg-paper md:rounded-[18px] border-x md:border border-cloud shadow-[0_0_12px_rgba(0,0,0,0.04),0_0_0_48px_#fafafa] overflow-hidden min-h-screen md:min-h-[calc(100vh-2rem)]">
-            <MainContentRouter />
+          <div className="w-full bg-paper md:rounded-[18px] border-x md:border border-cloud shadow-feed overflow-hidden min-h-screen md:min-h-[calc(100vh-2rem)]">
+            <Suspense fallback={<div className="min-h-64 grid place-items-center text-[13px] text-graphite" role="status">Đang tải nội dung…</div>}>
+              <MainContentRouter />
+            </Suspense>
           </div>
         </main>
 

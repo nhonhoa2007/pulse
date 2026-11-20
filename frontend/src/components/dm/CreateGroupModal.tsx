@@ -1,9 +1,11 @@
+import { ProtectedMedia } from "../ProtectedMedia";
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePulse } from '../../context/PulseContext';
 import { api } from '../../api/PulseApiClient';
 import { GroupConversationDto } from '../../types/PulseTypes';
 import { VerifiedBadge } from '../VerifiedBadge';
 import { X, Search, Users, Loader2, Check, AlertCircle } from 'lucide-react';
+import { useAccessibleDialog } from '../../utils/useAccessibleDialog';
 
 interface CreateGroupModalProps {
   isOpen: boolean;
@@ -24,7 +26,9 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useAccessibleDialog(isOpen, () => {
+    if (!isSubmitting) onClose();
+  });
 
   // Reset state when modal opens
   useEffect(() => {
@@ -38,17 +42,6 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       }, 50);
     }
   }, [isOpen]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   // Available users (exclude current user)
   const availableUsers = useMemo(() => {
@@ -183,7 +176,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                 htmlFor="group-name-input"
                 className="block text-[13px] font-semibold text-ink mb-1.5"
               >
-                Tên nhóm <span className="text-red-500">*</span>
+                Tên nhóm <span className="text-danger">*</span>
               </label>
               <input
                 id="group-name-input"
@@ -226,7 +219,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                       key={user.id}
                       className="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 bg-paper border border-cloud rounded-full text-[12px] shadow-sm animate-scale-up"
                     >
-                      <img
+                      <ProtectedMedia
                         src={
                           user.avatarUrl ||
                           `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -270,6 +263,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
+                    aria-label="Xóa nội dung tìm kiếm thành viên"
                     className="absolute right-3 text-ash hover:text-ink"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -281,7 +275,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="mx-5 my-2 p-3 bg-red-50 border border-red-200 rounded-[12px] flex items-center gap-2 text-red-700 text-[13px]">
+            <div className="mx-5 my-2 p-3 bg-danger-surface border border-danger-border rounded-[12px] flex items-center gap-2 text-danger text-[13px]">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -297,14 +291,16 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
               filteredUsers.map((user) => {
                 const isSelected = selectedUserIds.has(user.id);
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={user.id}
                     onClick={() => toggleUserSelection(user.id)}
-                    className="flex items-center justify-between py-2.5 px-2 hover:bg-mist/60 rounded-xl cursor-pointer transition-colors select-none"
+                    className="w-full flex items-center justify-between py-2.5 px-2 hover:bg-mist/60 rounded-xl cursor-pointer transition-colors select-none text-left"
+                    aria-pressed={isSelected}
                     data-testid={`user-row-${user.id}`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <img
+                      <ProtectedMedia
                         src={
                           user.avatarUrl ||
                           `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`
@@ -331,13 +327,13 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${
                         isSelected
-                          ? 'bg-ink border-ink text-white'
-                          : 'border-cloud bg-white'
+                          ? 'bg-ink border-ink text-paper'
+                          : 'border-cloud bg-card'
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                     </div>
-                  </div>
+                  </button>
                 );
               })
             )}
@@ -366,7 +362,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                 disabled={!isFormValid || isSubmitting}
                 className={`px-5 py-2 text-[13px] font-semibold rounded-full flex items-center gap-2 transition-all ${
                   isFormValid && !isSubmitting
-                    ? 'bg-ink hover:bg-graphite text-white shadow-sm'
+                    ? 'bg-ink hover:bg-graphite text-paper shadow-sm'
                     : 'bg-mist text-ash cursor-not-allowed'
                 }`}
                 data-testid="create-group-submit-btn"

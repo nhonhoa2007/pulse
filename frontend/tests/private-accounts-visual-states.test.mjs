@@ -545,6 +545,7 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       const { api } = await import('../src/api/PulseApiClient.ts');
 
       const originalFetch = globalThis.fetch;
+      api.setActiveUserId('my-user-id');
       api.setToken('old-expired-token');
 
       let attemptCount = 0;
@@ -607,15 +608,16 @@ describe('TASK-21: Frontend Visual States & Private Accounts Test Suite', () => 
       };
 
       try {
-        const posts = await api.getHomeFeed();
+        const page = await api.getHomeFeed();
         assert.strictEqual(attemptCount, 2, 'Initial request must be retried after refresh');
         assert.strictEqual(refreshCalled, true, 'POST /auth/refresh must be called');
         assert.strictEqual(api.getToken(), 'fresh-new-token-999');
-        assert.strictEqual(posts.length, 1);
-        assert.strictEqual(posts[0].content, 'Success after refresh');
+        assert.strictEqual(page.posts.length, 1);
+        assert.strictEqual(page.posts[0].content, 'Success after refresh');
       } finally {
         globalThis.fetch = originalFetch;
         api.setToken(null);
+        api.setActiveUserId('');
       }
     });
   });
