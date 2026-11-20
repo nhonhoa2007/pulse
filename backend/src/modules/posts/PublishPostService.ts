@@ -8,6 +8,8 @@ import { activityPubKeyManagerService } from '../federation/ActivityPubKeyManage
 import { ActivityPubActivity, ActivityPubNote } from '../../contracts/ActivityPubContracts.js';
 import { sanitizeContentWarning } from './UpdatePostService.js';
 import { spamDetectionService } from '../moderation/SpamDetectionService.js';
+import type { Prisma } from '@prisma/client';
+import { formatPollDto } from '../polls/PollDto.js';
 
 export interface PublishPostInput {
   authorId: string;
@@ -22,7 +24,7 @@ export interface PublishPostInput {
 }
 
 export class PublishPostService {
-  public async publish(input: PublishPostInput): Promise<PostDto> {
+  public async publish(input: PublishPostInput, poll?: Prisma.PollCreateWithoutPostInput): Promise<PostDto> {
     const { authorId, mediaUrls = [], replyToId, quoteOfId } = input;
     const content = input.content ? input.content.trim() : '';
 
@@ -173,8 +175,10 @@ export class PublishPostService {
           contentWarning: sanitizedContentWarning || null,
           hashtags,
           mentions,
+          poll: poll ? { create: poll } : undefined,
         },
         include: {
+          poll: { include: { choices: true } },
           author: {
             select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true },
           },
@@ -270,6 +274,7 @@ export class PublishPostService {
 
     return {
       id: createdPost.id,
+      poll: createdPost.poll ? formatPollDto(createdPost.poll, authorId) : null,
       authorId: createdPost.authorId,
       content: createdPost.content,
       mediaUrls: createdPost.mediaUrls,
@@ -342,6 +347,12 @@ export class PublishPostService {
   }
 
   private async enqueueFederatedDelivery(post: any): Promise<void> {
+    const author = await prisma.user.findUnique({
+      where: { id: post.authorId },
+      select: { isPrivate: true, isDeleted: true, accountStatus: true },
+    });
+    if (!author || author.isPrivate || author.isDeleted || author.accountStatus !== 'ACTIVE') return;
+
     const remoteFollows = await prisma.federatedFollow.findMany({
       where: {
         localUserId: post.authorId,

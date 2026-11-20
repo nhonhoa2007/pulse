@@ -2,17 +2,18 @@ import { prisma } from '../../db/PrismaClientSingleton.js';
 import { PollDto } from '../../contracts/ApiContracts.js';
 import { formatPollDto } from './PollDto.js';
 import { pollExpirationSchedulerService } from './PollExpirationSchedulerService.js';
+import { visiblePostWhere } from '../posts/PostVisibility.js';
 
 export class FetchPollDetailService {
   public async getPollDetail(
     pollId: string,
     currentUserId?: string | null
   ): Promise<PollDto> {
-    const poll = await prisma.poll.findUnique({
-      where: { id: pollId },
+    const poll = await prisma.poll.findFirst({
+      where: { id: pollId, post: visiblePostWhere(currentUserId) },
       include: {
         choices: true,
-        votes: true,
+        votes: { where: { userId: currentUserId ?? '' } },
       },
     });
 

@@ -1,63 +1,29 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { PollDto } from '../../contracts/ApiContracts.js';
+import { visiblePostWhere } from '../posts/PostVisibility.js';
 import { formatPollDto } from './PollDto.js';
-import { realtimeStreamController } from '../notifications/RealtimeEventStreamController.js';
+import { sendPollUpdate } from './SendPollUpdate.js';
 
 export class ClosePollEarlyService {
-  public async closePollEarly(
-    pollId: string,
-    currentUserId?: string | null
-  ): Promise<PollDto> {
-    const poll = await prisma.poll.findUnique({
-      where: { id: pollId },
-      include: {
-        choices: true,
-        votes: true,
-        post: {
-          select: { authorId: true },
-        },
-      },
-    });
-
-    if (!poll) {
-      const err: any = new Error('Poll not found');
-      err.statusCode = 404;
-      err.code = 'POLL_NOT_FOUND';
-      throw err;
+  public async closePollEarly(pollId: string, userId?: string | null): Promise<PollDto> {
+    if (!userId) {
+      throw Object.assign(new Error('Authentication required'), { statusCode: 401, code: 'UNAUTHORIZED' });
     }
-
-    // IDOR Authorization: Only the author of the attached post can close the poll early
-    if (poll.post && (!currentUserId || poll.post.authorId !== currentUserId)) {
-      const err: any = new Error('Only the author of the post can close this poll early');
-      err.statusCode = 403;
-      err.code = 'FORBIDDEN';
-      throw err;
-    }
-
-    // Deactivate poll immediately
-    const updated = await prisma.poll.update({
-      where: { id: pollId },
-      data: {
-        isActive: false,
-        expiresAt: new Date(),
-      },
-      include: {
-        choices: true,
-        votes: true,
-      },
+    const poll = await prisma.$transaction(async (tx) => {
+      const changed = await tx.poll.updateMany({
+        where: { id: pollId, post: { ...visiblePostWhere(userId), authorId: userId } },
+        data: { isActive: false, expiresAt: new Date() },
+      });
+      if (!changed.count) {
+        throw Object.assign(new Error('Poll not found'), { statusCode: 404, code: 'POLL_NOT_FOUND' });
+      }
+      return tx.poll.findUniqueOrThrow({
+        where: { id: pollId },
+        include: { choices: true, votes: { where: { userId } } },
+      });
     });
-
-    const pollDto = formatPollDto(updated, currentUserId);
-
-    // Broadcast realtime event
-    realtimeStreamController.broadcast('POLL_CLOSED', {
-      pollId: pollDto.id,
-      poll: pollDto,
-      closedAt: new Date().toISOString(),
-    });
-    realtimeStreamController.broadcast('POLL_UPDATED', pollDto);
-
-    return pollDto;
+    void sendPollUpdate(poll).catch((err) => console.error('Poll update notification failed:', err));
+    return formatPollDto(poll, userId);
   }
 }
 

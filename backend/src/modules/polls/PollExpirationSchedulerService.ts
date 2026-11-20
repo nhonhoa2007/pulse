@@ -1,6 +1,5 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
-import { realtimeStreamController } from '../notifications/RealtimeEventStreamController.js';
-import { formatPollDto } from './PollDto.js';
+import { sendPollUpdate } from './SendPollUpdate.js';
 
 export class PollExpirationSchedulerService {
   private intervalTimer: NodeJS.Timeout | null = null;
@@ -125,41 +124,17 @@ export class PollExpirationSchedulerService {
   public async expirePoll(pollId: string): Promise<boolean> {
     try {
       const updated = await prisma.$transaction(async (tx) => {
-        const poll = await tx.poll.findUnique({
-          where: { id: pollId },
-          include: { choices: true, votes: true },
+        const changed = await tx.poll.updateMany({
+          where: { id: pollId, isActive: true, expiresAt: { lte: new Date() } },
+          data: { isActive: false },
         });
-
-        if (!poll || !poll.isActive) {
-          return null;
-        }
-
-        // Atomically deactivate
-        const deactivatedPoll = await tx.poll.update({
-          where: { id: pollId },
-          data: {
-            isActive: false,
-          },
-          include: {
-            choices: true,
-            votes: true,
-          },
-        });
-
-        return deactivatedPoll;
+        return changed.count
+          ? tx.poll.findUnique({ where: { id: pollId }, include: { choices: true } })
+          : null;
       });
 
       if (updated) {
-        const pollDto = formatPollDto(updated);
-
-        // Broadcast to all connected clients via SSE
-        realtimeStreamController.broadcast('POLL_EXPIRED', {
-          pollId: updated.id,
-          poll: pollDto,
-          expiredAt: new Date().toISOString(),
-        });
-        realtimeStreamController.broadcast('POLL_UPDATED', pollDto);
-
+        void sendPollUpdate(updated).catch((err) => console.error('Poll update notification failed:', err));
         return true;
       }
     } catch (err) {
