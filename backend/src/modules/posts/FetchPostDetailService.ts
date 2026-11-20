@@ -2,11 +2,12 @@ import { prisma } from '../../db/PrismaClientSingleton.js';
 import { PostDto, ReplyPrivacy } from '../../contracts/ApiContracts.js';
 import { formatPollDto } from '../polls/PollDto.js';
 import { validateReplyPermissionService } from './ValidateReplyPermissionService.js';
+import { visiblePostWhere } from './PostVisibility.js';
 
 export class FetchPostDetailService {
   public async getPostDetail(postId: string, currentUserId?: string | null): Promise<PostDto | null> {
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
+    const post = await prisma.post.findFirst({
+      where: { id: postId, ...visiblePostWhere(currentUserId) },
       include: {
         author: {
           select: { id: true, username: true, displayName: true, avatarUrl: true, isCelebrity: true, pinnedPostId: true, isPrivate: true },
@@ -30,45 +31,12 @@ export class FetchPostDetailService {
       },
     });
 
-    if (!post || post.isDeleted) {
+    if (!post) {
       return null;
     }
-
-    // Invariant 3: Check block relationship
-    if (currentUserId) {
-      const block = await prisma.block.findFirst({
-        where: {
-          OR: [
-            { blockerId: currentUserId, blockedId: post.authorId },
-            { blockerId: post.authorId, blockedId: currentUserId },
-          ],
-        },
-      });
-
-      if (block) {
-        return null;
-      }
-    }
-
-    // TASK-21 Privacy Gate: If author is private, viewer must be author or approved follower
-    const authorIsPrivate = Boolean((post.author as any).isPrivate);
-    const isOwner = currentUserId === post.authorId;
-    if (authorIsPrivate && !isOwner) {
-      if (!currentUserId) {
-        return null;
-      }
-      const follow = await prisma.follow.findUnique({
-        where: {
-          followerId_followingId: {
-            followerId: currentUserId,
-            followingId: post.authorId,
-          },
-        },
-      });
-      if (!follow) {
-        return null;
-      }
-    }
+    const visibleQuote = post.quoteOf && await prisma.post.count({
+      where: { id: post.quoteOf.id, ...visiblePostWhere(currentUserId) },
+    });
 
     let isLiked = false;
     let isReposted = false;
@@ -125,7 +93,7 @@ export class FetchPostDetailService {
       createdAt: post.createdAt.toISOString(),
       author: post.author,
       replyTo: post.replyTo,
-      quoteOf: post.quoteOf
+      quoteOf: post.quoteOf && visibleQuote
         ? {
             id: post.quoteOf.id,
             authorId: post.quoteOf.authorId,

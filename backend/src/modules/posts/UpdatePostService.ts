@@ -341,6 +341,12 @@ export class UpdatePostService {
   }
 
   private async enqueueFederatedUpdate(post: any): Promise<void> {
+    const author = await prisma.user.findUnique({
+      where: { id: post.authorId },
+      select: { isPrivate: true, isDeleted: true, accountStatus: true },
+    });
+    if (!author || author.isPrivate || author.isDeleted || author.accountStatus !== 'ACTIVE') return;
+
     const remoteFollows = await prisma.federatedFollow.findMany({
       where: {
         localUserId: post.authorId,

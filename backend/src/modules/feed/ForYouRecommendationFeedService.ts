@@ -1,4 +1,5 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
+import { visibleQuoteIds } from '../posts/PostVisibility.js';
 import { FeedResponse, PostDto, ReplyPrivacy } from '../../contracts/ApiContracts.js';
 import { postMatchesKeywords } from '../mutes/KeywordFilterUtil.js';
 import { formatPollDto } from '../polls/PollDto.js';
@@ -295,16 +296,11 @@ export class ForYouRecommendationFeedService {
     const likedSet = new Set(likes.map((l) => l.postId));
     const repostedSet = new Set(reposts.map((r) => r.postId));
     const bookmarkedSet = new Set(bookmarks.map((b) => b.postId));
+    const visibleQuotes = await visibleQuoteIds(selectedBatch.map((item) => item.post), userId);
 
     const posts: PostDto[] = selectedBatch.map((item) => {
       const p = item.post;
       const pendingViews = postImpressionsBufferService.getPendingForPost(p.id);
-
-      const quoteAuthorIsPrivate = Boolean((p.quoteOf?.author as any)?.isPrivate);
-      const canViewQuote =
-        !quoteAuthorIsPrivate ||
-        p.quoteOf?.authorId === userId ||
-        directFollowedIds.has(p.quoteOf?.authorId);
 
       return {
         id: p.id,
@@ -337,7 +333,7 @@ export class ForYouRecommendationFeedService {
         createdAt: p.createdAt.toISOString(),
         author: p.author,
         replyTo: p.replyTo,
-        quoteOf: p.quoteOf && canViewQuote
+        quoteOf: p.quoteOf && visibleQuotes.has(p.quoteOf.id)
           ? {
               id: p.quoteOf.id,
               authorId: p.quoteOf.authorId,

@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { ApiResponse, MediaUploadResult } from '../../contracts/ApiContracts.js';
+import { visiblePostWhere } from '../posts/PostVisibility.js';
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
   'image/jpeg': '.jpg',
@@ -193,6 +194,90 @@ export class MediaUploadController {
           message,
         },
       };
+    }
+  }
+
+  public async serve(req: FastifyRequest<{ Params: { filename: string } }>, reply: FastifyReply): Promise<void> {
+    const filename = req.params.filename;
+    if (!/^[a-f0-9-]{36}\.(?:webp|jpg|png|gif)$/.test(filename)) {
+      reply.status(404).send();
+      return;
+    }
+    const asset = await prisma.mediaAsset.findFirst({
+      where: { filename },
+      select: { ownerId: true, mimeType: true },
+    });
+    if (!asset) {
+      reply.status(404).send();
+      return;
+    }
+    const userId = req.currentUserId || null;
+    const mediaPath = `/uploads/${filename}`;
+    const candidates = [
+      mediaPath,
+      `http://localhost:${process.env.PORT || '3001'}${mediaPath}`,
+      ...(process.env.BASE_URL ? [`${process.env.BASE_URL.replace(/\/$/, '')}${mediaPath}`] : []),
+    ];
+    const [post, avatar, directMessage, groupMessage, groupAvatar] = await Promise.all([
+      prisma.post.findFirst({
+        where: { mediaUrls: { hasSome: candidates }, ...visiblePostWhere(userId) },
+        select: { id: true },
+      }),
+      prisma.user.findFirst({
+        where: {
+          avatarUrl: { in: candidates },
+          isDeleted: false,
+          accountStatus: 'ACTIVE',
+          ...(userId ? {
+            blockedUsers: { none: { blockedId: userId } },
+            blockedBy: { none: { blockerId: userId } },
+            OR: [{ isPrivate: false }, { id: userId }, { followers: { some: { followerId: userId } } }],
+          } : { isPrivate: false }),
+        },
+        select: { id: true },
+      }),
+      userId ? prisma.dmMessage.findFirst({
+        where: {
+          mediaUrls: { hasSome: candidates },
+          deletedAt: null,
+          conversation: { OR: [{ participant1Id: userId }, { participant2Id: userId }] },
+        },
+        select: { id: true },
+      }) : null,
+      userId ? prisma.groupMessage.findFirst({
+        where: {
+          mediaUrls: { hasSome: candidates },
+          deletedAt: null,
+          conversation: { members: { some: { userId } } },
+        },
+        select: { id: true },
+      }) : null,
+      userId ? prisma.groupConversation.findFirst({
+        where: {
+          avatarUrl: { in: candidates },
+          members: { some: { userId } },
+        },
+        select: { id: true },
+      }) : null,
+    ]);
+    if (asset.ownerId !== userId && !post && !avatar && !directMessage && !groupMessage && !groupAvatar) {
+      reply.status(404).send();
+      return;
+    }
+    const root = path.resolve(this.uploadsDir);
+    const filePath = path.resolve(root, filename);
+    if (!filePath.startsWith(`${root}${path.sep}`)) {
+      reply.status(404).send();
+      return;
+    }
+    try {
+      const file = await fs.promises.readFile(filePath);
+      reply.header('Cache-Control', 'private, no-store')
+        .header('X-Content-Type-Options', 'nosniff')
+        .type(asset.mimeType)
+        .send(file);
+    } catch {
+      reply.status(404).send();
     }
   }
 }

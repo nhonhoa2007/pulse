@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ServerResponse } from 'node:http';
 import crypto from 'node:crypto';
+import { prisma } from '../../db/PrismaClientSingleton.js';
 
 const TICKET_TTL_MS = 30_000;
 
@@ -62,7 +63,7 @@ export class RealtimeEventStreamController {
   /**
    * Fastify handler for GET /api/v1/realtime/stream
    */
-  public handleStream(req: FastifyRequest, reply: FastifyReply): void {
+  public async handleStream(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     const rawRes = reply.raw;
     const rawReq = req.raw;
 
@@ -81,6 +82,19 @@ export class RealtimeEventStreamController {
       });
       return;
     }
+    const activeUser = await prisma.user.findFirst({
+      where: { id: ticketData.userId, isDeleted: false, accountStatus: 'ACTIVE' },
+      select: { id: true },
+    });
+    if (!activeUser) {
+      this.tickets.delete(ticket!);
+      reply.status(401).send({
+        success: false,
+        error: { code: 'ACCOUNT_INACTIVE', message: 'Account is unavailable' },
+      });
+      return;
+    }
+
     // Tickets are single-use: consume immediately.
     this.tickets.delete(ticket!);
     const userId = ticketData.userId;
@@ -105,10 +119,18 @@ export class RealtimeEventStreamController {
     this.connections.get(userId)!.add(rawRes);
 
     // Heartbeat ping interval to keep connection alive across proxies/NAT
-    const heartbeatInterval = setInterval(() => {
-      if (!rawRes.writableEnded) {
-        rawRes.write(': heartbeat\n\n');
+    const heartbeatInterval = setInterval(async () => {
+      if (rawRes.writableEnded) return;
+      const active = await prisma.user.findFirst({
+        where: { id: userId, isDeleted: false, accountStatus: 'ACTIVE' },
+        select: { id: true },
+      }).catch(() => null);
+      if (!active) {
+        rawRes.end();
+        cleanup();
+        return;
       }
+      rawRes.write(': heartbeat\n\n');
     }, 15000);
 
     const cleanup = () => {
@@ -158,6 +180,17 @@ export class RealtimeEventStreamController {
 
   public getConnectedUserCount(): number {
     return this.connections.size;
+  }
+
+  public getConnectedUserIds(): string[] {
+    return [...this.connections.keys()];
+  }
+
+  public disconnectUser(userId: string): void {
+    const userConns = this.connections.get(userId);
+    if (!userConns) return;
+    for (const res of userConns) res.end();
+    this.connections.delete(userId);
   }
 }
 

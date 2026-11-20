@@ -480,6 +480,21 @@ export class ResolveRemoteActorService {
       error.statusCode = 400;
       throw error;
     }
+    const actorKey = actorData.publicKey;
+    if (
+      actorData.id !== actorUri ||
+      (actorKey && (
+        typeof actorKey.id !== 'string' ||
+        typeof actorKey.owner !== 'string' ||
+        actorKey.owner !== actorUri ||
+        actorKey.id.split('#')[0] !== actorUri
+      ))
+    ) {
+      throw Object.assign(new Error('Remote Actor document does not own its advertised key'), {
+        code: 'ACTOR_KEY_OWNERSHIP_MISMATCH',
+        statusCode: 400,
+      });
+    }
 
     // Extract and sanitize actor properties
     const rawUsername =
@@ -512,8 +527,7 @@ export class ResolveRemoteActorService {
       typeof actorData.publicKey?.publicKeyPem === 'string'
         ? actorData.publicKey.publicKeyPem
         : '';
-    const publicKeyId =
-      actorData.publicKey?.id || `${actorUri}#main-key`;
+    const publicKeyId = actorData.publicKey?.id || `${actorUri}#main-key`;
 
     // 5. Prisma Transaction: Upsert FederatedActor & Shadow User
     const { federatedActor, shadowUser } = await prisma.$transaction(

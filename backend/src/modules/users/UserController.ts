@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { formatPollDto } from '../polls/PollDto.js';
 import { postImpressionsBufferService } from '../posts/PostImpressionsBufferService.js';
+import { visibleQuoteIds } from '../posts/PostVisibility.js';
 import { deleteAccountService, UserNotFoundError } from './DeleteAccountService.js';
 import { creatorStatsService } from './CreatorStatsService.js';
 import {
@@ -403,6 +404,7 @@ export class UserController {
     const likedSet = new Set(likes.map((l) => l.postId));
     const repostedSet = new Set(reposts.map((r) => r.postId));
 
+    const quotes = await visibleQuoteIds(allPostsToMap, currentUserId);
     const postDtos: PostDto[] = allPostsToMap.map((p) => {
       const isPinned = p.id === targetUser.pinnedPostId;
       return {
@@ -435,7 +437,7 @@ export class UserController {
         createdAt: p.createdAt.toISOString(),
         author: p.author,
         replyTo: p.replyTo,
-        quoteOf: p.quoteOf
+        quoteOf: p.quoteOf && quotes.has(p.quoteOf.id)
           ? {
               id: p.quoteOf.id,
               authorId: p.quoteOf.authorId,

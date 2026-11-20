@@ -2,11 +2,8 @@ import 'dotenv/config';
 import Fastify, { FastifyInstance, FastifyServerOptions } from 'fastify';
 import cors from '@fastify/cors';
 import fastifyMultipart from '@fastify/multipart';
-import fastifyStatic from '@fastify/static';
 import fastifyCookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import { tokenRevocationManager } from './modules/auth/TokenRevocationManager.js';
 import { getJwtSecret, getCookieSecret } from './config/Secrets.js';
@@ -14,6 +11,8 @@ import { registerV1Routes, registerLegacyRootAliases } from './routes/registerRo
 import { pollExpirationSchedulerService } from './modules/polls/PollExpirationSchedulerService.js';
 import { activityDeliveryWorkerService } from './modules/federation/ActivityDeliveryWorkerService.js';
 import { postImpressionsBufferService } from './modules/posts/PostImpressionsBufferService.js';
+import { prisma } from './db/PrismaClientSingleton.js';
+import { mediaUploadController } from './modules/media/MediaUploadController.js';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -26,6 +25,15 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
   //    No hardcoded fallback values are allowed anywhere in the codebase.
   const JWT_SECRET = getJwtSecret();
   const COOKIE_SECRET = getCookieSecret();
+  const isAllowedOrigin = (origin: string) => {
+    const configured = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map((item) => item.trim()).filter(Boolean);
+    if (configured.length) return configured.includes(origin);
+    if (process.env.NODE_ENV === 'production') return false;
+    try {
+      const parsed = new URL(origin);
+      return ['localhost', '127.0.0.1'].includes(parsed.hostname) && ['http:', 'https:'].includes(parsed.protocol);
+    } catch { return false; }
+  };
 
   const app = Fastify({
     bodyLimit: 1048576, // 1MB payload limit to prevent resource exhaustion / DoS
@@ -37,7 +45,10 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
 
   // 1. Register CORS
   await app.register(cors, {
-    origin: true,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      callback(null, isAllowedOrigin(origin));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -106,20 +117,17 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
     },
   });
 
-  // 3. Register Fastify Static to serve uploaded media files at /uploads/*
-  const uploadsDir = process.env.UPLOADS_DIR || fileURLToPath(new URL('../uploads', import.meta.url));
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-
-  await app.register(fastifyStatic, {
-    root: uploadsDir,
-    prefix: '/uploads/',
-    decorateReply: false,
-  });
-
   // 4. Request context hook to extract user identity exclusively from the Bearer JWT (SEC-02)
   app.addHook('preHandler', async (request, reply) => {
+    const origin = request.headers.origin;
+    if (
+      typeof origin === 'string' &&
+      /\/auth\/(?:refresh|logout)$/.test(request.url.split('?')[0]) &&
+      !isAllowedOrigin(origin)
+    ) {
+      reply.status(403).send({ success: false, error: { code: 'ORIGIN_NOT_ALLOWED', message: 'Request origin is not allowed' } });
+      return reply;
+    }
     let currentUserId: string | null = null;
     const authHeader = request.headers['authorization'];
     if (typeof authHeader === 'string') {
@@ -142,6 +150,17 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
         try {
           const decoded = jwt.verify(token, JWT_SECRET) as { userId?: string };
           if (decoded && decoded.userId) {
+            const user = await prisma.user.findUnique({
+              where: { id: decoded.userId },
+              select: { isDeleted: true, accountStatus: true },
+            });
+            if (!user || user.isDeleted || user.accountStatus !== 'ACTIVE') {
+              reply.status(401).send({
+                success: false,
+                error: { code: 'ACCOUNT_INACTIVE', message: 'Account is unavailable' },
+              });
+              return reply;
+            }
             currentUserId = decoded.userId;
           }
         } catch {
@@ -189,6 +208,7 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
 
   // Deprecated root-level aliases for backward compatibility (see INF-02)
   await registerLegacyRootAliases(app);
+  app.get('/uploads/:filename', mediaUploadController.serve.bind(mediaUploadController));
 
   // Start background schedulers & workers
   pollExpirationSchedulerService.start();

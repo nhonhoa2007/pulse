@@ -85,15 +85,11 @@ export class ActivityPubInboxController {
 
     // 3. Enforce Signature Identity Binding (Prevent Actor Impersonation)
     try {
-      const signerUrl = new URL(verifyResult.actorUri);
-      const actorUrl = new URL(activity.actor);
+      new URL(verifyResult.actorUri);
+      new URL(activity.actor);
 
       const isExactMatch = verifyResult.actorUri === activity.actor;
-      const isAuthorizedInstanceActor =
-        (signerUrl.pathname.endsWith('/actor') || signerUrl.pathname === '/actor') &&
-        signerUrl.host === actorUrl.host;
-
-      if (!isExactMatch && !isAuthorizedInstanceActor) {
+      if (!isExactMatch) {
         reply.status(403).send({
           success: false,
           error: {

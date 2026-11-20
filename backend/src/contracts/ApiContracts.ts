@@ -297,8 +297,6 @@ export interface VotePollInput {
   choice_index?: number;
   choiceId?: string;
   choice_id?: string;
-  userId?: string;
-  user_id?: string;
 }
 
 

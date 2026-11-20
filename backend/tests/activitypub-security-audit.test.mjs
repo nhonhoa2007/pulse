@@ -366,9 +366,12 @@ test('ActivityPub Security Penetration & Vulnerability Verification Suite', asyn
       id: `https://${charlieDomain}/activities/create_${timestamp}`,
       type: 'Create',
       actor: charlieActorUri,
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
       object: {
         id: charliePostId,
         type: 'Note',
+        attributedTo: charlieActorUri,
+        to: ['https://www.w3.org/ns/activitystreams#Public'],
         content: 'Charlie authored note',
       },
     });
@@ -433,9 +436,12 @@ test('ActivityPub Security Penetration & Vulnerability Verification Suite', asyn
       id: `https://${eveDomain}/activities/spoof_${timestamp}`,
       type: 'Create',
       actor: eveActorUri,
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
       object: {
         id: 'https://trusted-bank.fediverse/posts/wire-transfer-1000', // Spoofed foreign ID!
         type: 'Note',
+        attributedTo: eveActorUri,
+        to: ['https://www.w3.org/ns/activitystreams#Public'],
         content: 'Fraudulent activity hijacking foreign URI',
       },
     });
@@ -466,9 +472,12 @@ test('ActivityPub Security Penetration & Vulnerability Verification Suite', asyn
       id: `https://${charlieDomain}/activities/xss_${timestamp}`,
       type: 'Create',
       actor: charlieActorUri,
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
       object: {
         id: xssNoteId,
         type: 'Note',
+        attributedTo: charlieActorUri,
+        to: ['https://www.w3.org/ns/activitystreams#Public'],
         content: '<p>Hello <script>alert("xss")</script><img src="x" onerror="stealCookies()">Clean text</p>',
       },
     });
@@ -504,9 +513,12 @@ test('ActivityPub Security Penetration & Vulnerability Verification Suite', asyn
       id: `https://${charlieDomain}/activities/large_${timestamp}`,
       type: 'Create',
       actor: charlieActorUri,
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
       object: {
         id: largeNoteId,
         type: 'Note',
+        attributedTo: charlieActorUri,
+        to: ['https://www.w3.org/ns/activitystreams#Public'],
         content: hugeContent,
       },
     });

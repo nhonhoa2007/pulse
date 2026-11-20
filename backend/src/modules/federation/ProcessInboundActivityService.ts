@@ -206,6 +206,14 @@ export class ProcessInboundActivityService {
       };
     }
 
+    if (localUser.isPrivate) {
+      return {
+        handled: false,
+        type: 'Follow',
+        message: 'Private accounts do not accept federation follows',
+      };
+    }
+
     // Upsert FederatedFollow (direction: INBOUND, status: ACCEPTED)
     const existingFollow = await prisma.federatedFollow.findFirst({
       where: {
@@ -650,6 +658,39 @@ export class ProcessInboundActivityService {
         handled: false,
         type: 'Create',
         message: 'Create activity object must have a valid string URI as id',
+      };
+    }
+
+    const publicAudience = 'https://www.w3.org/ns/activitystreams#Public';
+    const objectAudiences = [
+      ...(Array.isArray(object.to) ? object.to : []),
+      ...(Array.isArray(object.cc) ? object.cc : []),
+    ];
+    const activityRecipients = [
+      ...(Array.isArray(activity.to) ? activity.to : []),
+      ...(Array.isArray(activity.cc) ? activity.cc : []),
+    ];
+    const noteAudience = object.audience;
+    const activityAudience = (activity as any).audience;
+    const hasPublicAudience = (audience: unknown) =>
+      audience === publicAudience || (Array.isArray(audience) && audience.includes(publicAudience));
+    if (
+      !objectAudiences.includes(publicAudience) ||
+      (noteAudience !== undefined && !hasPublicAudience(noteAudience)) ||
+      (activityRecipients.length > 0 && !activityRecipients.includes(publicAudience)) ||
+      (activityAudience !== undefined && !hasPublicAudience(activityAudience))
+    ) {
+      return {
+        handled: false,
+        type: 'Create',
+        message: 'Non-public ActivityPub notes are not imported',
+      };
+    }
+    if (object.attributedTo !== activity.actor) {
+      return {
+        handled: false,
+        type: 'Create',
+        message: 'Activity actor does not match the note author',
       };
     }
 

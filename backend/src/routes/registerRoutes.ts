@@ -75,10 +75,12 @@ export async function registerV1Routes(v1: FastifyInstance): Promise<void> {
 
   // Media Upload Endpoint
   v1.post('/media/upload', { config: { rateLimit: UPLOAD_RATE_LIMIT } }, mediaUploadController.upload.bind(mediaUploadController));
+  v1.get('/uploads/:filename', mediaUploadController.serve.bind(mediaUploadController));
 
   // Feed & Timeline Endpoints
   v1.get('/feed/home', feedController.getHomeFeed.bind(feedController));
   v1.get('/feed/for-you', feedController.getForYouFeed.bind(feedController));
+  v1.get('/feed/explore', feedController.getExploreFeed.bind(feedController));
   v1.get('/feed/user/:username', feedController.getUserFeed.bind(feedController));
 
   // Post Views & Impressions Buffer Endpoints

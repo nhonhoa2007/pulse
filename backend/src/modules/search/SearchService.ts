@@ -1,4 +1,5 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
+import { visibleQuoteIds } from '../posts/PostVisibility.js';
 import {
   PostDto,
   UserDto,
@@ -281,14 +282,9 @@ export class SearchService {
       const likedSet = new Set(likes.map((l) => l.postId));
       const repostedSet = new Set(reposts.map((r) => r.postId));
       const bookmarkedSet = new Set(bookmarks.map((b) => b.postId));
+      const visibleQuotes = await visibleQuoteIds(validPosts, currentUserId);
 
       postDtos = validPosts.map((p) => {
-        const quoteAuthorIsPrivate = Boolean((p.quoteOf?.author as any)?.isPrivate);
-        const canViewQuote =
-          !quoteAuthorIsPrivate ||
-          p.quoteOf?.authorId === currentUserId ||
-          Boolean(currentUserId && p.quoteOf?.authorId && allowedAuthorIds.includes(p.quoteOf.authorId));
-
         return {
           id: p.id,
           authorId: p.authorId,
@@ -318,7 +314,7 @@ export class SearchService {
           createdAt: p.createdAt.toISOString(),
           author: p.author,
           replyTo: p.replyTo,
-          quoteOf: p.quoteOf && canViewQuote
+          quoteOf: p.quoteOf && visibleQuotes.has(p.quoteOf.id)
             ? {
               id: p.quoteOf.id,
               authorId: p.quoteOf.authorId,
@@ -458,7 +454,11 @@ export class SearchService {
       where: {
         createdAt: { gte: fortyEightHoursAgo },
         isDeleted: false,
-        author: { isPrivate: false },
+        author: {
+          isPrivate: false,
+          isDeleted: false,
+          accountStatus: 'ACTIVE',
+        },
       },
       select: {
         hashtags: true,
@@ -503,7 +503,9 @@ export class SearchService {
       }
     }
 
-    // 2. Sync/upsert discovered recent tags into Hashtag table in Prisma
+    // Keep the registry in sync for autocomplete/internal analytics. Public
+    // trending must never be derived from this all-time table because it also
+    // contains hashtags created while an account is private.
     for (const [tag, stats] of tagStatsMap.entries()) {
       await prisma.hashtag.upsert({
         where: { tag },
@@ -515,18 +517,11 @@ export class SearchService {
       });
     }
 
-    // 3. Read existing hashtags from Prisma Hashtag table
-    const dbHashtags = await prisma.hashtag.findMany({
-      orderBy: { postsCount: 'desc' },
-      take: 50,
-    });
-
-    // 4. Combine recent post stats with Hashtag table data
-    const combinedTrendingMap = new Map<string, TrendingItemDto & { latestCreatedAt?: number }>();
-
-    // Add recent tags first with their computed scores
+    // Build the public response exclusively from currently eligible posts.
+    // This makes privacy changes and soft deletion take effect immediately.
+    const trendingList: Array<TrendingItemDto & { latestCreatedAt: number }> = [];
     for (const [tag, stats] of tagStatsMap.entries()) {
-      combinedTrendingMap.set(tag, {
+      trendingList.push({
         tag,
         postsCount: stats.count,
         score: Number(stats.score.toFixed(2)),
@@ -534,24 +529,8 @@ export class SearchService {
       });
     }
 
-    // Add remaining db hashtags if not already present
-    for (const h of dbHashtags) {
-      const existing = combinedTrendingMap.get(h.tag);
-      if (existing) {
-        // Maintain the higher postsCount if DB tracks all-time counts
-        existing.postsCount = Math.max(existing.postsCount, h.postsCount);
-      } else {
-        combinedTrendingMap.set(h.tag, {
-          tag: h.tag,
-          postsCount: h.postsCount,
-          score: 0.01,
-          latestCreatedAt: 0,
-        });
-      }
-    }
-
-    // 5. Sort descending by score, then postsCount, then latestCreatedAt
-    const trendingList = Array.from(combinedTrendingMap.values()).sort((a, b) => {
+    // Sort descending by score, then postsCount, then latestCreatedAt.
+    trendingList.sort((a, b) => {
       const scoreA = a.score ?? 0;
       const scoreB = b.score ?? 0;
       if (Math.abs(scoreB - scoreA) > 0.001) {
@@ -560,7 +539,7 @@ export class SearchService {
       if (b.postsCount !== a.postsCount) {
         return b.postsCount - a.postsCount;
       }
-      return (b.latestCreatedAt || 0) - (a.latestCreatedAt || 0);
+      return b.latestCreatedAt - a.latestCreatedAt;
     });
 
     return {

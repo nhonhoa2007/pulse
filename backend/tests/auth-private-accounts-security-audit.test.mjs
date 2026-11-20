@@ -576,6 +576,51 @@ test('SECURITY AUDIT & PENETRATION VERIFICATION SUITE: Auth Hardening & Private 
     assert.equal(isSecretLeaked, false, 'Private account hashtags must NEVER leak to public Trending');
   });
 
+  await t.test('AUDIT 4.6b: Trending immediately reflects privacy changes and soft deletion', async () => {
+    const transitionTag = `privacy_transition_${timestamp}`;
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/posts',
+      headers: { authorization: `Bearer ${pubBobToken}` },
+      payload: { content: `Public then private #${transitionTag}` },
+    });
+    assert.equal(createRes.statusCode, 201);
+    const transitionPost = createRes.json().data;
+
+    const fetchTrending = async () => {
+      const response = await app.inject({ method: 'GET', url: '/api/v1/trending?limit=50' });
+      assert.equal(response.statusCode, 200);
+      return response.json().data.trending;
+    };
+
+    assert.equal(
+      (await fetchTrending()).some((item) => item.tag === transitionTag),
+      true,
+      'A public post hashtag should be eligible for Trending'
+    );
+
+    await prisma.user.update({ where: { id: pubBob.id }, data: { isPrivate: true } });
+    assert.equal(
+      (await fetchTrending()).some((item) => item.tag === transitionTag),
+      false,
+      'A hashtag must disappear when its author makes the account private'
+    );
+
+    await prisma.user.update({ where: { id: pubBob.id }, data: { isPrivate: false } });
+    assert.equal(
+      (await fetchTrending()).some((item) => item.tag === transitionTag),
+      true,
+      'A hashtag may become eligible again when its author is public'
+    );
+
+    await prisma.post.update({ where: { id: transitionPost.id }, data: { isDeleted: true } });
+    assert.equal(
+      (await fetchTrending()).some((item) => item.tag === transitionTag),
+      false,
+      'A soft-deleted post hashtag must disappear from Trending'
+    );
+  });
+
   await t.test('AUDIT 4.7: Algorithmic For-You Feed strictly excludes private posts for non-followers', async () => {
     const feedRes = await app.inject({
       method: 'GET',

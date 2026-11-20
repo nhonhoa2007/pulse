@@ -1,6 +1,7 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { ConversationThreadResponse, PostDto, ReplyPrivacy } from '../../contracts/ApiContracts.js';
 import { validateReplyPermissionService } from './ValidateReplyPermissionService.js';
+import { visiblePostWhere, visibleQuoteIds } from './PostVisibility.js';
 
 export class ConversationThreadService {
   /**
@@ -9,8 +10,8 @@ export class ConversationThreadService {
    * checks block relations, and resolves engagement states.
    */
   public async getThread(postId: string, currentUserId?: string | null): Promise<ConversationThreadResponse | null> {
-    const targetPost = await prisma.post.findUnique({
-      where: { id: postId },
+    const targetPost = await prisma.post.findFirst({
+      where: { id: postId, ...visiblePostWhere(currentUserId) },
       select: { id: true, rootPostId: true, authorId: true, isDeleted: true },
     });
 
@@ -37,7 +38,7 @@ export class ConversationThreadService {
     const posts = await prisma.post.findMany({
       where: {
         OR: [{ id: rootId }, { rootPostId: rootId }],
-        isDeleted: false,
+        ...visiblePostWhere(currentUserId),
       },
       orderBy: { createdAt: 'asc' },
       include: {
@@ -137,16 +138,11 @@ export class ConversationThreadService {
 
     const likedSet = new Set(likes.map((l) => l.postId));
     const repostedSet = new Set(reposts.map((r) => r.postId));
+    const visibleQuotes = await visibleQuoteIds(filteredPosts, currentUserId);
 
     const postDtos: PostDto[] = await Promise.all(
       filteredPosts.map(async (p) => {
         const canReply = await validateReplyPermissionService.checkCanReply(currentUserId, p);
-        const quoteAuthorIsPrivate = Boolean((p.quoteOf?.author as any)?.isPrivate);
-        const canViewQuote =
-          !quoteAuthorIsPrivate ||
-          p.quoteOf?.authorId === currentUserId ||
-          Boolean(currentUserId && p.quoteOf?.authorId && followedPrivateAuthorIds.has(p.quoteOf.authorId));
-
         return {
           id: p.id,
           authorId: p.authorId,
@@ -177,7 +173,7 @@ export class ConversationThreadService {
           createdAt: p.createdAt.toISOString(),
           author: p.author,
           replyTo: p.replyTo,
-          quoteOf: p.quoteOf && canViewQuote
+          quoteOf: p.quoteOf && visibleQuotes.has(p.quoteOf.id)
             ? {
                 id: p.quoteOf.id,
                 authorId: p.quoteOf.authorId,

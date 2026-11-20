@@ -3,6 +3,7 @@ import { prisma } from '../../db/PrismaClientSingleton.js';
 import { FeedResponse, PostDto } from '../../contracts/ApiContracts.js';
 import { postMatchesKeywords } from '../mutes/KeywordFilterUtil.js';
 import { postImpressionsBufferService } from '../posts/PostImpressionsBufferService.js';
+import { visiblePostWhere, visibleQuoteIds } from '../posts/PostVisibility.js';
 
 interface FeedQueryParams {
   userId: string;
@@ -63,6 +64,7 @@ export class HybridFeedTimelineService {
     const inboxes = await prisma.timelineInbox.findMany({
       where: {
         userId,
+        post: visiblePostWhere(userId),
         ...(cursorDate ? { createdAt: { lt: cursorDate } } : {}),
       },
       orderBy: { createdAt: 'desc' },
@@ -213,6 +215,7 @@ export class HybridFeedTimelineService {
     const likedSet = new Set(likes.map((l) => l.postId));
     const repostedSet = new Set(reposts.map((r) => r.postId));
 
+    const quotes = await visibleQuoteIds(mergedPosts, userId);
     const posts: PostDto[] = mergedPosts.map((p) => ({
       id: p.id,
       authorId: p.authorId,
@@ -243,7 +246,7 @@ export class HybridFeedTimelineService {
       createdAt: p.createdAt.toISOString(),
       author: p.author,
       replyTo: p.replyTo,
-      quoteOf: p.quoteOf
+      quoteOf: p.quoteOf && quotes.has(p.quoteOf.id)
         ? {
             id: p.quoteOf.id,
             authorId: p.quoteOf.authorId,

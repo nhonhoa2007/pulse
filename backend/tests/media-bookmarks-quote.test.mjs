@@ -68,10 +68,11 @@ test('Integration Suite: Media Upload Pipeline, Bookmarks System, and Quote Post
     const savedPath = path.join(uploadsDir, filename);
     assert.ok(fs.existsSync(savedPath), `File should exist at ${savedPath}`);
 
-    // Verify static server serves the file at GET /uploads/<uuid>.<ext>
+    // Verify the protected media route serves the file to its authenticated owner.
     const staticRes = await app.inject({
       method: 'GET',
       url: body.data.relativeUrl,
+      headers: authHeaders(user1.id),
     });
     assert.equal(staticRes.statusCode, 200);
     assert.equal(staticRes.headers['content-type'], 'image/gif');

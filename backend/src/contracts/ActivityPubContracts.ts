@@ -104,6 +104,7 @@ export interface ActivityPubNote {
   published: string;
   to: string[];
   cc?: string[];
+  audience?: string | string[];
   inReplyTo?: string | null;
   url?: string;
   tag?: ActivityPubTag[];

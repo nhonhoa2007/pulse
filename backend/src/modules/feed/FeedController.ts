@@ -72,6 +72,18 @@ export class FeedController {
     };
   }
 
+  /**
+   * Discovery currently uses the recommendation candidate pool, which already
+   * enforces blocks, mutes and private-account visibility. It has a dedicated
+   * route so the client can evolve discovery independently without fallbacks.
+   */
+  public async getExploreFeed(
+    req: FastifyRequest<{ Querystring: FeedQueryParams }>,
+    reply: FastifyReply
+  ): Promise<ApiResponse<FeedResponse>> {
+    return this.getForYouFeed(req, reply);
+  }
+
   public async getUserFeed(
     req: FastifyRequest<{ Params: UserFeedParams; Querystring: FeedQueryParams }>,
     reply: FastifyReply

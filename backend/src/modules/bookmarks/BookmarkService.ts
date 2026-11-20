@@ -1,5 +1,6 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { PostDto, ToggleBookmarkResult } from '../../contracts/ApiContracts.js';
+import { visiblePostWhere, visibleQuoteIds } from '../posts/PostVisibility.js';
 
 export class BookmarkService {
   /**
@@ -13,26 +14,11 @@ export class BookmarkService {
       throw new Error('User not found');
     }
 
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-      select: { id: true, authorId: true, isDeleted: true },
+    const post = await prisma.post.findFirst({
+      where: { id: postId, ...visiblePostWhere(userId) },
+      select: { id: true },
     });
-
-    if (!post || post.isDeleted) {
-      throw new Error('Post not found or unavailable');
-    }
-
-    // Check block relationship
-    const block = await prisma.block.findFirst({
-      where: {
-        OR: [
-          { blockerId: userId, blockedId: post.authorId },
-          { blockerId: post.authorId, blockedId: userId },
-        ],
-      },
-    });
-
-    if (block) {
+    if (!post) {
       throw new Error('Post not found or unavailable');
     }
 
@@ -64,23 +50,10 @@ export class BookmarkService {
       throw new Error('User not found');
     }
 
-    // Check block constraints
-    const blocks = await prisma.block.findMany({
-      where: {
-        OR: [{ blockerId: userId }, { blockedId: userId }],
-      },
-    });
-    const blockedUserIds = new Set<string>();
-    for (const b of blocks) {
-      blockedUserIds.add(b.blockerId === userId ? b.blockedId : b.blockerId);
-    }
-
     const bookmarks = await prisma.bookmark.findMany({
       where: {
         userId,
-        post: {
-          isDeleted: false,
-        },
+        post: visiblePostWhere(userId),
       },
       orderBy: {
         createdAt: 'desc',
@@ -106,13 +79,10 @@ export class BookmarkService {
       },
     });
 
-    // Filter out posts authored by blocked users
-    const validBookmarks = bookmarks.filter((b) => !blockedUserIds.has(b.post.authorId));
-
-    const postIds = validBookmarks.map((b) => b.postId);
+    const postIds = bookmarks.map((b) => b.postId);
 
     // Batch resolve like and repost engagements
-    const [likes, reposts] = await Promise.all([
+    const [likes, reposts, quotes] = await Promise.all([
       prisma.like.findMany({
         where: { userId, postId: { in: postIds } },
         select: { postId: true },
@@ -121,12 +91,13 @@ export class BookmarkService {
         where: { userId, postId: { in: postIds } },
         select: { postId: true },
       }),
+      visibleQuoteIds(bookmarks.map((b) => b.post), userId),
     ]);
 
     const likedSet = new Set(likes.map((l) => l.postId));
     const repostedSet = new Set(reposts.map((r) => r.postId));
 
-    return validBookmarks.map((b) => {
+    return bookmarks.map((b) => {
       const p = b.post;
       return {
         id: p.id,
@@ -151,7 +122,7 @@ export class BookmarkService {
         createdAt: p.createdAt.toISOString(),
         author: p.author,
         replyTo: p.replyTo,
-        quoteOf: p.quoteOf
+        quoteOf: p.quoteOf && quotes.has(p.quoteOf.id)
           ? {
               id: p.quoteOf.id,
               authorId: p.quoteOf.authorId,

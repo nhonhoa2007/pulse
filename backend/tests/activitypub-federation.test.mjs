@@ -20,6 +20,10 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
   const app = await buildApp();
   await app.ready();
 
+  // This suite drives delivery sweeps explicitly. Disable the application
+  // interval so batch assertions cannot race a background worker.
+  activityDeliveryWorkerService.stop();
+
   const timestamp = Date.now();
   const testDomain = 'localhost:3001';
 
@@ -1094,12 +1098,14 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
       id: `https://${remoteDomain}/activities/create_note_${timestamp}`,
       type: 'Create',
       actor: remoteActorUri,
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
       published: new Date().toISOString(),
       object: {
         '@context': 'https://www.w3.org/ns/activitystreams',
         id: noteId,
         type: 'Note',
         attributedTo: remoteActorUri,
+        to: ['https://www.w3.org/ns/activitystreams#Public'],
         content: 'Selective distribution test from Mastodon!',
         published: new Date().toISOString(),
       },
@@ -1152,12 +1158,14 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
       id: `https://${remoteDomain}/activities/create_note_duplicate_${timestamp}`,
       type: 'Create',
       actor: remoteActorUri,
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
       published: new Date().toISOString(),
       object: {
         '@context': 'https://www.w3.org/ns/activitystreams',
         id: noteId,
         type: 'Note',
         attributedTo: remoteActorUri,
+        to: ['https://www.w3.org/ns/activitystreams#Public'],
         content: 'Selective distribution test from Mastodon!',
       },
     });
@@ -1197,11 +1205,13 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
       id: `https://${remoteDomain}/activities/reply_act_${timestamp}`,
       type: 'Create',
       actor: remoteActorUri,
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
       object: {
         '@context': 'https://www.w3.org/ns/activitystreams',
         id: replyNoteId,
         type: 'Note',
         attributedTo: remoteActorUri,
+        to: ['https://www.w3.org/ns/activitystreams#Public'],
         inReplyTo: `http://${testDomain}/posts/${localPost.id}`,
         content: 'Great insight Alice! Fediverse reply here.',
         published: new Date().toISOString(),
@@ -1688,6 +1698,10 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
     process.env.NODE_ENV = 'production';
 
     try {
+      // Isolate the assertion from retry jobs created by earlier outbox cases.
+      // Otherwise an old ready job can occupy the worker's fixed-size batch.
+      await prisma.activityDeliveryJob.deleteMany({ where: { status: 'PENDING' } });
+
       const jobId = await activityDeliveryWorkerService.queueDelivery({
         activityId: `http://${testDomain}/activities/test_ssrf_outbox_${timestamp}`,
         activityType: 'Create',

@@ -1,11 +1,12 @@
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { PostVersionsResponse } from '../../contracts/ApiContracts.js';
 import { PostNotFoundError } from './UpdatePostService.js';
+import { visiblePostWhere } from './PostVisibility.js';
 
 export class FetchPostVersionsService {
   public async getVersions(postId: string, currentUserId?: string | null): Promise<PostVersionsResponse> {
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
+    const post = await prisma.post.findFirst({
+      where: { id: postId, ...visiblePostWhere(currentUserId) },
       select: {
         id: true,
         authorId: true,
@@ -21,23 +22,8 @@ export class FetchPostVersionsService {
       },
     });
 
-    if (!post || post.isDeleted) {
+    if (!post) {
       throw new PostNotFoundError('Post not found or unavailable');
-    }
-
-    if (currentUserId) {
-      const block = await prisma.block.findFirst({
-        where: {
-          OR: [
-            { blockerId: currentUserId, blockedId: post.authorId },
-            { blockerId: post.authorId, blockedId: currentUserId },
-          ],
-        },
-      });
-
-      if (block) {
-        throw new PostNotFoundError('Post not found or unavailable');
-      }
     }
 
     const versions = await prisma.postVersion.findMany({

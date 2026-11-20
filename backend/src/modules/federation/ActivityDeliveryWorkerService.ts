@@ -59,6 +59,10 @@ export class ActivityDeliveryWorkerService {
         payloadJson,
         status: 'PENDING',
         maxAttempts: options.maxAttempts ?? 5,
+        // Initial jobs are ready immediately. Persist the same application
+        // clock used by processBatchNow so a small DB/Node clock skew cannot
+        // make a freshly queued job temporarily invisible to the worker.
+        nextRunAt: new Date(),
       },
     });
 
@@ -150,11 +154,52 @@ export class ActivityDeliveryWorkerService {
         const username = pathParts[1] || pathParts[0];
 
         const user = await prisma.user.findFirst({
-          where: { username: { equals: username, mode: 'insensitive' } },
+          where: {
+            username: { equals: username, mode: 'insensitive' },
+          },
         });
 
         if (!user) {
           throw new Error(`Author user for actorUri '${job.actorUri}' not found`);
+        }
+        if (user.isPrivate || user.isDeleted || user.accountStatus !== 'ACTIVE') {
+          await prisma.activityDeliveryJob.update({
+            where: { id: job.id },
+            data: { status: 'FAILED', lastError: 'Author is no longer eligible for federation delivery' },
+          });
+          return false;
+        }
+
+        if (job.activityType === 'Create' || job.activityType === 'Update') {
+          const activity = JSON.parse(job.payloadJson);
+          const note = activity.object;
+          const publicUri = 'https://www.w3.org/ns/activitystreams#Public';
+          const recipients = [
+            ...(Array.isArray(note?.to) ? note.to : []),
+            ...(Array.isArray(note?.cc) ? note.cc : []),
+          ];
+          const follow = await prisma.federatedFollow.findFirst({
+            where: {
+              localUserId: user.id,
+              direction: 'INBOUND',
+              status: 'ACCEPTED',
+              remoteActor: {
+                OR: [{ sharedInboxUrl: job.targetInboxUrl }, { inboxUrl: job.targetInboxUrl }],
+              },
+            },
+          });
+          const postId = typeof note?.id === 'string' ? note.id.split('/').at(-1) : undefined;
+          const post = postId ? await prisma.post.findFirst({
+            where: { id: postId, authorId: user.id, isDeleted: false },
+            select: { id: true },
+          }) : null;
+          if (!follow || !post || !recipients.includes(publicUri)) {
+            await prisma.activityDeliveryJob.update({
+              where: { id: job.id },
+              data: { status: 'FAILED', lastError: 'Post visibility or federation-follow permission changed' },
+            });
+            return false;
+          }
         }
 
         const userKey = await activityPubKeyManagerService.getOrCreateUserKey(

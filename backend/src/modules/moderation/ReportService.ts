@@ -6,6 +6,7 @@
  *   DISMISS | DELETE_POST | SUSPEND_USER | WARN_USER
  */
 import { prisma } from '../../db/PrismaClientSingleton.js';
+import { realtimeStreamController } from '../notifications/RealtimeEventStreamController.js';
 import type {
   ReportReason,
   ReportStatus,
@@ -246,15 +247,17 @@ export class ReportService {
       if (!targetAuthorId) {
         throw new ReportValidationError('Không xác định được người dùng mục tiêu', 'TARGET_NOT_FOUND');
       }
-      await prisma.user.update({
-        where: { id: targetAuthorId },
-        data: { accountStatus: 'SUSPENDED' },
+      await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { id: targetAuthorId },
+          data: { accountStatus: 'SUSPENDED' },
+        });
+        await tx.refreshToken.updateMany({
+          where: { userId: targetAuthorId, isRevoked: false },
+          data: { isRevoked: true },
+        });
       });
-      // Thu hồi mọi phiên đăng nhập của tài khoản bị đình chỉ
-      await prisma.refreshToken.updateMany({
-        where: { userId: targetAuthorId, isRevoked: false },
-        data: { isRevoked: true },
-      });
+      realtimeStreamController.disconnectUser(targetAuthorId);
       actionTaken = 'SUSPEND_USER: account suspended';
     }
 

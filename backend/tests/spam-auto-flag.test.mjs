@@ -46,6 +46,7 @@ test('PKG-15: auto-flag spam — normal content không flag, spam pattern đư�
     data: { authorId: author.id, content: spamContent, createdAt: new Date(Date.now() - 2 * 60 * 1000) },
   });
   // Đăng đủ 5 bài trong 1 phút (rate +25)
+  const spamPostIds = [];
   for (let i = 0; i < 4; i++) {
     const r = await app.inject({
       method: 'POST',
@@ -54,10 +55,13 @@ test('PKG-15: auto-flag spam — normal content không flag, spam pattern đư�
       payload: { content: spamContent },
     });
     assert.equal(r.statusCode, 201, `post ${i}: ${r.body}`);
+    spamPostIds.push(r.json().data.id);
   }
 
   const flags = await prisma.report.findMany({
-    where: { reporterId: null, reason: 'SPAM' },
+    // Isolate this scenario from reports left by other suites. Ordering only by
+    // autoScore is intentionally not a global identity guarantee when scores tie.
+    where: { reporterId: null, reason: 'SPAM', targetId: { in: spamPostIds } },
     orderBy: { autoScore: 'desc' },
   });
   assert.ok(flags.length >= 1, 'phải có ít nhất 1 auto-flag');

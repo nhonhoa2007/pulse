@@ -354,6 +354,7 @@ export class WebPushService {
     try {
       const response = await fetch(subscription.endpoint, {
         method: 'POST',
+        redirect: 'error',
         headers,
         body: bodyData,
       });

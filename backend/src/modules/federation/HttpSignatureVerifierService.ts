@@ -93,16 +93,20 @@ export class HttpSignatureVerifierService {
    */
   public async resolvePublicKey(keyId: string): Promise<{ publicKeyPem: string; actorUri: string } | null> {
     const actorUri = keyId.split('#')[0];
+    const keyUrl = new URL(keyId);
+    if (!['http:', 'https:'].includes(keyUrl.protocol) || !keyUrl.hash || !actorUri) {
+      throw new Error('Invalid remote key identifier');
+    }
 
     // 1. Check local DB cache
     const cachedActor = await prisma.federatedActor.findFirst({
       where: {
-        OR: [{ publicKeyId: keyId }, { uri: actorUri }],
+      publicKeyId: keyId,
       },
     });
 
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    if (cachedActor && cachedActor.publicKeyPem && cachedActor.lastFetchedAt > oneDayAgo) {
+    if (cachedActor && cachedActor.uri === actorUri && cachedActor.publicKeyPem && cachedActor.lastFetchedAt > oneDayAgo) {
       return {
         publicKeyPem: cachedActor.publicKeyPem,
         actorUri: cachedActor.uri,
@@ -155,7 +159,12 @@ export class HttpSignatureVerifierService {
 
       if (body.publicKey && typeof body.publicKey === 'object') {
         publicKeyPem = body.publicKey.publicKeyPem;
-        resolvedActorUri = body.id || actorUri;
+        resolvedActorUri = body.id;
+        if (
+          resolvedActorUri !== actorUri ||
+          body.publicKey.id !== keyId ||
+          body.publicKey.owner !== actorUri
+        ) throw new Error('Remote public key does not belong to the requested actor');
         inboxUrl = body.inbox || '';
         sharedInboxUrl = body.endpoints?.sharedInbox || body.sharedInbox || null;
         const rawUsername = body.preferredUsername || username;
@@ -165,7 +174,10 @@ export class HttpSignatureVerifierService {
         avatarUrl = body.icon?.url || null;
       } else if (body.publicKeyPem) {
         publicKeyPem = body.publicKeyPem;
-        resolvedActorUri = body.owner || actorUri;
+        resolvedActorUri = body.owner;
+        if (resolvedActorUri !== actorUri || keyId !== `${actorUri}#main-key`) {
+          throw new Error('Remote public key owner does not match the requested actor');
+        }
       }
 
       if (!publicKeyPem) {

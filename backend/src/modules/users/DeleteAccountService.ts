@@ -14,6 +14,7 @@
  */
 import { prisma } from '../../db/PrismaClientSingleton.js';
 import { toUserDto } from '../auth/AuthService.js';
+import { realtimeStreamController } from '../notifications/RealtimeEventStreamController.js';
 
 export class UserNotFoundError extends Error {
   constructor(message: string = 'Không tìm thấy người dùng') {
@@ -92,6 +93,7 @@ export class DeleteAccountService {
         },
       });
     });
+    realtimeStreamController.disconnectUser(userId);
 
     return { username: user.username };
   }
