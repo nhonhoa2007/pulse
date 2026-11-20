@@ -14,6 +14,7 @@ import {
   RefreshTokenResponseDto,
   LogoutResponseDto,
 } from '../../contracts/ApiContracts.js';
+import { realtimeStreamController } from '../notifications/RealtimeEventStreamController.js';
 
 export class AuthController {
   private setRefreshTokenCookie(reply: FastifyReply, refreshToken: string): void {
@@ -35,7 +36,8 @@ export class AuthController {
         rawToken = unsigned.value;
       }
     }
-    return rawToken || (req.body as any)?.refreshToken;
+    const bodyToken = (req.body as { refreshToken?: unknown } | undefined)?.refreshToken;
+    return rawToken || (typeof bodyToken === 'string' ? bodyToken : undefined);
   }
 
   public async register(
@@ -197,8 +199,11 @@ export class AuthController {
     try {
       await authService.logout(refreshToken, accessToken, currentUserId);
     } catch (err) {
-      console.error('Logout revocation error:', err);
+      req.log.error({ err }, 'Logout revocation failed');
+      reply.status(503);
+      return { success: false, error: { code: 'LOGOUT_FAILED', message: 'Chưa thể thu hồi phiên đăng nhập' } };
     }
+    if (currentUserId) realtimeStreamController.disconnectUser(currentUserId);
 
     const isSecure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
     reply.clearCookie('pulse_refresh_token', {

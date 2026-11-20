@@ -1,9 +1,10 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../../db/PrismaClientSingleton.js';
+import { getJwtSecret } from '../../config/Secrets.js';
 
 export class TokenRevocationManager {
-  private revokedSet: Set<string> = new Set();
+  private revokedSet = new Map<string, number>();
   private isInitialized = false;
 
   /**
@@ -17,13 +18,11 @@ export class TokenRevocationManager {
         where: {
           expiresAt: { gt: now },
         },
-        select: {
-          tokenSignature: true,
-        },
+        select: { tokenSignature: true, expiresAt: true },
       });
 
       for (const record of activeRecords) {
-        this.revokedSet.add(record.tokenSignature);
+        this.revokedSet.set(record.tokenSignature, record.expiresAt.getTime());
       }
       this.isInitialized = true;
     } catch (err) {
@@ -58,28 +57,20 @@ export class TokenRevocationManager {
     if (!token) return;
 
     const signature = this.extractSignature(token);
-    const sha256 = this.hashToken(token);
-
     // Fast in-memory registration
-    this.revokedSet.add(signature);
-    this.revokedSet.add(sha256);
-    this.revokedSet.add(token);
-
-    // Determine token expiration from JWT exp claim
-    let expiresAt = new Date(Date.now() + 15 * 60 * 1000); // Default fallback: 15 minutes
+    let expiresAt: Date;
     try {
-      const decoded = jwt.decode(token) as { exp?: number; userId?: string } | null;
-      if (decoded && typeof decoded.exp === 'number') {
-        expiresAt = new Date(decoded.exp * 1000);
-      }
-      if (!userId && decoded && decoded.userId) {
-        userId = decoded.userId;
-      }
+      const decoded = jwt.verify(token, getJwtSecret()) as { exp?: number; userId?: string };
+      if (typeof decoded.exp !== 'number') return;
+      expiresAt = new Date(decoded.exp * 1000);
+      userId = userId || decoded.userId;
     } catch {
-      // Keep default 15m expiration
+      return;
     }
+    if (expiresAt <= new Date()) return;
 
     try {
+      this.pruneMemory();
       await prisma.revokedToken.upsert({
         where: { tokenSignature: signature },
         update: {
@@ -94,8 +85,9 @@ export class TokenRevocationManager {
           userId: userId || undefined,
         },
       });
+      this.revokedSet.set(signature, expiresAt.getTime());
     } catch (err) {
-      console.error('Failed to persist revoked token to PostgreSQL:', err);
+      throw err;
     }
   }
 
@@ -104,10 +96,16 @@ export class TokenRevocationManager {
    */
   public isRevoked(token: string): boolean {
     if (!token) return false;
+    this.pruneMemory();
     const signature = this.extractSignature(token);
-    const sha256 = this.hashToken(token);
+    return this.revokedSet.has(signature);
+  }
 
-    return this.revokedSet.has(signature) || this.revokedSet.has(sha256) || this.revokedSet.has(token);
+  private pruneMemory(): void {
+    const now = Date.now();
+    for (const [signature, expiresAt] of this.revokedSet) {
+      if (expiresAt <= now) this.revokedSet.delete(signature);
+    }
   }
 
   /**

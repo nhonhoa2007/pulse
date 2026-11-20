@@ -83,6 +83,19 @@ export interface DualTokenAuthResult extends AuthResponseData {
 }
 
 export class AuthService {
+  private async revokeRefreshFamily(sessionFamilyId: string): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.$queryRawUnsafe(
+        'SELECT id FROM refresh_tokens WHERE session_family_id = $1 ORDER BY created_at ASC LIMIT 1 FOR UPDATE',
+        sessionFamilyId
+      );
+      await tx.refreshToken.updateMany({
+        where: { sessionFamilyId, isRevoked: false },
+        data: { isRevoked: true },
+      });
+    });
+  }
+
   private get jwtSecret(): string {
     return getJwtSecret();
   }
@@ -108,7 +121,7 @@ export class AuthService {
   /**
    * Generates and stores long-lived cryptographically secure Refresh Token (7 days).
    */
-  public async createRefreshToken(userId: string): Promise<string> {
+  public async createRefreshToken(userId: string, sessionFamilyId = crypto.randomUUID()): Promise<string> {
     const rawRefreshToken = crypto.randomBytes(40).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -116,6 +129,7 @@ export class AuthService {
     await prisma.refreshToken.create({
       data: {
         userId,
+        sessionFamilyId,
         tokenHash,
         expiresAt,
         isRevoked: false,
@@ -233,34 +247,37 @@ export class AuthService {
       include: { user: true },
     });
 
-    if (!existing || existing.isRevoked || existing.expiresAt < new Date()) {
+    if (!existing || existing.isRevoked || existing.expiresAt <= new Date() ||
+        existing.user.isDeleted || existing.user.accountStatus !== 'ACTIVE') {
       if (existing && existing.isRevoked) {
-        await prisma.refreshToken.updateMany({
-          where: { userId: existing.userId },
-          data: { isRevoked: true },
-        });
+        await this.revokeRefreshFamily(existing.sessionFamilyId);
       }
       throw new AuthUnauthorizedError('Mã làm mới không hợp lệ hoặc đã hết hạn', 'INVALID_REFRESH_TOKEN');
     }
 
     // Atomic Token Rotation: Invalidate old token, mint fresh pair
     // Concurrency defense: Use atomic compare-and-swap (CAS) inside transaction to prevent microsecond replay race
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.$queryRawUnsafe(
+        'SELECT id FROM refresh_tokens WHERE session_family_id = $1 ORDER BY created_at ASC LIMIT 1 FOR UPDATE',
+        existing.sessionFamilyId
+      );
       const updated = await tx.refreshToken.updateMany({
         where: {
           id: existing.id,
           isRevoked: false,
+          expiresAt: { gt: new Date() },
+          user: { isDeleted: false, accountStatus: 'ACTIVE' },
         },
         data: { isRevoked: true },
       });
 
       if (updated.count === 0) {
-        // Concurrent replay race detected! Revoke all tokens in family
         await tx.refreshToken.updateMany({
-          where: { userId: existing.userId },
+          where: { sessionFamilyId: existing.sessionFamilyId, isRevoked: false },
           data: { isRevoked: true },
         });
-        throw new AuthUnauthorizedError('Mã làm mới không hợp lệ hoặc đã hết hạn', 'INVALID_REFRESH_TOKEN');
+        return null;
       }
 
       const newRawRefreshToken = crypto.randomBytes(40).toString('hex');
@@ -270,6 +287,7 @@ export class AuthService {
       await tx.refreshToken.create({
         data: {
           userId: existing.userId,
+          sessionFamilyId: existing.sessionFamilyId,
           tokenHash: newTokenHash,
           expiresAt,
           isRevoked: false,
@@ -284,6 +302,10 @@ export class AuthService {
         user: toUserDto(existing.user),
       };
     });
+    if (!result) {
+      throw new AuthUnauthorizedError('Mã làm mới không hợp lệ hoặc đã hết hạn', 'INVALID_REFRESH_TOKEN');
+    }
+    return result;
   }
 
   public async logout(
@@ -293,13 +315,26 @@ export class AuthService {
   ): Promise<void> {
     if (rawRefreshToken) {
       const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
-      await prisma.refreshToken.updateMany({
-        where: { tokenHash },
-        data: { isRevoked: true },
+      await prisma.$transaction(async (tx) => {
+        const rows = await tx.$queryRawUnsafe<{ sessionFamilyId: string }[]>(
+          'SELECT session_family_id AS "sessionFamilyId" FROM refresh_tokens WHERE token_hash = $1',
+          tokenHash
+        );
+        const familyId = rows[0]?.sessionFamilyId;
+        if (familyId) {
+          await tx.$queryRawUnsafe(
+            'SELECT id FROM refresh_tokens WHERE session_family_id = $1 ORDER BY created_at ASC LIMIT 1 FOR UPDATE',
+            familyId
+          );
+          await tx.refreshToken.updateMany({
+            where: { sessionFamilyId: familyId, isRevoked: false },
+            data: { isRevoked: true },
+          });
+        }
       });
     }
 
-    if (accessToken) {
+    if (accessToken && userId) {
       await tokenRevocationManager.revokeToken(accessToken, userId, 'USER_LOGOUT');
     }
   }

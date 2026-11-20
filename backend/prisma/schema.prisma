@@ -656,6 +656,7 @@ model FollowRequest {
 model RefreshToken {
   id           String    @id @default(uuid())
   userId       String    @map("user_id")
+  sessionFamilyId String @default(uuid()) @map("session_family_id")
   tokenHash    String    @unique @map("token_hash")
   expiresAt    DateTime  @map("expires_at")
   isRevoked    Boolean   @default(false) @map("is_revoked")
@@ -665,6 +666,7 @@ model RefreshToken {
   user         User      @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRevoked])
+  @@index([sessionFamilyId, isRevoked])
   @@index([expiresAt])
   @@map("refresh_tokens")
 }
