@@ -15,6 +15,12 @@ export default {
         ash: 'rgb(var(--c-ash) / <alpha-value>)',
         graphite: 'rgb(var(--c-graphite) / <alpha-value>)',
         meta: 'rgb(var(--c-meta) / <alpha-value>)',
+        danger: 'rgb(var(--c-danger) / <alpha-value>)',
+        'danger-surface': 'rgb(var(--c-danger-surface) / <alpha-value>)',
+        'danger-border': 'rgb(var(--c-danger-border) / <alpha-value>)',
+        warning: 'rgb(var(--c-warning) / <alpha-value>)',
+        'warning-surface': 'rgb(var(--c-warning-surface) / <alpha-value>)',
+        'warning-border': 'rgb(var(--c-warning-border) / <alpha-value>)',
       },
       fontFamily: {
         sans: [
