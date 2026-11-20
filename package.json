@@ -7,6 +7,7 @@
     "dev:frontend": "cd frontend && npm run dev",
     "build": "cd backend && npm run build && cd ../frontend && npm run build",
     "test": "cd backend && npm test",
+    "db:sync": "cd backend && npm run db:sync",
     "db:seed": "cd backend && npm run db:seed"
   }
 }

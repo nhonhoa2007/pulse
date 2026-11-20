@@ -44,8 +44,8 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
         run: npm ci
-      - name: Sync Prisma schema
-        run: npx prisma db push
+      - name: Sync database schema and Vietnamese search index
+        run: npm run db:sync
       - name: Build (tsc)
         run: npm run build
       - name: Type check strict

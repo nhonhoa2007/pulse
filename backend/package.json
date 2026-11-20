@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "db:push": "prisma db push",
+    "db:sync": "node prisma/sync-database.mjs",
     "db:generate": "prisma generate",
     "db:seed": "node prisma/seed.mjs",
     "test": "NODE_OPTIONS=\"--import tsx --import ./tests/setup-env.mjs\" node --test --test-concurrency=1 tests/*.test.mjs"
