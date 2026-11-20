@@ -1,75 +1,97 @@
-# ⚡ Pulse - The Real-Time Microblogging Engine
+# Pulse — Real-Time Microblogging Engine
 
-A production-grade, distributed microblogging system inspired by **Meta Threads** and **Twitter/X**, engineered from scratch to solve real-world architectural bottlenecks: **Hybrid Fan-out Feed**, **High-Concurrency Atomic Invariants**, **Two-Way Social Graph Isolation**, and **ActivityStream Aggregation with Real-Time SSE**.
+Pulse là hệ thống microblogging dùng Fastify, PostgreSQL và React. Các luồng chính gồm hybrid fan-out feed, hội thoại nhiều cấp, tương tác nguyên tử, tài khoản riêng tư, ActivityPub, SSE, DM và PWA.
 
----
+## Stack
 
-## 🏗️ Technical Architecture & Core Invariants
+- Backend: Fastify 4, TypeScript, Prisma 5, PostgreSQL 16+
+- Frontend: React 18, Vite 5, Tailwind CSS 3, Lucide
+- Phiên đăng nhập: access token chỉ ở RAM; refresh token nằm trong cookie HttpOnly, SameSite Strict
+- Thời gian thực: Server-Sent Events bằng ticket dùng một lần
+- Kiểm thử: `node:test`, `node:assert/strict`, Playwright trên Chromium
 
-### 1. Hybrid Fan-Out Timeline Engine (The Million-Dollar Feed Problem)
-- **Fan-Out on Write (Push):** When a regular user (`isCelebrity: false`) publishes a post, the asynchronous worker pushes the `postId` into followers' pre-computed `TimelineInbox`. Fetching their feed takes $O(1)$ query time.
-- **Fan-Out on Read (Pull):** When a celebrity/KOL (`isCelebrity: true`, e.g. Sơn Tùng M-TP with millions of followers) publishes, the system skips inbox pushes to avoid **Write Amplification Storms**. Follower feeds pull celebrity posts on-demand and perform **K-Way Merge** sorted by timestamp in memory.
+## Thiết lập local
 
-### 2. High-Concurrency & Atomic Invariants
-- Likes and Reposts are protected against race conditions using composite keys (`UNIQUE(userId, postId)`) and PostgreSQL atomic increments:
-  ```sql
-  UPDATE "Post" SET "likesCount" = "likesCount" + 1 WHERE "id" = $id;
-  UPDATE "Post" SET "likesCount" = GREATEST(0, "likesCount" - 1) WHERE "id" = $id;
-  ```
-- Guaranteed zero counter drift even when 50+ concurrent requests hit simultaneously.
+Yêu cầu Node.js 22+, PostgreSQL và `psql` trong `PATH`.
 
-### 3. Two-Way Social Graph & Block Invariants
-- When User A blocks User B, an atomic transaction executes:
-  1. Purges two-way follow relationships (`A follows B` AND `B follows A`).
-  2. Purges two-way timeline inboxes (`A`'s inbox cleared of `B`'s posts, and vice-versa).
-  3. Records block entry in `Block`.
-  4. Enforces two-way privacy: neither party can view profiles, feeds, or mention each other (returns 404 / filtered).
+```bash
+git clone <repository-url>
+cd pulse
 
-### 4. Flattened Conversation Threading
-- Multi-tier replies (A → B → C) store `replyToId` and root conversation reference `rootPostId`.
-- Fetches the entire conversation hierarchy in **1 single SQL query** without recursive CTEs or N+1 bottlenecks.
+cd backend
+npm ci
+cp .env.example .env
+npm run db:sync
 
-### 5. Smart Notification Aggregation & Real-Time SSE
-- Implements **ActivityStreams 2.0** with 24-hour sliding aggregation window: *"Alice, Bob và 3 người khác đã thích bài viết của bạn"*.
-- Pushes live updates over native **Server-Sent Events (SSE)** (`GET /api/v1/realtime/stream`).
+cd ../frontend
+npm ci
+```
 
----
+`npm run db:sync` là lệnh thiết lập database chuẩn. Lệnh chạy `prisma db push`, sau đó áp dụng `backend/prisma/sql/pkg11-search-vector.sql` để tạo full-text search tiếng Việt. Quy trình dừng ngay nếu một trong hai bước lỗi. Không thay bằng `prisma db push` khi thiết lập CI hoặc môi trường mới.
 
-## 🛠️ Tech Stack
+Seed dữ liệu phát triển là thao tác tùy chọn và sẽ thay đổi dữ liệu hiện có:
 
-- **Backend:** Fastify 4.x + TypeScript + Prisma ORM + PostgreSQL 18.6
-- **Frontend:** React 18 + Vite + TailwindCSS (Dark aesthetic `#0a0a0a`) + Lucide Icons
-- **Real-Time:** Server-Sent Events (SSE) HTTP/2 compatible
-- **Testing:** Native `node:test` + `node:assert/strict` (Zero-config, < 700ms execution)
-
----
-
-## 🚀 Getting Started
-
-### 1. Database Setup & Seeding
 ```bash
 cd backend
-# Database is pre-configured on localhost:5432 with pulse_social
-npm run db:push
 npm run db:seed
 ```
 
-### 2. Run Tests
+## Chạy ứng dụng
+
 ```bash
+# Terminal 1 — http://localhost:3001
 cd backend
-npm test
+npm run dev
+
+# Terminal 2 — http://localhost:5173
+cd frontend
+npm run dev
 ```
 
-### 3. Start Backend & Frontend
-* Terminal 1 (Backend - Port 3001):
-  ```bash
-  cd backend
-  npm run dev
-  ```
-* Terminal 2 (Frontend - Port 5173):
-  ```bash
-  cd frontend
-  npm run dev
-  ```
-Open your browser at `http://localhost:5173`.
-Use the **Demo User Switcher** in the left sidebar to switch perspectives between Hoà Phùng, Alice, Bob, and Sơn Tùng M-TP to test live following, blocking, and feed fan-out!
+Các tài khoản và tiện ích demo chỉ xuất hiện trong development. Build production lấy feed, trending và phiên đăng nhập từ API thực.
+
+Trong production, đặt `CORS_ALLOWED_ORIGINS` thành danh sách origin đầy đủ, phân cách bằng dấu phẩy, ví dụ `https://pulse.example.com`. Cấu hình này được dùng cho CORS có credentials và kiểm tra nguồn gốc của refresh/logout; origin chưa khai báo sẽ bị từ chối.
+
+## Kiểm thử và build
+
+```bash
+# Backend
+cd backend
+npm run build
+npm test
+
+# Frontend unit/static checks
+cd frontend
+npm test
+npm run build
+
+# Browser tests ở 390 px, 768 px và 1440 px
+npm run test:e2e
+```
+
+Mốc kiểm chứng gần nhất, ngày 2026-10-14:
+
+- Backend: 460/460 pass trên database sạch được tạo bằng `db:sync`
+- Frontend: 12/12 pass
+- Browser: 21/21 pass trên ba viewport
+- Initial JavaScript: 84,47 KB gzip, dưới ngân sách 100 KB
+
+## Hợp đồng frontend quan trọng
+
+- Feed trả về `{ posts, nextCursor, isLocked? }`.
+- `ApiError` có `status` và `code`; lỗi mạng dùng code `NETWORK_ERROR`.
+- Home, For You, Explore và hồ sơ phân trang theo cursor, loại ID trùng và hủy kết quả cũ khi đổi ngữ cảnh.
+- Một phiên đăng nhập dùng một realtime transport; reconnect đóng stream cũ, xin ticket mới và backoff.
+- URL chia sẻ bài viết là `/post/:id`.
+
+## PWA và dữ liệu riêng tư
+
+Service worker được gắn version theo mỗi build và cache app shell cùng static assets. Điều hướng offline hiển thị `/offline.html`. API, upload, realtime, nội dung riêng tư và DM luôn dùng mạng và không được đưa vào Cache API. Push handler hiện có vẫn được giữ.
+
+## Roadmap ngoài đợt triển khai này
+
+- OAuth Google/GitHub và SMTP password reset sau khi có credentials thật
+- Kiểm thử Fediverse end-to-end với một instance ngoài
+- Redis pub/sub, BullMQ và S3 khi có nhu cầu scale ngang hoặc lưu trữ object
+
+Chi tiết kiến trúc nằm trong `SYSTEM_DESIGN.md`; trạng thái thực thi và số liệu kiểm chứng nằm trong [`docs/PROGRESS.md`](./docs/PROGRESS.md).

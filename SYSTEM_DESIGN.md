@@ -386,7 +386,7 @@ Toàn bộ test suite được viết bằng `node:test` + `node:assert/strict` 
 
 ## 7. HỆ THỐNG LIÊN HỢP ACTIVITYPUB (FEDIVERSE FEDERATION ENGINE)
 
-Chi tiết đặc tả kiến trúc toàn diện xem tại: [`docs/ACTIVITYPUB_ARCHITECTURE_SPEC.md`](./docs/ACTIVITYPUB_ARCHITECTURE_SPEC.md) và [`ACTIVITYPUB_SPEC.md`](./ACTIVITYPUB_SPEC.md).
+Chi tiết đặc tả kiến trúc toàn diện xem tại: [`docs/ACTIVITYPUB_ARCHITECTURE_SPEC.md`](./docs/ACTIVITYPUB_ARCHITECTURE_SPEC.md) và [`docs/ACTIVITYPUB_SPEC.md`](./docs/ACTIVITYPUB_SPEC.md).
 
 ### 7.1. Căn cứ Tiêu chuẩn & Tương thích
 * **W3C ActivityPub Recommendation (2018):** Inbox/Outbox model, Actor dereferencing.
@@ -618,4 +618,42 @@ Chi tiết đặc tả kiến trúc toàn diện xem tại: [`docs/ACTIVITYPUB_A
 ### 13.4. Hạ tầng kiểm thử & route (INF-01/02)
 - Test chạy **trực tiếp trên TypeScript** qua `tsx` (NODE_OPTIONS `--import tsx`), import `../src/**.ts` — không còn phụ thuộc `dist/` (chống stale-build).
 - Đăng ký route tập trung tại `src/routes/registerRoutes.ts` (`registerV1Routes` + `registerLegacyRootAliases` deprecated); `app.ts` chỉ còn bootstrap.
-- Nguồn số liệu test duy nhất: phụ lục `PLAN.md`.
+- Nguồn số liệu test duy nhất: phụ lục `docs/PLAN.md`.
+
+---
+
+## 14. CLIENT DATA, SESSION VÀ REALTIME LIFECYCLE
+
+### 14.1. Hợp đồng trang dữ liệu
+
+- Các feed client nhận `FeedPage = { posts, nextCursor, isLocked? }`; URL API và JSON envelope backend giữ nguyên.
+- Home Following, For You, Explore và profile dùng cursor. UI kích hoạt trang sau bằng `IntersectionObserver`, chỉ cho một request mỗi generation, loại post trùng theo `id` và bỏ response của tab/account cũ.
+- Cache UI được khóa theo account và view. Vị trí cuộn được lưu trước khi mở thread và khôi phục khi quay lại.
+- Mỗi màn hình phân biệt tải lần đầu, tải thêm, hết dữ liệu và lỗi có thể thử lại.
+
+### 14.2. Phiên đăng nhập trên browser
+
+- Access token là biến trong RAM của API core và không được ghi vào Web Storage.
+- Refresh token chỉ tồn tại trong cookie HttpOnly. Khi app mở, Auth context gọi refresh trước khi render consumer API.
+- Refresh 401 nghĩa là không còn phiên hợp lệ và app chuyển sang guest. Lỗi transport dùng `ApiError.code = NETWORK_ERROR`, giữ màn hình phục hồi có nút thử lại.
+- Khóa access token của phiên bản cũ được xóa khỏi `localStorage` trong bootstrap.
+
+### 14.3. Realtime transport
+
+- `RealtimeClient` dùng một `EventSource` vật lý và nhiều subscriber nội bộ cho một account.
+- Mọi lần reconnect đóng source cũ, gọi `POST /api/v1/realtime/ticket` để lấy ticket single-use mới, rồi mở stream với exponential backoff tối đa 30 giây.
+- Logout, xóa tài khoản hoặc account switch hủy timer và đóng source. Sự kiện bài mới chỉ bật badge để người dùng chủ động nạp, không thay scroll position.
+
+### 14.4. Biên context và API
+
+- Context được chia thành `AuthSessionContext`, `UiContext` và `RealtimeContext`; `usePulse` là façade tạm thời cho component chưa chuyển đổi.
+- API gồm `core.ts`, domain `FeedApi`, `RealtimeClient` và `PulseApiClient` façade. Mọi lỗi có `status` và `code` để UI phân loại session, network và server.
+
+## 15. FRONTEND DELIVERY VÀ PWA
+
+- Route-level views được tải bằng `React.lazy`. Ngân sách initial JavaScript là dưới 100 KB gzip; mốc kiểm chứng 2026-10-14 là 84,47 KB gzip.
+- Theme Light/Dark/OLED/System chỉ dùng semantic tokens cho paper/card/border/text/status colors.
+- Modal dùng dialog semantics, focus trap, Escape và focus restore. Toast dùng live region; global stylesheet có `:focus-visible` và `prefers-reduced-motion`.
+- Service worker nhận build ID từ Vite sau build, quản lý một cặp install/activate và xóa cache Pulse phiên bản cũ.
+- Chỉ app shell, offline page và static hashed assets được cache. `/api`, `/uploads`, `/.well-known`, realtime và DM luôn network-only để dữ liệu riêng tư không vào Cache API.
+- Push và notification click handler tiếp tục dùng cùng service worker; offline navigation trả trang `/offline.html` có thông báo rõ ràng.

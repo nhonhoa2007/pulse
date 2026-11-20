@@ -2,7 +2,7 @@
 
 **Chỉ huy:** Tech Lead & System Architect  
 **Nhân sự điều phối:** `backend-architect`, `frontend-specialist`, `qa-test-engineer`  
-**Trạng thái:** ✅ ĐÃ HOÀN THÀNH 100% & NGHIỆM THU
+**Trạng thái:** ✅ GIAI ĐOẠN CẢI THIỆN 2026-10 ĐÃ TRIỂN KHAI; HẠ TẦNG NGOÀI PHẠM VI NẰM Ở ROADMAP
 
 ---
 
@@ -267,7 +267,48 @@ Chạy ngày 2026-10-01, Node v26.8.1, PostgreSQL local (user postgres):
 
 ### GĐ 0 — Nền tảng quy trình (`IMPROVEMENT_PLAN_V2.md`): ✅ HOÀN THÀNH
 * [x] **OPS-01:** `git init` (branch `main`), `.gitignore` (loại `.env`, `dist/`, `uploads/`, `.idea/`, `node_modules/`), initial commit 221 files, branch làm việc `dev`, template `.env.example`.
-* [x] **OPS-02:** CI GitHub Actions tại `.github/workflows/ci.yml` — job `backend` (PostgreSQL 16 service container → `prisma db push` → `npm run build` → `tsc --noEmit` → `npm test`) + job `frontend` (`npm run build` + `npm test`), Node 22, cache npm, bắt buộc xanh trước merge vào `main`.
+* [x] **OPS-02:** CI GitHub Actions tại `.github/workflows/ci.yml` — job `backend` (PostgreSQL 16 service container → `npm run db:sync` → build/typecheck/test) + job `frontend` (build/unit → Playwright Chromium ở 390/768/1440 px), Node 22, cache npm.
+
+---
+
+## GIAI ĐOẠN 9: ĐỘ TIN CẬY DỮ LIỆU VÀ FRONTEND THỰC TẾ (2026-10-14)
+
+### 9.1. Đúng dữ liệu và ổn định
+
+* [x] Trending chỉ tổng hợp hashtag từ bài còn tồn tại, tác giả công khai, chưa xóa và có trạng thái `ACTIVE`; test bao phủ đổi public/private và soft delete.
+* [x] Chuẩn hóa `npm run db:sync`: `prisma db push` rồi áp dụng SQL `search_vector` bằng `psql`, fail-fast; CI và README dùng cùng lệnh.
+* [x] Cô lập hàng đợi ActivityPub trong test và đặt `nextRunAt` theo thời gian Node để tránh lệch clock DB/worker; suite riêng đạt 5 vòng liên tiếp.
+* [x] Realtime client giữ một transport cho mỗi tài khoản, đóng stream trước khi reconnect, xin ticket mới, exponential backoff và dừng khi logout/đổi tài khoản.
+
+### 9.2. Luồng sử dụng thật
+
+* [x] Hợp đồng feed frontend là `{ posts, nextCursor, isLocked? }`; Home, For You, Explore và profile có cursor pagination, IntersectionObserver, chống request/ID trùng, generation guard và trạng thái loading/end/error/retry.
+* [x] Access token chỉ lưu trong RAM. App khôi phục phiên từ refresh cookie HttpOnly trước các API cần đăng nhập, phân biệt refresh hết hạn với lỗi mạng và xóa khóa token cũ trong `localStorage`.
+* [x] Link chia sẻ dùng `/post/:id`; trending lấy từ API; dữ liệu/nút demo chỉ được tạo trong development và bị loại khỏi production bundle.
+* [x] Like/Repost dùng optimistic update, khóa nút khi gửi và rollback nếu lỗi ở feed và trang hội thoại.
+
+### 9.3. Chất lượng frontend
+
+* [x] Điều hướng mobile có hồ sơ và Theme Switcher; Light/Dark/OLED/System dùng semantic color tokens.
+* [x] Modal hỗ trợ Escape, focus trap và trả focus; vùng tương tác dùng button/link; toast dùng `aria-live`; có focus-visible, nhãn icon và reduced motion.
+* [x] Lazy-load route, tách Auth/UI/Realtime contexts và tách API core/feed/realtime nhưng giữ `PulseApiClient` façade tương thích.
+* [x] Initial JavaScript production đạt 84,47 KB gzip, dưới ngân sách 100 KB.
+* [x] Service worker có build version, một install/activate flow, offline page; API/upload/realtime/DM luôn network-only; push handler và manifest icon được giữ.
+* [x] Playwright bao phủ khôi phục/login, phân trang, share URL, reconnect ticket, mobile navigation/theme, keyboard modal, lỗi/retry và offline ở 390/768/1440 px.
+
+### 9.4. Cổng kiểm chứng
+
+* [x] Backend: 460/460 pass trên database sạch tạo bằng `db:sync`.
+* [x] ActivityPub federation: 5 vòng liên tiếp, mỗi vòng 40/40 pass.
+* [x] Frontend module tests: 12/12 pass.
+* [x] Browser: 21/21 pass, gồm 7 kịch bản × 3 viewport; phân trang được chạy trên For You, Following, Explore và Profile.
+
+## ROADMAP TÁCH RIÊNG — CHƯA TRIỂN KHAI TRONG GIAI ĐOẠN 9
+
+* [ ] OAuth Google/GitHub và SMTP password reset khi có credentials thật.
+* [ ] Fediverse end-to-end với một instance độc lập và cấu hình public URL/TLS.
+* [ ] Redis pub/sub, BullMQ worker và S3/object storage khi có yêu cầu scale thực tế.
+* [ ] Kiểm chứng deployment riêng khi có cấu hình hosting; kết quả local/CI không được xem là bằng chứng production deployment.
 
 
 

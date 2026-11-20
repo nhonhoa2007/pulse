@@ -8,7 +8,7 @@ Tài liệu này là quy ước làm việc chuẩn mực giữa các Bot chuyê
 ---
 
 ## 1. NGUYÊN TẮC BẤT BIẾN CHUNG (GENERAL INVARIANTS)
-1. **Source of Truth:** Mọi hành động lập trình phải tuân thủ nghiêm ngặt theo `SYSTEM_DESIGN.md` và `PLAN.md`.
+1. **Source of Truth:** Mọi hành động lập trình phải tuân thủ nghiêm ngặt theo `SYSTEM_DESIGN.md` và `docs/PLAN.md`.
 2. **Phân ranh giới thư mục tuyệt đối:**
    * `backend-architect` chỉ làm việc trong `backend/src/`, `backend/prisma/`.
    * `frontend-specialist` chỉ làm việc trong `frontend/src/`, `frontend/public/`.
@@ -34,7 +34,7 @@ Tài liệu này là quy ước làm việc chuẩn mực giữa các Bot chuyê
 ---
 
 ## 3. QUY ƯỚC DÀNH CHO `frontend-specialist`
-1. **Design Theme:** Giao diện tối giản chuẩn phong cách Threads (hiện hành: Threads Paper White `#fafafa`, viền `#d5d5d5`, text `#000000`) và sẵn sàng mở rộng Dark/OLED/System Switcher theo lộ trình `improve.md` (PKG-02).
+1. **Design Theme:** Giao diện tối giản chuẩn phong cách Threads (hiện hành: Threads Paper White `#fafafa`, viền `#d5d5d5`, text `#000000`) và sẵn sàng mở rộng Dark/OLED/System Switcher theo lộ trình `docs/improve.md` (PKG-02).
 2. **Interactive Optimistic UI & Toast Feedback:**
    * Thao tác Like/Unlike và Repost phản hồi ngay lập tức trên giao diện (Optimistic update), nếu server lỗi thì rollback.
    * Nút bấm có trạng thái loading/disabled để chống bấm liên tiếp (double-submit).
