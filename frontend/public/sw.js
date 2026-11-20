@@ -1,13 +1,73 @@
-/**
- * Pulse Service Worker - Standards-compliant Web Push Notifications (RFC 8030 / RFC 8292)
- */
+/** Pulse service worker: versioned app shell, offline fallback and Web Push. */
+const BUILD_ID = '__PULSE_BUILD_ID__';
+const APP_SHELL_CACHE = `pulse-shell-${BUILD_ID}`;
+const STATIC_CACHE = `pulse-static-${BUILD_ID}`;
+const APP_SHELL_ASSETS = [
+  '/',
+  '/offline.html',
+  '/manifest.webmanifest',
+  '/pwa-icon.svg',
+  '/pwa-icon-maskable.svg',
+];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches
+      .open(APP_SHELL_CACHE)
+      .then((cache) => cache.addAll(APP_SHELL_ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key.startsWith('pulse-') && key !== APP_SHELL_CACHE && key !== STATIC_CACHE)
+          .map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Private and mutable data is network-only and is never written to Cache API.
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/uploads/') ||
+    url.pathname.startsWith('/.well-known/') ||
+    url.pathname === '/realtime/stream' ||
+    url.pathname === '/inbox'
+  ) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        return (await caches.match('/offline.html')) || Response.error();
+      })
+    );
+    return;
+  }
+
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy)));
+        }
+        return response;
+      }))
+    );
+  }
 });
 
 self.addEventListener('push', (event) => {
@@ -16,123 +76,42 @@ self.addEventListener('push', (event) => {
   let payload = {
     title: 'Pulse',
     body: 'Bạn có tương tác mới trên Pulse',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/pwa-icon.svg',
+    badge: '/pwa-icon.svg',
     url: '/',
   };
 
   try {
     const json = event.data.json();
     payload = {
-      title: json.title || 'Pulse',
+      ...payload,
+      title: json.title || payload.title,
       body: json.body || json.content || 'Bạn có thông báo mới',
-      icon: json.icon || '/favicon.ico',
-      badge: json.badge || '/favicon.ico',
+      icon: json.icon || payload.icon,
+      badge: json.badge || payload.badge,
       url: json.url || json.targetUrl || '/',
-      data: json,
     };
   } catch {
     payload.body = event.data.text();
   }
 
-  const options = {
+  event.waitUntil(self.registration.showNotification(payload.title, {
     body: payload.body,
     icon: payload.icon,
     badge: payload.badge,
-    data: {
-      url: payload.url,
-    },
+    data: { url: payload.url },
     vibrate: [100, 50, 100],
-  };
-
-  event.waitUntil(self.registration.showNotification(payload.title, options));
+  }));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const urlToOpen = event.notification.data?.url || '/';
-
+  const target = new URL(event.notification.data?.url || '/', self.location.origin).href;
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (const client of windowClients) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(urlToOpen);
-      }
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const existing = clients.find((client) => client.url === target);
+      if (existing && 'focus' in existing) return existing.focus();
+      return self.clients.openWindow ? self.clients.openWindow(target) : undefined;
     })
   );
-});
-
-// ================= PKG-12: PWA Offline Shell =================
-// Static app shell: cache-first (đổi theo build → bump version khi deploy bản mới).
-const APP_SHELL_CACHE = 'pulse-shell-v1';
-const APP_SHELL_ASSETS = ['/', '/manifest.webmanifest', '/pwa-icon.svg', '/pwa-icon-maskable.svg'];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(APP_SHELL_CACHE).then((cache) => cache.addAll(APP_SHELL_ASSETS)).then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== APP_SHELL_CACHE && k.startsWith('pulse-')).map((k) => caches.delete(k)))
-      )
-      .then(() => self.clients.claim())
-  );
-});
-
-// Static assets (hashed bởi Vite): cache-first vô thời hạn.
-self.addEventListener('fetch', (event) => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
-
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-
-  // Không đụng vào API/SSE/uploads — luôn đi mạng.
-  if (
-    url.pathname.startsWith('/api/') ||
-    url.pathname.startsWith('/uploads/') ||
-    url.pathname.startsWith('/.well-known/') ||
-    url.pathname === '/realtime/stream' ||
-    url.pathname === '/inbox'
-  ) {
-    return;
-  }
-
-  // Document navigation: network-first, fallback app shell "/" khi offline.
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(APP_SHELL_CACHE).then((cache) => cache.put('/', copy)).catch(() => {});
-          return response;
-        })
-        .catch(() => caches.match('/'))
-    );
-    return;
-  }
-
-  // Hashed static assets (/assets/): cache-first.
-  if (url.pathname.startsWith('/assets/')) {
-    event.respondWith(
-      caches.match(request).then(
-        (cached) =>
-          cached ||
-          fetch(request).then((response) => {
-            const copy = response.clone();
-            caches.open(APP_SHELL_CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
-            return response;
-          })
-      )
-    );
-  }
 });

@@ -72,3 +72,7 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm test
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+      - name: Run browser tests (390px, 768px, 1440px)
+        run: npm run test:e2e

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#385898" />
+    <title>Pulse đang ngoại tuyến</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+      body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: Canvas; color: CanvasText; }
+      main { max-width: 28rem; padding: 2rem; text-align: center; }
+      img { width: 4rem; height: 4rem; }
+      p { color: GrayText; line-height: 1.5; }
+      button { border: 1px solid GrayText; border-radius: 999px; padding: .65rem 1rem; background: CanvasText; color: Canvas; font: inherit; font-weight: 600; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/pwa-icon.svg" alt="" />
+      <h1>Bạn đang ngoại tuyến</h1>
+      <p>Pulse cần kết nối mạng để tải bảng tin, tin nhắn và dữ liệu tài khoản mới nhất.</p>
+      <button type="button" onclick="location.reload()">Thử kết nối lại</button>
+    </main>
+  </body>
+</html>
