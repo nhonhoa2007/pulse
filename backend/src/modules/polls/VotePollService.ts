@@ -12,10 +12,23 @@ export class VotePollService {
 
     try {
       const poll = await prisma.$transaction(async (tx) => {
-        const where = { id: pollId, post: visiblePostWhere(userId) };
-        const current = await tx.poll.findFirst({ where, include: { choices: true } });
-        if (!current) {
+        const current = await tx.poll.findFirst({
+          where: { id: pollId },
+          include: {
+            choices: true,
+            post: { select: { id: true, isDeleted: true, author: { select: { isDeleted: true } } } },
+          },
+        });
+        if (!current || !current.post || !current.postId || current.post.isDeleted || current.post.author.isDeleted) {
           throw Object.assign(new Error('Poll not found'), { statusCode: 404, code: 'POLL_NOT_FOUND' });
+        }
+        const where = { id: pollId, post: visiblePostWhere(userId) };
+        const visiblePost = await tx.post.findFirst({
+          where: { id: current.postId, ...visiblePostWhere(userId) },
+          select: { id: true },
+        });
+        if (!visiblePost) {
+          throw Object.assign(new Error('Forbidden'), { statusCode: 403, code: 'FORBIDDEN' });
         }
         const index = input.choiceIndex ?? input.choice_index;
         const id = input.choiceId ?? input.choice_id;

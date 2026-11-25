@@ -10,6 +10,16 @@ export class ClosePollEarlyService {
       throw Object.assign(new Error('Authentication required'), { statusCode: 401, code: 'UNAUTHORIZED' });
     }
     const poll = await prisma.$transaction(async (tx) => {
+      const existing = await tx.poll.findFirst({
+        where: { id: pollId },
+        select: { id: true, post: { select: { authorId: true, isDeleted: true } } },
+      });
+      if (!existing || !existing.post || existing.post.isDeleted) {
+        throw Object.assign(new Error('Poll not found'), { statusCode: 404, code: 'POLL_NOT_FOUND' });
+      }
+      if (existing.post.authorId !== userId) {
+        throw Object.assign(new Error('Only the poll author can close it early'), { statusCode: 403, code: 'FORBIDDEN' });
+      }
       const changed = await tx.poll.updateMany({
         where: { id: pollId, post: { ...visiblePostWhere(userId), authorId: userId } },
         data: { isActive: false, expiresAt: new Date() },
