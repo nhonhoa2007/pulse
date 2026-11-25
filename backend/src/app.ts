@@ -154,7 +154,21 @@ export async function buildApp(options: FastifyServerOptions = {}): Promise<Fast
               where: { id: decoded.userId },
               select: { isDeleted: true, accountStatus: true },
             });
-            if (!user || user.isDeleted || user.accountStatus !== 'ACTIVE') {
+            if (!user || user.isDeleted) {
+              reply.status(401).send({
+                success: false,
+                error: { code: 'ACCOUNT_INACTIVE', message: 'Account is unavailable' },
+              });
+              return reply;
+            }
+            if (user.accountStatus === 'SUSPENDED') {
+              reply.status(403).send({
+                success: false,
+                error: { code: 'ACCOUNT_SUSPENDED', message: 'Tài khoản đã bị đình chỉ' },
+              });
+              return reply;
+            }
+            if (user.accountStatus !== 'ACTIVE') {
               reply.status(401).send({
                 success: false,
                 error: { code: 'ACCOUNT_INACTIVE', message: 'Account is unavailable' },
