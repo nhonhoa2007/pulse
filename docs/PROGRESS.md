@@ -6,7 +6,7 @@
 
 | Chỉ số | Kết quả đã kiểm chứng |
 |---|---:|
-| Backend | 460/460 pass trên PostgreSQL sạch |
+| Backend | 462/462 pass trên PostgreSQL sạch |
 | ActivityPub lặp riêng | 5 vòng × 40/40 pass |
 | Frontend module tests | 12/12 pass |
 | Browser tests | 21/21 pass, 7 kịch bản × 3 viewport |
@@ -53,7 +53,7 @@
 ## Kiểm chứng còn phải chạy trước khi đóng đợt
 
 - [x] Playwright 21/21, gồm lỗi feed/retry và phân trang trên mọi feed chính.
-- [x] Chạy lại backend build và toàn bộ 460 tests trên code cuối.
+- [x] Chạy lại backend build và toàn bộ 462 tests trên code cuối.
 - [x] `git diff --check` và audit yêu cầu theo từng bullet.
 
 ## Roadmap ngoài phạm vi
