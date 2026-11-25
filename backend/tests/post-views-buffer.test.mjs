@@ -218,13 +218,12 @@ test('TASK-20 Pillar 2: Post Views & Impressions Buffer Service and Endpoints Su
     postImpressionsBufferService.clearDeduplicationCache();
     await postImpressionsBufferService.flush();
 
-    // 50 distinct clients
+    // 50 distinct clients (anonymous via distinct X-Forwarded-For IPs)
     const concurrentRequests = Array.from({ length: 50 }, (_, i) =>
       app.inject({
         method: 'POST',
         url: '/api/v1/posts/views',
         headers: {
-          ...authHeaders(`conc_viewer_${timestamp}_${i}`),
           'x-forwarded-for': `10.200.${Math.floor(i / 250)}.${i % 250}`,
         },
         payload: { postIds: [concPost.id] },

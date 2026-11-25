@@ -598,7 +598,7 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
     assert.equal(resDupPoll.statusCode, 409);
     assert.equal(resDupPoll.json().error.code, 'POLL_ALREADY_EXISTS');
 
-    // 10.6 Auto-create post when non-existent postId is provided
+    // 10.6 Non-existent postId is rejected with 404 POST_NOT_FOUND
     const newPostId = `custom-post-${timestamp}`;
     const resAutoPost = await app.inject({
       method: 'POST',
@@ -610,8 +610,8 @@ test('Interactive Polls: Full Lifecycle, Concurrency, Real-time SSE & Expiration
         choices: ['Choice 1', 'Choice 2'],
       },
     });
-    assert.equal(resAutoPost.statusCode, 201);
-    assert.equal(resAutoPost.json().data.postId, newPostId);
+    assert.equal(resAutoPost.statusCode, 404);
+    assert.equal(resAutoPost.json().error.code, 'POST_NOT_FOUND');
 
     // 10.7 Vote without user authentication returns 401
     const resNoAuthVote = await app.inject({

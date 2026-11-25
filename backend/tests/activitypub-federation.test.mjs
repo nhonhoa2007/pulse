@@ -1554,10 +1554,10 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
 
       const jobId = await activityDeliveryWorkerService.queueDelivery({
         activityId: `http://${testDomain}/activities/test_retry_${timestamp}`,
-        activityType: 'Create',
+        activityType: 'Accept',
         actorUri: `http://${testDomain}/users/${alice.username}`,
         targetInboxUrl: failInboxUrl,
-        payload: { type: 'Create' },
+        payload: { type: 'Accept', object: `http://${testDomain}/follow/${timestamp}` },
         maxAttempts: 3,
       });
 
@@ -1613,10 +1613,10 @@ test('ActivityPub & Fediverse Comprehensive Suite: WebFinger, Dual Actor, HTTP S
 
     const jobId = await activityDeliveryWorkerService.queueDelivery({
       activityId: `http://${testDomain}/activities/test_net_fail_${timestamp}`,
-      activityType: 'Create',
+      activityType: 'Accept',
       actorUri: `http://${testDomain}/users/${alice.username}`,
       targetInboxUrl: deadInboxUrl,
-      payload: { type: 'Create' },
+      payload: { type: 'Accept', object: `http://${testDomain}/follow/net_${timestamp}` },
       maxAttempts: 5,
     });
 

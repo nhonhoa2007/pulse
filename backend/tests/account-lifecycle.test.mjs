@@ -112,7 +112,7 @@ test('PKG-10: delete account scrubs social graph, counters, tokens, pushes atomi
   await app.close();
 });
 
-test('PKG-10: double delete returns 404 (idempotent-safe)', async () => {
+test('PKG-10: double delete returns 401 (deleted session blocked)', async () => {
   const app = await buildApp();
   const user = await createUser('lifecycle_dbl');
   const h = authHeaders(user.id, user.username);
@@ -121,7 +121,7 @@ test('PKG-10: double delete returns 404 (idempotent-safe)', async () => {
   assert.equal(first.statusCode, 200);
 
   const second = await app.inject({ method: 'DELETE', url: '/api/v1/users/me', headers: h });
-  assert.equal(second.statusCode, 404);
+  assert.equal(second.statusCode, 401);
   await app.close();
 });
 
